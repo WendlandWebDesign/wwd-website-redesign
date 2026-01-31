@@ -1,0 +1,121 @@
+:root{
+    --bg-clr: #191919;
+    --heading-clr: #2e2e2e;
+    --card-clr: #202020;
+    --dark: #191919;
+    --txt: #626262;
+    --light: #ececec;
+    --lighter: #ffffff;
+    --ac-clr: #0097b2;
+    --hover: #d1d1d1;
+
+    --small-radius: 5px;
+    --big-radius: 20px;
+
+    --site-padding: 0 1em;
+    --default-padding: 1em;
+    --card-padding: 10px;
+}
+
+html,
+body{
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-clr);
+}
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    text-decoration: none;
+    list-style: none;
+    font-family: 'Montserrat', sans-serif;
+}
+
+
+
+.mw{
+    max-width: 1500px;
+}
+
+
+
+
+/* fonts */
+
+
+
+
+/* font-sizes */
+
+
+
+
+/* font colors */
+    .light{
+        color: var(--lighter);
+    }
+    .default{
+        color: var(--txt);
+    }
+    .dark{
+        color: var(--dark);
+    }
+
+
+
+
+
+/* buttons */
+.btn{
+    padding: 8px 20px;
+    position: relative;
+    background: transparent;
+    outline: 0;
+    border: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+}
+.btn p{
+    display: flex;
+    align-items: center;
+}
+.btn p img{
+    margin-right: 5px;
+    width: 20px !important;
+    height: auto !important;
+}
+
+.btn span{
+    background-color: var(--ac-clr);
+    position: absolute;
+}
+.btn span:nth-of-type(1){
+    left: 0;
+    top: 0;
+    width: 2px;
+    height: 50%;
+}
+.btn span:nth-of-type(2){
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 2px;
+}
+.btn span:nth-of-type(3){
+    right: 0;
+    bottom: 0;
+    width: 2px;
+    height: 50%;
+}
+.btn span:nth-of-type(4){
+    bottom: 0;
+    right: 0;
+    width: 60%;
+    height: 2px;
+}
+
+/* transitions */
