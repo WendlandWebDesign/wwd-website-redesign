@@ -99,8 +99,6 @@ add_filter( 'script_loader_tag', 'wwd_website_redesign_defer_scripts', 10, 2 );
 
 
 
- * 3) Callback: HTML-Formular + Speicherung (wie Vorlage: POST + Nonce + update_option)
- */
 function wwd_seitenbilder_callback() {
 
     if (!current_user_can('manage_options')) {
