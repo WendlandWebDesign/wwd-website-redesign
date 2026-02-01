@@ -387,6 +387,7 @@ nav{
     z-index: 110;
     transform: scaleX(-1);
     display: none;
+    cursor: pointer;
 }
 .back-btn-wrapper:hover{
     background-color: var(--hover);
@@ -395,7 +396,6 @@ nav{
     width: 100%;
     height: auto;
     position: relative;
-    cursor: pointer;
 }
 
 @media(max-width: 640px){
