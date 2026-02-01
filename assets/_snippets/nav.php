@@ -7,20 +7,20 @@
                 <span class="bar"></span>
                 <span class="bar"></span>
             </div>
-            <p class="light">MenÃ¼</p>
+            <p class="light">Menü</p>
         </div>
-        <div class="logo-holder" onclick="window.location.href='index.php'">
+        <a class="logo-holder" href="<?php echo esc_url( home_url( '/' ) ); ?>">
             <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/logo.svg' ); ?>" alt="Wendland Web Design">
-        </div>
+        </a>
         <div class="nav-right">
             <img class="icon icon--phone" onclick="" src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/phone.svg' ); ?>" alt="" aria-hidden="true">
-            <button class="btn light" onclick="window.location.href='kontakt.php'">
+            <a class="btn light" href="<?php echo esc_url( home_url( '/kontakt/' ) ); ?>">
                 <span></span>
                 <span></span>
                 <span></span>
                 <span></span>
                 <p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>Kontakt</p>
-            </button>
+            </a>
         </div>
         <div class="nav-list-wrapper">
             <div class="close-btn-wrapper">
@@ -40,13 +40,13 @@
                         <p class="dark"><?php echo wwd_inline_svg( 'arrow-191919.svg', array( 'class' => 'arrow', 'aria_hidden' => true ) ); ?>Referenzen</p>
                         <?php echo wwd_inline_svg( 'mini-arrow.svg', array( 'class' => 'mini-arrow', 'aria_hidden' => true ) ); ?>
                     </li>
-                    <li class="list-left-item"><p class="dark">KI Integration</p></li>
+                    <li class="list-left-item"><a class="dark" href="<?php echo esc_url( home_url( '/ki-integration/' ) ); ?>">KI Integration</a></li>
                     <li class="list-left-item expand-right" data-nav-target="news">
                         <p class="dark"><?php echo wwd_inline_svg( 'arrow-191919.svg', array( 'class' => 'arrow', 'aria_hidden' => true ) ); ?>News</p>
                         <?php echo wwd_inline_svg( 'mini-arrow.svg', array( 'class' => 'mini-arrow', 'aria_hidden' => true ) ); ?>
                     </li>
-                    <li class="list-left-item"><p class="dark">Ãœber uns</p></li>
-                    <li class="list-left-item"><p class="dark">Kontakt</p></li>
+                    <li class="list-left-item"><a class="dark" href="<?php echo esc_url( home_url( '/ueber-uns/' ) ); ?>">Über uns</a></li>
+                    <li class="list-left-item"><a class="dark" href="<?php echo esc_url( home_url( '/kontakt/' ) ); ?>">Kontakt</a></li>
                 </ul>
 
 
@@ -60,7 +60,7 @@
                             </div>
                             <div class="list-right-content-wrapper">
                                 <div class="right-buttons">
-                                    <a class="dark" href="dienstleistungen.php">Alle Dienstleistungen <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
+                                    <a class="dark" href="<?php echo esc_url( home_url( '/dienstleistungen/' ) ); ?>">Alle Dienstleistungen <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
                                 </div>
                                 <div class="right-cards">
                                     <div class="nav-card">
@@ -87,7 +87,7 @@
                             </div>
                             <div class="list-right-content-wrapper">
                                 <div class="right-buttons">
-                                    <a class="dark" href="dienstleistungen.php">Alle Dienstleistungen <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
+                                    <a class="dark" href="<?php echo esc_url( home_url( '/referenzen/' ) ); ?>">Alle Referenzen <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
                                 </div>
                                 <div class="right-cards">
                                     <div class="nav-card">
@@ -114,7 +114,7 @@
                             </div>
                             <div class="list-right-content-wrapper">
                                 <div class="right-buttons">
-                                    <a class="dark" href="dienstleistungen.php">Alle Dienstleistungen <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
+                                    <a class="dark" href="<?php echo esc_url( home_url( '/news/' ) ); ?>">Alle News <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
                                 </div>
                                 <div class="right-cards">
                                     <div class="nav-card">

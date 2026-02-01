@@ -179,6 +179,9 @@ nav{
 .list-left-item:first-of-type{
     margin-top: 60px;
 }
+.list-left-item:last-of-type{
+    margin-bottom: 10px;
+}
 .list-left-item{
     cursor: pointer;
     transition: all .3s ease;
@@ -333,13 +336,13 @@ nav{
 
 
 .top-bar{
-    display: none;
+
     width: 100%;
     min-height: 60px !important;
     position: sticky;
     top: 0;
     left: 0;
-    background-color: var(--lighter);
+    background-color: var(--light);
     z-index: 103;
 }
 .back-btn-wrapper{
@@ -353,6 +356,7 @@ nav{
     transition: all .3s ease;
     z-index: 110;
     transform: scaleX(-1);
+    display: none;
 }
 .back-btn-wrapper:hover{
     background-color: var(--hover);
@@ -366,9 +370,11 @@ nav{
 
 @media(max-width: 640px){
     .top-bar{
+        background-color: var(--lighter);
+    }
+    .back-btn-wrapper{
         display: inherit;
     }
-
 
     .nav-list-wrapper,
     .list-left,
