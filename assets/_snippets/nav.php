@@ -63,18 +63,33 @@
                                     <a class="dark" href="<?php echo esc_url( home_url( '/dienstleistungen/' ) ); ?>">Alle Dienstleistungen <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
                                 </div>
                                 <div class="right-cards">
-                                    <div class="nav-card">
-                                        <div class="card-img-holder">
-                                            <img class="card-img" src="img/placeholder.jpg" alt="">
-                                        </div>
-                                        <p class="dark">Webangebote <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
-                                    </div>
-                                    <div class="nav-card">
-                                        <div class="card-img-holder">
-                                            <img class="card-img" src="img/placeholder.jpg" alt="">
-                                        </div>
-                                        <p class="dark">KI-Angebote <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
-                                    </div>
+                                    <?php
+                                    $dienstleistungen_query = wwd_get_nav_dienstleistungen_query();
+                                    if ( $dienstleistungen_query->have_posts() ) :
+                                        while ( $dienstleistungen_query->have_posts() ) :
+                                            $dienstleistungen_query->the_post();
+                                            ?>
+                                            <div class="nav-card nav-card--overlay">
+                                                <div class="card-img-holder">
+                                                    <?php
+                                                    if ( has_post_thumbnail() ) {
+                                                        echo wp_get_attachment_image( get_post_thumbnail_id(), 'medium', false, array( 'class' => 'card-img' ) );
+                                                    } else {
+                                                        ?>
+                                                        <div class="nav-card__placeholder"></div>
+                                                        <?php
+                                                    }
+                                                    ?>
+                                                </div>
+                                                <div class="nav-card__overlay">
+                                                    <p><?php echo esc_html( get_the_title() ); ?></p>
+                                                </div>
+                                            </div>
+                                            <?php
+                                        endwhile;
+                                        wp_reset_postdata();
+                                    endif;
+                                    ?>
                                 </div>
                             </div>
                         </div>
@@ -90,18 +105,31 @@
                                     <a class="dark" href="<?php echo esc_url( home_url( '/referenzen/' ) ); ?>">Alle Referenzen <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
                                 </div>
                                 <div class="right-cards">
-                                    <div class="nav-card">
-                                        <div class="card-img-holder">
-                                            <img class="card-img" src="img/placeholder.jpg" alt="">
-                                        </div>
-                                        <p class="dark">Hummeln <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
-                                    </div>
-                                    <div class="nav-card">
-                                        <div class="card-img-holder">
-                                            <img class="card-img" src="img/placeholder.jpg" alt="">
-                                        </div>
-                                        <p class="dark">Bienen <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
-                                    </div>
+                                    <?php
+                                    $referenzen_query = wwd_get_nav_referenzen_query();
+                                    if ( $referenzen_query->have_posts() ) :
+                                        while ( $referenzen_query->have_posts() ) :
+                                            $referenzen_query->the_post();
+                                            ?>
+                                            <div class="nav-card">
+                                                <div class="card-img-holder">
+                                                    <?php
+                                                    if ( has_post_thumbnail() ) {
+                                                        echo wp_get_attachment_image( get_post_thumbnail_id(), 'medium', false, array( 'class' => 'card-img' ) );
+                                                    } else {
+                                                        ?>
+                                                        <div class="nav-card__placeholder nav-card__placeholder--light"></div>
+                                                        <?php
+                                                    }
+                                                    ?>
+                                                </div>
+                                                <p class="dark"><?php echo esc_html( get_the_title() ); ?></p>
+                                            </div>
+                                            <?php
+                                        endwhile;
+                                        wp_reset_postdata();
+                                    endif;
+                                    ?>
                                 </div>
                             </div>
                         </div>
@@ -117,18 +145,33 @@
                                     <a class="dark" href="<?php echo esc_url( home_url( '/news/' ) ); ?>">Alle News <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
                                 </div>
                                 <div class="right-cards">
-                                    <div class="nav-card">
-                                        <div class="card-img-holder">
-                                            <img class="card-img" src="img/placeholder.jpg" alt="">
-                                        </div>
-                                        <p class="dark">Nagetiere <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
-                                    </div>
-                                    <div class="nav-card">
-                                        <div class="card-img-holder">
-                                            <img class="card-img" src="img/placeholder.jpg" alt="">
-                                        </div>
-                                        <p class="dark">Hornissen <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
-                                    </div>
+                                    <?php
+                                    $news_query = wwd_get_news_query();
+                                    if ( $news_query->have_posts() ) :
+                                        while ( $news_query->have_posts() ) :
+                                            $news_query->the_post();
+                                            ?>
+                                            <div class="nav-card nav-card--overlay">
+                                                <div class="card-img-holder">
+                                                    <?php
+                                                    if ( has_post_thumbnail() ) {
+                                                        echo wp_get_attachment_image( get_post_thumbnail_id(), 'medium', false, array( 'class' => 'card-img' ) );
+                                                    } else {
+                                                        ?>
+                                                        <div class="nav-card__placeholder"></div>
+                                                        <?php
+                                                    }
+                                                    ?>
+                                                </div>
+                                                <div class="nav-card__overlay">
+                                                    <p><?php echo esc_html( get_the_title() ); ?></p>
+                                                </div>
+                                            </div>
+                                            <?php
+                                        endwhile;
+                                        wp_reset_postdata();
+                                    endif;
+                                    ?>
                                 </div>
                             </div>
                         </div>

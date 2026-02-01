@@ -97,6 +97,153 @@ function wwd_website_redesign_defer_scripts( $tag, $handle ) {
 add_filter( 'script_loader_tag', 'wwd_website_redesign_defer_scripts', 10, 2 );
 
 /**
+ * Custom Post Types
+ */
+function wwd_register_cpts() {
+	$common_supports = array( 'title', 'thumbnail', 'editor', 'page-attributes' );
+
+	register_post_type(
+		'nav_dienstleistungen',
+		array(
+			'labels' => array(
+				'name'          => 'Nav Dienstleistungen',
+				'singular_name' => 'Nav Dienstleistung',
+				'add_new_item'  => 'Neue Nav Dienstleistung',
+				'edit_item'     => 'Nav Dienstleistung bearbeiten',
+				'view_item'     => 'Nav Dienstleistung ansehen',
+				'search_items'  => 'Nav Dienstleistungen durchsuchen',
+			),
+			'public'       => true,
+			'has_archive'  => false,
+			'show_in_rest' => true,
+			'rewrite'      => array( 'slug' => 'nav-dienstleistungen' ),
+			'supports'     => $common_supports,
+			'menu_icon'    => 'dashicons-menu',
+		)
+	);
+
+	register_post_type(
+		'nav_referenzen',
+		array(
+			'labels' => array(
+				'name'          => 'Nav Referenzen',
+				'singular_name' => 'Nav Referenz',
+				'add_new_item'  => 'Neue Nav Referenz',
+				'edit_item'     => 'Nav Referenz bearbeiten',
+				'view_item'     => 'Nav Referenz ansehen',
+				'search_items'  => 'Nav Referenzen durchsuchen',
+			),
+			'public'       => true,
+			'has_archive'  => false,
+			'show_in_rest' => true,
+			'rewrite'      => array( 'slug' => 'nav-referenzen' ),
+			'supports'     => $common_supports,
+			'menu_icon'    => 'dashicons-images-alt2',
+		)
+	);
+
+	register_post_type(
+		'news',
+		array(
+			'labels' => array(
+				'name'          => 'News',
+				'singular_name' => 'News',
+				'add_new_item'  => 'Neue News',
+				'edit_item'     => 'News bearbeiten',
+				'view_item'     => 'News ansehen',
+				'search_items'  => 'News durchsuchen',
+			),
+			'public'       => true,
+			'has_archive'  => false,
+			'show_in_rest' => true,
+			'rewrite'      => array( 'slug' => 'news' ),
+			'supports'     => array( 'title', 'thumbnail', 'editor' ),
+			'menu_icon'    => 'dashicons-megaphone',
+		)
+	);
+}
+add_action( 'init', 'wwd_register_cpts' );
+
+/**
+ * CPT queries for nav panels.
+ */
+function wwd_get_nav_dienstleistungen_query() {
+	return new WP_Query(
+		array(
+			'post_type'      => 'nav_dienstleistungen',
+			'posts_per_page' => -1,
+			'orderby'        => array(
+				'menu_order' => 'ASC',
+				'title'      => 'ASC',
+			),
+			'order'          => 'ASC',
+		)
+	);
+}
+
+function wwd_get_nav_referenzen_query() {
+	return new WP_Query(
+		array(
+			'post_type'      => 'nav_referenzen',
+			'posts_per_page' => -1,
+			'orderby'        => array(
+				'menu_order' => 'ASC',
+				'title'      => 'ASC',
+			),
+			'order'          => 'ASC',
+		)
+	);
+}
+
+function wwd_get_news_query() {
+	return new WP_Query(
+		array(
+			'post_type'      => 'news',
+			'posts_per_page' => 4,
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+		)
+	);
+}
+
+/**
+ * Admin column for manual ordering (menu_order).
+ */
+function wwd_add_menu_order_column( $columns ) {
+	$columns['menu_order'] = 'Reihenfolge';
+	return $columns;
+}
+
+function wwd_render_menu_order_column( $column, $post_id ) {
+	if ( 'menu_order' === $column ) {
+		echo esc_html( (string) get_post_field( 'menu_order', $post_id ) );
+	}
+}
+
+function wwd_make_menu_order_sortable( $columns ) {
+	$columns['menu_order'] = 'menu_order';
+	return $columns;
+}
+
+function wwd_apply_menu_order_sorting( $query ) {
+	if ( ! is_admin() || ! $query->is_main_query() ) {
+		return;
+	}
+
+	$orderby = $query->get( 'orderby' );
+	if ( 'menu_order' === $orderby ) {
+		$query->set( 'order', 'ASC' );
+	}
+}
+
+foreach ( array( 'nav_dienstleistungen', 'nav_referenzen' ) as $post_type ) {
+	add_filter( "manage_edit-{$post_type}_columns", 'wwd_add_menu_order_column' );
+	add_action( "manage_{$post_type}_posts_custom_column", 'wwd_render_menu_order_column', 10, 2 );
+	add_filter( "manage_edit-{$post_type}_sortable_columns", 'wwd_make_menu_order_sortable' );
+}
+add_action( 'pre_get_posts', 'wwd_apply_menu_order_sorting' );
+
+/**
  * Inline SVG helper for theme icons (assets/icons).
  */
 function wwd_inline_svg( $filename, $args = array() ) {

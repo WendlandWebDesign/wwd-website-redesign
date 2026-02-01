@@ -304,6 +304,7 @@ nav{
     width: 80%;
     min-width: 270px;
     overflow: hidden;
+    position: relative;
 }
 .nav-card .card-img-holder{
     width: 100%;
@@ -324,6 +325,35 @@ nav{
     padding: 10px 1em;
     font-size: 1.2rem;
     font-weight: 400;
+}
+.nav-card--overlay{
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+.nav-card--overlay .card-img-holder{
+    position: relative;
+}
+.nav-card__overlay{
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1em;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.35);
+}
+.nav-card__overlay p{
+    color: var(--lighter);
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+.nav-card__placeholder{
+    width: 100%;
+    min-height: 200px;
+    background-color: var(--light);
+}
+.nav-card__placeholder--light{
+    background-color: var(--lighter);
 }
 .corner-arrow{
     height: 15px !important;
