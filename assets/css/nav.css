@@ -9,6 +9,13 @@ nav{
     left: 0;
     z-index: 100;
 }
+
+.icon{
+    display: inline-block;
+    vertical-align: middle;
+    fill: currentColor;
+    stroke: currentColor;
+}
 .nav-holder{
     width: 100%;
     height: 80px;

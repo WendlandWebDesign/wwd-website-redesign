@@ -88,6 +88,11 @@ body{
     width: 20px !important;
     height: auto !important;
 }
+.btn p .icon--arrow-white{
+    margin-right: 5px;
+    width: 20px;
+    height: auto;
+}
 
 .btn span{
     background-color: var(--ac-clr);

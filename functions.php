@@ -96,6 +96,156 @@ function wwd_website_redesign_defer_scripts( $tag, $handle ) {
 }
 add_filter( 'script_loader_tag', 'wwd_website_redesign_defer_scripts', 10, 2 );
 
+/**
+ * Inline SVG helper for theme icons (assets/icons).
+ */
+function wwd_inline_svg( $filename, $args = array() ) {
+	$defaults = array(
+		'class'       => '',
+		'aria_hidden' => true,
+		'title'       => '',
+	);
+	$args = wp_parse_args( $args, $defaults );
+
+	$filename = sanitize_file_name( $filename );
+	if ( empty( $filename ) || 'svg' !== strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) ) ) {
+		return '';
+	}
+
+	$base_dir = wp_normalize_path( get_theme_file_path( 'assets/icons' ) );
+	$path     = wp_normalize_path( trailingslashit( $base_dir ) . $filename );
+
+	if ( strpos( $path, $base_dir ) !== 0 || ! is_readable( $path ) ) {
+		return '';
+	}
+
+	static $cache = array();
+	if ( ! isset( $cache[ $path ] ) ) {
+		$raw = file_get_contents( $path );
+		if ( false === $raw ) {
+			$cache[ $path ] = '';
+		} else {
+			$allowed = array(
+				'svg'       => array(
+					'class'               => true,
+					'xmlns'               => true,
+					'xmlns:xlink'         => true,
+					'viewbox'             => true,
+					'width'               => true,
+					'height'              => true,
+					'preserveaspectratio' => true,
+					'fill'                => true,
+					'stroke'              => true,
+					'stroke-width'        => true,
+					'stroke-linecap'      => true,
+					'stroke-linejoin'     => true,
+					'stroke-miterlimit'   => true,
+					'stroke-dasharray'    => true,
+					'stroke-dashoffset'   => true,
+					'role'                => true,
+					'aria-hidden'         => true,
+					'focusable'           => true,
+				),
+				'g'         => array(
+					'clip-path' => true,
+					'fill'      => true,
+					'stroke'    => true,
+					'transform' => true,
+					'opacity'   => true,
+				),
+				'path'      => array(
+					'd'              => true,
+					'fill'           => true,
+					'fill-rule'      => true,
+					'fill-opacity'   => true,
+					'stroke'         => true,
+					'stroke-width'   => true,
+					'stroke-linecap' => true,
+					'stroke-linejoin'=> true,
+					'stroke-miterlimit' => true,
+					'stroke-dasharray'  => true,
+					'stroke-dashoffset' => true,
+					'opacity'        => true,
+					'transform'      => true,
+					'clip-rule'      => true,
+				),
+				'defs'      => array(),
+				'clippath'  => array(
+					'id' => true,
+				),
+				'rect'      => array(
+					'x'       => true,
+					'y'       => true,
+					'width'   => true,
+					'height'  => true,
+					'rx'      => true,
+					'ry'      => true,
+					'fill'    => true,
+					'stroke'  => true,
+					'opacity' => true,
+				),
+				'circle'    => array(
+					'cx'      => true,
+					'cy'      => true,
+					'r'       => true,
+					'fill'    => true,
+					'stroke'  => true,
+					'opacity' => true,
+				),
+				'line'      => array(
+					'x1'      => true,
+					'y1'      => true,
+					'x2'      => true,
+					'y2'      => true,
+					'stroke'  => true,
+					'opacity' => true,
+				),
+				'polyline'  => array(
+					'points'  => true,
+					'fill'    => true,
+					'stroke'  => true,
+					'opacity' => true,
+				),
+				'polygon'   => array(
+					'points'  => true,
+					'fill'    => true,
+					'stroke'  => true,
+					'opacity' => true,
+				),
+				'use'       => array(
+					'xlink:href' => true,
+					'href'       => true,
+				),
+				'title'     => array(),
+				'desc'      => array(),
+			);
+			$cache[ $path ] = wp_kses( $raw, $allowed );
+		}
+	}
+
+	$svg = $cache[ $path ];
+	if ( '' === $svg ) {
+		return '';
+	}
+
+	$classes = trim( 'icon ' . $args['class'] );
+	$attrs   = ' class="' . esc_attr( $classes ) . '"';
+	if ( ! empty( $args['aria_hidden'] ) ) {
+		$attrs .= ' aria-hidden="true" focusable="false"';
+	} else {
+		$attrs .= ' role="img"';
+	}
+
+	$svg = preg_replace( '/<svg\\b([^>]*)>/i', '<svg$1' . $attrs . '>', $svg, 1 );
+
+	if ( empty( $args['aria_hidden'] ) && ! empty( $args['title'] ) && false === stripos( $svg, '<title' ) ) {
+		$title = '<title>' . esc_html( $args['title'] ) . '</title>';
+		$svg   = preg_replace( '/(<svg\\b[^>]*>)/i', '$1' . $title, $svg, 1 );
+	}
+
+	return $svg;
+}
+
 
 
 
