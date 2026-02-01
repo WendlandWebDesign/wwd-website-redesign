@@ -40,13 +40,13 @@
                         <p class="dark"><?php echo wwd_inline_svg( 'arrow-191919.svg', array( 'class' => 'arrow', 'aria_hidden' => true ) ); ?>Referenzen</p>
                         <?php echo wwd_inline_svg( 'mini-arrow.svg', array( 'class' => 'mini-arrow', 'aria_hidden' => true ) ); ?>
                     </li>
-                    <li class="list-left-item"><a class="dark" href="<?php echo esc_url( home_url( '/ki-integration/' ) ); ?>">KI Integration</a></li>
+                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/ki-integration/' ) ); ?>'" class="list-left-item"><p class="dark" href="">KI Integration</p></li>
                     <li class="list-left-item expand-right" data-nav-target="news">
                         <p class="dark"><?php echo wwd_inline_svg( 'arrow-191919.svg', array( 'class' => 'arrow', 'aria_hidden' => true ) ); ?>News</p>
                         <?php echo wwd_inline_svg( 'mini-arrow.svg', array( 'class' => 'mini-arrow', 'aria_hidden' => true ) ); ?>
                     </li>
-                    <li class="list-left-item"><a class="dark" href="<?php echo esc_url( home_url( '/ueber-uns/' ) ); ?>">Über uns</a></li>
-                    <li class="list-left-item"><a class="dark" href="<?php echo esc_url( home_url( '/kontakt/' ) ); ?>">Kontakt</a></li>
+                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/ueber-uns/' ) ); ?>'" class="list-left-item"><p class="dark" href="">Über uns</p></li>
+                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="list-left-item"><p class="dark" href="">Kontakt</p></li>
                 </ul>
 
 
