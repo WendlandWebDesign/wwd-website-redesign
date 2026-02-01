@@ -14,13 +14,13 @@
         </a>
         <div class="nav-right">
             <img class="icon icon--phone" onclick="" src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/phone.svg' ); ?>" alt="" aria-hidden="true">
-            <a class="btn light" href="<?php echo esc_url( home_url( '/kontakt/' ) ); ?>">
+            <button onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="btn light">
                 <span></span>
                 <span></span>
                 <span></span>
                 <span></span>
                 <p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>Kontakt</p>
-            </a>
+            </button>
         </div>
         <div class="nav-list-wrapper">
             <div class="close-btn-wrapper">
