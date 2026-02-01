@@ -60,7 +60,7 @@
                             </div>
                             <div class="list-right-content-wrapper">
                                 <div class="right-buttons">
-                                    <a class="dark" href="<?php echo esc_url( home_url( '/dienstleistungen/' ) ); ?>">Alle Dienstleistungen <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
+                                    <a class="dark js-right-cta" href="<?php echo esc_url( home_url( '/dienstleistungen/' ) ); ?>">Alle Dienstleistungen <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
                                 </div>
                                 <div class="right-cards">
                                     <?php
@@ -68,8 +68,13 @@
                                     if ( $dienstleistungen_query->have_posts() ) :
                                         while ( $dienstleistungen_query->have_posts() ) :
                                             $dienstleistungen_query->the_post();
+                                            $card_link = get_post_meta( get_the_ID(), '_nav_card_link', true );
+                                            $onclick_attr = '';
+                                            if ( ! empty( $card_link ) ) {
+                                                $onclick_attr = ' onclick="window.location.href=\'' . esc_url( $card_link ) . '\';"';
+                                            }
                                             ?>
-                                            <div class="nav-card nav-card--overlay">
+                                            <div class="nav-card nav-card--overlay nav-card--clickable nav-card--dienstleistungen js-right-card"<?php echo $onclick_attr; ?> role="link" tabindex="0">
                                                 <div class="card-img-holder">
                                                     <?php
                                                     if ( has_post_thumbnail() ) {
@@ -81,8 +86,8 @@
                                                     }
                                                     ?>
                                                 </div>
-                                                <div class="nav-card__overlay">
-                                                    <p><?php echo esc_html( get_the_title() ); ?></p>
+                                                <div class="nav-card__overlay nav-card__overlay--bottom-left">
+                                                    <p class="nav-card__text-row"><?php echo esc_html( get_the_title() ); ?> <?php echo wwd_inline_svg( 'corner-arrow-light.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
                                                 </div>
                                             </div>
                                             <?php
@@ -102,7 +107,7 @@
                             </div>
                             <div class="list-right-content-wrapper">
                                 <div class="right-buttons">
-                                    <a class="dark" href="<?php echo esc_url( home_url( '/referenzen/' ) ); ?>">Alle Referenzen <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
+                                    <a class="dark js-right-cta" href="<?php echo esc_url( home_url( '/referenzen/' ) ); ?>">Alle Referenzen <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
                                 </div>
                                 <div class="right-cards">
                                     <?php
@@ -110,8 +115,13 @@
                                     if ( $referenzen_query->have_posts() ) :
                                         while ( $referenzen_query->have_posts() ) :
                                             $referenzen_query->the_post();
+                                            $card_link = get_post_meta( get_the_ID(), '_nav_card_link', true );
+                                            $onclick_attr = '';
+                                            if ( ! empty( $card_link ) ) {
+                                                $onclick_attr = ' onclick="window.location.href=\'' . esc_url( $card_link ) . '\';"';
+                                            }
                                             ?>
-                                            <div class="nav-card">
+                                            <div class="nav-card nav-card--clickable js-right-card"<?php echo $onclick_attr; ?> role="link" tabindex="0">
                                                 <div class="card-img-holder">
                                                     <?php
                                                     if ( has_post_thumbnail() ) {
@@ -123,7 +133,7 @@
                                                     }
                                                     ?>
                                                 </div>
-                                                <p class="dark"><?php echo esc_html( get_the_title() ); ?></p>
+                                                <p class="dark nav-card__text-row"><?php echo esc_html( get_the_title() ); ?> <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
                                             </div>
                                             <?php
                                         endwhile;
@@ -142,7 +152,7 @@
                             </div>
                             <div class="list-right-content-wrapper">
                                 <div class="right-buttons">
-                                    <a class="dark" href="<?php echo esc_url( home_url( '/news/' ) ); ?>">Alle News <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
+                                    <a class="dark js-right-cta" href="<?php echo esc_url( home_url( '/news/' ) ); ?>">Alle News <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></a>
                                 </div>
                                 <div class="right-cards">
                                     <?php
@@ -151,7 +161,7 @@
                                         while ( $news_query->have_posts() ) :
                                             $news_query->the_post();
                                             ?>
-                                            <div class="nav-card nav-card--overlay">
+                                            <div class="nav-card nav-card--clickable js-right-card" onclick="window.location.href='<?php echo esc_url( get_permalink() ); ?>';" role="link" tabindex="0">
                                                 <div class="card-img-holder">
                                                     <?php
                                                     if ( has_post_thumbnail() ) {
@@ -163,9 +173,7 @@
                                                     }
                                                     ?>
                                                 </div>
-                                                <div class="nav-card__overlay">
-                                                    <p><?php echo esc_html( get_the_title() ); ?></p>
-                                                </div>
+                                                <p class="dark nav-card__text-row"><?php echo esc_html( get_the_title() ); ?> <?php echo wwd_inline_svg( 'corner-arrow-dark.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
                                             </div>
                                             <?php
                                         endwhile;

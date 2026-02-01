@@ -28,6 +28,8 @@ function wwd_website_redesign_enqueue_assets() {
 	// JS-Dateien
 	$js_base       = 'assets/js/base.js';
 	$js_animations = 'assets/js/animations.js';
+	$js_gsap       = 'assets/js/node_modules/gsap/dist/gsap.min.js';
+	$js_scrolltrigger = 'assets/js/node_modules/gsap/dist/ScrollTrigger.min.js';
 
 	/**
 	 * CSS einbinden
@@ -57,10 +59,38 @@ function wwd_website_redesign_enqueue_assets() {
 	 * JS einbinden
 	 * → falls base.js KEIN jQuery nutzt, einfach 'jquery' entfernen
 	 */
+	if ( file_exists( get_theme_file_path( $js_gsap ) ) ) {
+		wp_enqueue_script(
+			'wwd-website-redesign-gsap',
+			get_theme_file_uri( $js_gsap ),
+			array(),
+			filemtime( get_theme_file_path( $js_gsap ) ),
+			true
+		);
+	}
+
+	if ( file_exists( get_theme_file_path( $js_scrolltrigger ) ) ) {
+		wp_enqueue_script(
+			'wwd-website-redesign-gsap-scrolltrigger',
+			get_theme_file_uri( $js_scrolltrigger ),
+			array( 'wwd-website-redesign-gsap' ),
+			filemtime( get_theme_file_path( $js_scrolltrigger ) ),
+			true
+		);
+	}
+
+	$base_deps = array( 'jquery' );
+	if ( file_exists( get_theme_file_path( $js_gsap ) ) ) {
+		$base_deps[] = 'wwd-website-redesign-gsap';
+		if ( file_exists( get_theme_file_path( $js_scrolltrigger ) ) ) {
+			$base_deps[] = 'wwd-website-redesign-gsap-scrolltrigger';
+		}
+	}
+
 	wp_enqueue_script(
 		'wwd-website-redesign-base',
 		get_theme_file_uri( $js_base ),
-		array( 'jquery' ),
+		$base_deps,
 		file_exists( get_theme_file_path( $js_base ) ) ? filemtime( get_theme_file_path( $js_base ) ) : null,
 		true
 	);
@@ -242,6 +272,64 @@ foreach ( array( 'nav_dienstleistungen', 'nav_referenzen' ) as $post_type ) {
 	add_filter( "manage_edit-{$post_type}_sortable_columns", 'wwd_make_menu_order_sortable' );
 }
 add_action( 'pre_get_posts', 'wwd_apply_menu_order_sorting' );
+
+/**
+ * Meta box for nav card links.
+ */
+function wwd_add_nav_card_link_metabox() {
+	add_meta_box(
+		'wwd_nav_card_link',
+		'Card Link (URL)',
+		'wwd_render_nav_card_link_metabox',
+		array( 'nav_dienstleistungen', 'nav_referenzen' ),
+		'side',
+		'default'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_nav_card_link_metabox' );
+
+function wwd_render_nav_card_link_metabox( $post ) {
+	$link = get_post_meta( $post->ID, '_nav_card_link', true );
+	wp_nonce_field( 'wwd_nav_card_link_save', 'wwd_nav_card_link_nonce' );
+	?>
+	<p>
+		<label for="wwd-nav-card-link"><?php echo esc_html( 'URL' ); ?></label>
+	</p>
+	<input
+		type="url"
+		id="wwd-nav-card-link"
+		name="wwd_nav_card_link"
+		value="<?php echo esc_attr( $link ); ?>"
+		class="widefat"
+		placeholder="<?php echo esc_attr( 'https://example.com' ); ?>"
+	/>
+	<?php
+}
+
+function wwd_save_nav_card_link_metabox( $post_id ) {
+	if ( ! isset( $_POST['wwd_nav_card_link_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( $_POST['wwd_nav_card_link_nonce'], 'wwd_nav_card_link_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	if ( isset( $_POST['wwd_nav_card_link'] ) ) {
+		$link = esc_url_raw( wp_unslash( $_POST['wwd_nav_card_link'] ) );
+		if ( '' === $link ) {
+			delete_post_meta( $post_id, '_nav_card_link' );
+		} else {
+			update_post_meta( $post_id, '_nav_card_link', $link );
+		}
+	}
+}
+add_action( 'save_post_nav_dienstleistungen', 'wwd_save_nav_card_link_metabox' );
+add_action( 'save_post_nav_referenzen', 'wwd_save_nav_card_link_metabox' );
 
 /**
  * Inline SVG helper for theme icons (assets/icons).

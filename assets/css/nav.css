@@ -9,6 +9,23 @@ nav{
     left: 0;
     z-index: 100;
 }
+.site-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+    z-index: 90;
+}
+body.is-nav-open{
+    overflow: hidden;
+}
+body.is-nav-open .site-overlay{
+    opacity: 1;
+    pointer-events: auto;
+}
 
 .icon{
     display: inline-block;
@@ -250,7 +267,6 @@ nav{
     left: 0;
     transform: translateX(12px);
     opacity: 0;
-    transition: all .5s ease;
     pointer-events: none;
 }
 .list-right-content.active{
@@ -305,6 +321,7 @@ nav{
     min-width: 270px;
     overflow: hidden;
     position: relative;
+    cursor: pointer;
 }
 .nav-card .card-img-holder{
     width: 100%;
@@ -342,7 +359,23 @@ nav{
     text-align: center;
     background-color: rgba(0, 0, 0, 0.35);
 }
+.nav-card__overlay--bottom-left{
+    align-items: flex-end;
+    justify-content: flex-start;
+    text-align: left;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.45) 100%);
+}
 .nav-card__overlay p{
+    color: var(--lighter);
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+.nav-card__text-row{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.nav-card--dienstleistungen .nav-card__text-row{
     color: var(--lighter);
     font-size: 1.1rem;
     font-weight: 500;

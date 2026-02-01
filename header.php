@@ -21,3 +21,5 @@
 	// Navigation (aus Snippet ausgelagert)
 	get_template_part( 'assets/_snippets/nav' );
 	?>
+
+	<div class="site-overlay" aria-hidden="true"></div>
