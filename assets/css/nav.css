@@ -153,6 +153,8 @@ nav{
     display: flex;
     height: 100%;
     overflow: hidden;
+    min-height: 0;
+    width: 100%;
 }
 
 .list-left{
@@ -163,6 +165,9 @@ nav{
     width: 50%;
     min-width: 320px;
     position: relative;
+    height: 100%;
+    overflow-y: auto;
+    min-height: 0;
 }
 .list-left-item:first-of-type{
     margin-top: 60px;
@@ -212,25 +217,36 @@ nav{
 .list-right-wrapper{
     width: 50%;
     min-width: 320px;
-    height: 100svh;
+    height: 100%;
     background-color: var(--light);
+    overflow: hidden;
+    min-height: 0;
+}
+.list-right{
+    height: 100%;
+    position: relative;
+    min-height: 0;
 }
 
 
 .list-right-content{
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     position: absolute;
     top: 0;
-    left: 100%;
-    transform: translateX(100%);
+    left: 0;
+    transform: translateX(12px);
     opacity: 0;
     transition: all .5s ease;
+    pointer-events: none;
 }
 .list-right-content.active{
     transform: translateX(0);
     opacity: 1;
+    pointer-events: auto;
 }
 .list-right-content-wrapper{
     width: 100%;
@@ -238,8 +254,9 @@ nav{
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    margin-top: 60px;
+    flex: 1 1 auto;
     align-items: center;
+    min-height: 0;
 }
 
 
@@ -352,8 +369,22 @@ nav{
         min-width: 100%;
         width: 100%;
     }
+    .nav-list{
+        position: relative;
+    }
     .list-left{
         padding: var(--site-padding);
+    }
+    .list-right-wrapper{
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background-color: transparent;
+        pointer-events: none;
+    }
+    .list-right-wrapper.has-active-panel{
+        pointer-events: auto;
     }
 
 
@@ -362,10 +393,10 @@ nav{
         left: 0;
         background-color: var(--lighter);
         z-index: 101 !important;
-        height: calc(100% + 60px);
+        height: 100%;
     }
     .list-right-content-wrapper{
-        margin-top: 0;
+        flex: 1 1 auto;
     }
 
 

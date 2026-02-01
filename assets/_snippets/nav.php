@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="css/nav.css">
+﻿<link rel="stylesheet" href="css/nav.css">
 <nav>
     <div class="nav-holder mw">
         <div class="menu">
@@ -7,7 +7,7 @@
                 <span class="bar"></span>
                 <span class="bar"></span>
             </div>
-            <p class="light">Menü</p>
+            <p class="light">MenÃ¼</p>
         </div>
         <div class="logo-holder" onclick="window.location.href='index.php'">
             <img src="icons/logo.svg" alt="">
@@ -32,10 +32,27 @@
 
             <div class="nav-list">
                 <ul class="list-left">
-                    <li class="list-left-item expand-right">
+                    <li class="list-left-item expand-right" data-nav-target="dienstleistungen">
                         <p class="dark"><img class="arrow" src="icons/arrow-191919.svg" alt="">Dienstleistungen</p>
                         <img class="mini-arrow" src="icons/mini-arrow.svg" alt="">
-                        <div class="list-right-content">
+                    </li>
+                    <li class="list-left-item expand-right" data-nav-target="referenzen">
+                        <p class="dark"><img class="arrow" src="icons/arrow-191919.svg" alt="">Referenzen</p>
+                        <img class="mini-arrow" src="icons/mini-arrow.svg" alt="">
+                    </li>
+                    <li class="list-left-item"><p class="dark">KI Integration</p></li>
+                    <li class="list-left-item expand-right" data-nav-target="news">
+                        <p class="dark"><img class="arrow" src="icons/arrow-191919.svg" alt="">News</p>
+                        <img class="mini-arrow" src="icons/mini-arrow.svg" alt="">
+                    </li>
+                    <li class="list-left-item"><p class="dark">Ãœber uns</p></li>
+                    <li class="list-left-item"><p class="dark">Kontakt</p></li>
+                </ul>
+
+
+                <div class="list-right-wrapper">
+                    <div class="list-right">
+                        <div class="list-right-content" data-nav-panel="dienstleistungen">
                             <div class="top-bar">
                                 <div class="back-btn-wrapper">
                                     <img class="back-btn" src="icons/arrow-191919.svg" alt="">
@@ -61,11 +78,8 @@
                                 </div>
                             </div>
                         </div>
-                    </li>
-                    <li class="list-left-item expand-right">
-                        <p class="dark"><img class="arrow" src="icons/arrow-191919.svg" alt="">Referenzen</p>
-                        <img class="mini-arrow" src="icons/mini-arrow.svg" alt="">
-                        <div class="list-right-content">
+
+                        <div class="list-right-content" data-nav-panel="referenzen">
                             <div class="top-bar">
                                 <div class="back-btn-wrapper">
                                     <img class="back-btn" src="icons/arrow-191919.svg" alt="">
@@ -91,12 +105,8 @@
                                 </div>
                             </div>
                         </div>
-                    </li>
-                    <li class="list-left-item"><p class="dark">KI Integration</p></li>
-                    <li class="list-left-item expand-right">
-                        <p class="dark"><img class="arrow" src="icons/arrow-191919.svg" alt="">News</p>
-                        <img class="mini-arrow" src="icons/mini-arrow.svg" alt="">
-                        <div class="list-right-content">
+
+                        <div class="list-right-content" data-nav-panel="news">
                             <div class="top-bar">
                                 <div class="back-btn-wrapper">
                                     <img class="back-btn" src="icons/arrow-191919.svg" alt="">
@@ -122,18 +132,6 @@
                                 </div>
                             </div>
                         </div>
-                    </li>
-                    <li class="list-left-item"><p class="dark">Über uns</p></li>
-                    <li class="list-left-item"><p class="dark">Kontakt</p></li>
-                </ul>
-
-
-                <div class="list-right-wrapper">
-                    <div class="list-right">
-                        <div class="right-buttons">
-
-                        </div>
-                        <div class="right-cards"></div>
                     </div>
                 </div>
             </div>
