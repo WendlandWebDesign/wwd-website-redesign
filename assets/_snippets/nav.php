@@ -1,5 +1,4 @@
-﻿<link rel="stylesheet" href="css/nav.css">
-<nav>
+﻿<nav>
     <div class="nav-holder mw">
         <div class="menu">
             <div class="burger">

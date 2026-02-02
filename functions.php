@@ -24,6 +24,7 @@ function wwd_website_redesign_enqueue_assets() {
 	$css_base     = 'assets/css/base.css';
 	$css_nav      = 'assets/css/nav.css';
 	$css_sections = 'assets/css/sections.css';
+    $css_home     = 'assets/css/home.css';
 
 	// JS-Dateien
 	$js_base       = 'assets/js/base.js';
@@ -54,6 +55,13 @@ function wwd_website_redesign_enqueue_assets() {
 		array( 'wwd-website-redesign-base' ),
 		file_exists( get_theme_file_path( $css_sections ) ) ? filemtime( get_theme_file_path( $css_sections ) ) : null
 	);
+
+    wp_enqueue_style(
+        'wwd-website-redesign-nav',
+        get_theme_file_uri( $css_home ),
+        array( 'wwd-website-redesign-base' ),
+        file_exists( get_theme_file_path( $css_home ) ) ? filemtime( get_theme_file_path( $css_home ) ) : null
+    );
 
 	/**
 	 * JS einbinden
