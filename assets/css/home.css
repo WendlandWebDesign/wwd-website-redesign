@@ -12,7 +12,7 @@
     height: auto;
     object-fit: cover;
     object-position: center;
-    filter: brightness(.85) blur(1px);
+    filter: brightness(.7);
 }
 .home-hero-inner{
     display: flex;
