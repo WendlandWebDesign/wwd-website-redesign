@@ -162,6 +162,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const content = btn.closest(".list-right-content");
             if (!content) return;
 
+            // reset all expand items before switching panels
+            expandItems.forEach(item => item.classList.remove("active"));
+
             const targetKey = content.getAttribute("data-nav-panel");
             const parentExpand = targetKey
                 ? document.querySelector(`.expand-right[data-nav-target="${targetKey}"]`)
@@ -169,6 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             content.classList.remove("active");
             if (parentExpand) parentExpand.classList.remove("active");
+            activePanel = null;
             updatePanelState();
         });
     });
