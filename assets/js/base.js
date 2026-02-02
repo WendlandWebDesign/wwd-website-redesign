@@ -6,6 +6,7 @@ const navList = document.querySelector(".nav-list-wrapper");
 const siteOverlay = document.querySelector(".site-overlay");
 
 menuBtn.addEventListener("click", (e) => {
+    document.dispatchEvent(new CustomEvent("nav:open"));
     navList.classList.add('active');
     document.body.classList.add('is-nav-open');
 })
@@ -19,5 +20,4 @@ if (siteOverlay) {
         document.body.classList.remove('is-nav-open');
     });
 }
-
 

@@ -40,6 +40,21 @@ document.addEventListener("DOMContentLoaded", () => {
         return panel.querySelector(".js-right-cta");
     };
 
+    const ENTER_CARD_X = -28;
+    const ENTER_CTA_X = -64;
+
+    const setPanelInitialState = (panel) => {
+        if (!gsapInstance || !panel) return;
+        const cards = getCards(panel);
+        const cta = getCta(panel);
+        if (cta) {
+            gsapInstance.set(cta, { autoAlpha: 0, x: ENTER_CTA_X });
+        }
+        if (cards.length) {
+            gsapInstance.set(cards, { autoAlpha: 0, x: ENTER_CARD_X });
+        }
+    };
+
     const animatePanelSwitch = (fromPanel, toPanel) => {
         if (!gsapInstance) return;
         if (currentTimeline) {
@@ -57,37 +72,48 @@ document.addEventListener("DOMContentLoaded", () => {
         if (fromCta) {
             currentTimeline.to(fromCta, {
                 autoAlpha: 0,
-                x: 12,
-                duration: 0.15,
+                x: 16,
+                duration: 0.18,
             });
         }
 
         if (fromCards.length) {
             currentTimeline.to(fromCards, {
                 autoAlpha: 0,
-                x: 12,
-                duration: 0.2,
+                x: 16,
+                duration: 0.22,
                 stagger: 0.04,
             });
         }
 
+        currentTimeline.add(() => {
+            panels.forEach(panel => panel.classList.remove("active"));
+            if (toPanel) {
+                setPanelInitialState(toPanel);
+                toPanel.classList.add("active");
+            }
+            activePanel = toPanel || null;
+            updatePanelState();
+        }, ">");
+        currentTimeline.addLabel("enter", ">");
+
         if (toCta) {
-            currentTimeline.set(toCta, { autoAlpha: 0, x: -24 });
             currentTimeline.to(toCta, {
                 autoAlpha: 1,
                 x: 0,
-                duration: 0.2,
-            });
+                duration: 0.3,
+                ease: "power2.out",
+            }, "enter");
         }
 
         if (toCards.length) {
-            currentTimeline.set(toCards, { autoAlpha: 0, x: -32 });
             currentTimeline.to(toCards, {
                 autoAlpha: 1,
                 x: 0,
                 duration: 0.25,
                 stagger: 0.08,
-            });
+                ease: "power2.out",
+            }, toCta ? "enter+=0.06" : "enter");
         }
     };
 
@@ -103,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!content) return;
 
             const previousPanel = activePanel;
+            if (previousPanel === content) return;
 
             // alle anderen deaktivieren
             expandItems.forEach(other => {
@@ -110,16 +137,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     other.classList.remove("active");
                 }
             });
-            panels.forEach(panel => panel.classList.remove("active"));
 
             // aktuelles aktivieren
             item.classList.add("active");
-            content.classList.add("active");
-            activePanel = content;
-            if (previousPanel !== content) {
-                animatePanelSwitch(previousPanel, content);
+            if (!gsapInstance) {
+                panels.forEach(panel => panel.classList.remove("active"));
+                content.classList.add("active");
+                activePanel = content;
+                updatePanelState();
+                return;
             }
-            updatePanelState();
+
+            animatePanelSwitch(previousPanel, content);
         });
     });
 
@@ -142,5 +171,34 @@ document.addEventListener("DOMContentLoaded", () => {
             if (parentExpand) parentExpand.classList.remove("active");
             updatePanelState();
         });
+    });
+
+    document.addEventListener("nav:open", () => {
+        if (!gsapInstance || !activePanel) return;
+        if (currentTimeline) {
+            currentTimeline.kill();
+            currentTimeline = null;
+        }
+        setPanelInitialState(activePanel);
+        currentTimeline = gsapInstance.timeline({ defaults: { ease: "power2.out" } });
+        const cta = getCta(activePanel);
+        const cards = getCards(activePanel);
+        if (cta) {
+            currentTimeline.to(cta, {
+                autoAlpha: 1,
+                x: 0,
+                duration: 0.3,
+                ease: "power2.out",
+            }, 0);
+        }
+        if (cards.length) {
+            currentTimeline.to(cards, {
+                autoAlpha: 1,
+                x: 0,
+                duration: 0.25,
+                stagger: 0.08,
+                ease: "power2.out",
+            }, cta ? 0.06 : 0);
+        }
     });
 });
