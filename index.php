@@ -18,7 +18,7 @@ get_header();
             <span></span>
             <span></span>
             <span></span>
-            <p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>kostenloses Erstgespräch vereinbaren!</p>
+            <p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>kostenloses Erstgespräch</p>
         </button>
     </div>
 </div>
