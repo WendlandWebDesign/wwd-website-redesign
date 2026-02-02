@@ -65,7 +65,7 @@ function wwd_website_redesign_enqueue_assets() {
 	);
 
     wp_enqueue_style(
-        'wwd-website-redesign-nav',
+        'wwd-website-redesign-home',
         get_theme_file_uri( $css_home ),
         array( 'wwd-website-redesign-base' ),
         file_exists( get_theme_file_path( $css_home ) ) ? filemtime( get_theme_file_path( $css_home ) ) : null

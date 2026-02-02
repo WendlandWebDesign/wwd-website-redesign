@@ -89,6 +89,7 @@ h6{
     justify-content: center;
     gap: 5px;
     cursor: pointer;
+    width: max-content;
 }
 .btn p{
     display: flex;
