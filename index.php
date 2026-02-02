@@ -3,8 +3,21 @@ get_header();
 ?>
 
 
+<?php
+$seitenbilder = get_option( 'wwd_seitenbilder', array() );
+$home_id = isset( $seitenbilder['home'] ) ? absint( $seitenbilder['home'] ) : 0;
+if ( ! $home_id ) {
+    $legacy_url = get_option( 'home' );
+    $home_id = $legacy_url ? absint( attachment_url_to_postid( $legacy_url ) ) : 0;
+}
+?>
+
 <div class="home-hero">
-    <img class="hero-img" src="<?php echo esc_url(get_option('home')); ?>" alt="">
+    <?php
+    if ( $home_id ) {
+        echo wp_get_attachment_image( $home_id, 'full', false, array( 'class' => 'hero-img' ) );
+    }
+    ?>
     <div class="home-hero-inner mw">
         <h2 class="light">Kreativität trifft<br>Technologie</h2>
         <h1 class="light"><span>W</span>endland <span>W</span>eb <span>D</span>esign</h1>
