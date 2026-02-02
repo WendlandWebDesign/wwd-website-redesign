@@ -33,7 +33,6 @@ body{
     padding: 0;
     text-decoration: none;
     list-style: none;
-    font-family: var(--font-body);
 }
 
 
@@ -47,10 +46,8 @@ body{
 
 /* fonts */
 
-h1,
+
 h2,
-h3,
-h4,
 h5,
 h6{
     font-family: var(--font-headline);
@@ -62,7 +59,10 @@ h4{
     font-family: var(--font-subheadline);
     font-weight: 800;
 }
-
+p,
+a{
+    font-family: var(--font-body);
+}
 
 
 /* font-sizes */
