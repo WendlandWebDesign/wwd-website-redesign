@@ -15,6 +15,9 @@
     --site-padding: 0 1em;
     --default-padding: 1em;
     --card-padding: 10px;
+
+    --font-base: "DM Sans", sans-serif;
+    --font-heading: "Syne", sans-serif;
 }
 
 html,
@@ -29,7 +32,7 @@ body{
     padding: 0;
     text-decoration: none;
     list-style: none;
-    font-family: 'Montserrat', sans-serif;
+    font-family: var(--font-base);
 }
 
 
@@ -43,6 +46,14 @@ body{
 
 /* fonts */
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6{
+    font-family: var(--font-heading);
+}
 
 
 

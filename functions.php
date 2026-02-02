@@ -21,6 +21,7 @@ add_filter('upload_mimes', 'allow_svg');
 function wwd_website_redesign_enqueue_assets() {
 
 	// CSS-Dateien
+	$css_fonts    = 'assets/css/fonts.css';
 	$css_base     = 'assets/css/base.css';
 	$css_nav      = 'assets/css/nav.css';
 	$css_sections = 'assets/css/sections.css';
@@ -35,9 +36,16 @@ function wwd_website_redesign_enqueue_assets() {
 	 * CSS einbinden
 	 */
 	wp_enqueue_style(
+		'wwd-website-redesign-fonts',
+		get_theme_file_uri( $css_fonts ),
+		array(),
+		file_exists( get_theme_file_path( $css_fonts ) ) ? filemtime( get_theme_file_path( $css_fonts ) ) : null
+	);
+
+	wp_enqueue_style(
 		'wwd-website-redesign-base',
 		get_theme_file_uri( $css_base ),
-		array(),
+		array( 'wwd-website-redesign-fonts' ),
 		file_exists( get_theme_file_path( $css_base ) ) ? filemtime( get_theme_file_path( $css_base ) ) : null
 	);
 
