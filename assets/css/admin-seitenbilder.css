@@ -3,6 +3,10 @@
     border-bottom: 1px solid #e5e5e5;
 }
 
+.widefat {
+    max-width: 600px;
+}
+
 .wwd-seitenbilder-preview {
     margin-top: 10px;
 }
