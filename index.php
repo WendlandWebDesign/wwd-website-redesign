@@ -4,7 +4,7 @@ get_header();
 
 
 <div class="home-hero">
-    <img class="hero-img" src="http://localhost/wwd-redesign/wp-content/uploads/2026/02/placeholder.jpg" alt="">
+    <img class="hero-img" src="<?php echo esc_url(get_option('home')); ?>" alt="">
     <div class="home-hero-inner mw">
         <h2 class="light">Kreativität trifft<br>Technologie</h2>
         <h1 class="light"><span>W</span>endland <span>W</span>eb <span>D</span>esign</h1>
