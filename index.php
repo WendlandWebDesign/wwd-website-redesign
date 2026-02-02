@@ -21,6 +21,7 @@ get_header();
             <p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>kostenloses Erstgespräch</p>
         </button>
     </div>
+    <img class="hero-fächer" src="http://localhost/wwd-redesign/wp-content/uploads/2026/02/faecher.png" alt="">
     <div class="img-transition-bottom"></div>
 </div>
 

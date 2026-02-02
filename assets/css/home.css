@@ -1,6 +1,6 @@
 .home-hero{
     width: 100%;
-    min-height: 400px;
+    min-height: 480px;
     max-height: 90vh;
     display: flex;
     justify-content: center;
@@ -24,6 +24,7 @@
     top: 50%;
     transform: translate(-50%, -50%);
     padding: var(--site-padding);
+    z-index: 2;
 }
 .home-hero-inner h1 span{
     color: var(--ac-clr);
@@ -35,4 +36,27 @@
     font-family: var(--font-body), sans-serif;
     font-size: calc(1rem + 1vw);
     font-weight: 500;
+}
+
+
+.hero-fächer{
+    position: absolute;
+    width: 40%;
+    min-width: 500px;
+    height: auto;
+    bottom: 0;
+    right: -8%;
+}
+
+
+@media(max-width: 900px){
+    .hero-fächer{
+        width: 50%;
+        right: -13%;
+        min-width: 280px !important;
+    }
+
+    .home-hero-inner button{
+        backdrop-filter: brightness(0.5);
+    }
 }
