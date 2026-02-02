@@ -1,0 +1,22 @@
+﻿.wwd-seitenbilder-field {
+    padding: 16px 0 20px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.wwd-seitenbilder-preview {
+    margin-top: 10px;
+}
+
+.wwd-seitenbilder-preview.is-hidden {
+    display: none;
+}
+
+.wwd-seitenbilder-preview-img {
+    max-width: 300px;
+    height: auto;
+    display: block;
+}
+
+.wwd-media-remove.is-hidden {
+    display: none;
+}
