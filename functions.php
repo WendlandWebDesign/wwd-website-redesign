@@ -1,4 +1,3 @@
-﻿
 <?php
 // Hero Bilder Ã¼ber esc_url(get_option(''));
 /**
@@ -634,4 +633,40 @@ function wwd_seitenbilder_callback() {
     submit_button( esc_html__( 'Bilder speichern', 'wwd' ) );
     echo '</form>';
     echo '</div>';
+}
+
+function wwd_get_seitenbild_id( $key ) {
+	$safe_key = sanitize_key( $key );
+	if ( '' === $safe_key ) {
+		return 0;
+	}
+
+	static $options = null;
+	if ( null === $options ) {
+		$options = get_option( 'wwd_seitenbilder', array() );
+	}
+
+	$image_id = isset( $options[ $safe_key ] ) ? absint( $options[ $safe_key ] ) : 0;
+	if ( $image_id ) {
+		return $image_id;
+	}
+
+	// Legacy fallback only for home.
+	if ( 'home' === $safe_key ) {
+		$legacy_url = get_option( 'home' );
+		if ( $legacy_url ) {
+			return absint( attachment_url_to_postid( $legacy_url ) );
+		}
+	}
+
+	return 0;
+}
+
+function wwd_render_seitenbild( $key, $size = 'full', $attr = array() ) {
+	$image_id = wwd_get_seitenbild_id( $key );
+	if ( ! $image_id ) {
+		return '';
+	}
+
+	return wp_get_attachment_image( $image_id, $size, false, $attr );
 }

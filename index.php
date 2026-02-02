@@ -3,19 +3,11 @@ get_header();
 ?>
 
 
-<?php
-$seitenbilder = get_option( 'wwd_seitenbilder', array() );
-$home_id = isset( $seitenbilder['home'] ) ? absint( $seitenbilder['home'] ) : 0;
-if ( ! $home_id ) {
-    $legacy_url = get_option( 'home' );
-    $home_id = $legacy_url ? absint( attachment_url_to_postid( $legacy_url ) ) : 0;
-}
-?>
-
 <div class="home-hero">
     <?php
-    if ( $home_id ) {
-        echo wp_get_attachment_image( $home_id, 'full', false, array( 'class' => 'hero-img' ) );
+    $hero_image = wwd_render_seitenbild( 'home', 'full', array( 'class' => 'hero-img' ) );
+    if ( $hero_image ) {
+        echo $hero_image;
     }
     ?>
     <div class="home-hero-inner mw">

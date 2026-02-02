@@ -1,8 +1,4 @@
-<?php
-/**
- * Header Template
- */
-?><!doctype html>
+<!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
@@ -11,15 +7,9 @@
 
 	<?php wp_head(); ?>
 </head>
-
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
-
-<div id="page" class="site">
-
 	<?php
-	// Navigation (aus Snippet ausgelagert)
 	get_template_part( 'assets/_snippets/nav' );
 	?>
-
 	<div class="site-overlay" aria-hidden="true"></div>
