@@ -497,176 +497,102 @@ function wwd_inline_svg( $filename, $args = array() ) {
 }
 
 
-function wwd_get_seitenbilder_fields() {
-	return array(
-		'home' => 'Homepage Hero',
-		'ansatz-1' => 'ansatz-1',
-		'ansatz-2' => 'ansatz-2',
-		'weg-zur-website-1' => 'weg-zur-website-1',
-		'weg-zur-website-2' => 'weg-zur-website-2',
-		'weg-zur-website-3' => 'weg-zur-website-3',
-		'weg-zur-website-4' => 'weg-zur-website-4',
-		'kunden' => 'Kunden Hero',
-		'das-machen-wir-moeglich-1' => 'das-machen-wir-moeglich-1',
-		'das-machen-wir-moeglich-2' => 'das-machen-wir-moeglich-2',
-		'das-machen-wir-moeglich-3' => 'das-machen-wir-moeglich-3',
-		'ki-home' => 'KI Homepage',
-		'ki-integration' => 'KI Integration',
-		'news' => 'News Hero',
-		'ueber-uns' => 'Ueber uns Hero',
-		'kontakt' => 'Kontakt Hero',
-	);
-}
 
-function wwd_register_seitenbilder_menu() {
-	add_menu_page(
-		'Seitenbilder',
-		'Seitenbilder',
-		'manage_options',
-		'theme-seitenbilder',
-		'wwd_seitenbilder_callback',
-		'dashicons-format-image',
-		60
-	);
-}
-add_action( 'admin_menu', 'wwd_register_seitenbilder_menu' );
-
-function wwd_sanitize_seitenbilder( $value ) {
-	$fields = wwd_get_seitenbilder_fields();
-	$sanitized = array();
-
-	if ( ! is_array( $value ) ) {
-		return $sanitized;
-	}
-
-	foreach ( $fields as $key => $label ) {
-		$safe_key = sanitize_key( $key );
-		if ( isset( $value[ $key ] ) ) {
-			$sanitized[ $safe_key ] = absint( $value[ $key ] );
-		}
-	}
-
-	return $sanitized;
-}
-
-function wwd_register_seitenbilder_settings() {
-	register_setting(
-		'wwd_seitenbilder',
-		'wwd_seitenbilder',
-		array(
-			'type' => 'array',
-			'sanitize_callback' => 'wwd_sanitize_seitenbilder',
-			'default' => array(),
-		)
-	);
-}
-add_action( 'admin_init', 'wwd_register_seitenbilder_settings' );
-
-function wwd_seitenbilder_admin_assets( $hook ) {
-	if ( 'toplevel_page_theme-seitenbilder' !== $hook ) {
-		return;
-	}
-
-	wp_enqueue_media();
-
-	$js_admin = 'assets/js/admin-seitenbilder.js';
-	$css_admin = 'assets/css/admin-seitenbilder.css';
-
-	if ( file_exists( get_theme_file_path( $js_admin ) ) ) {
-		wp_enqueue_script(
-			'wwd-seitenbilder-admin',
-			get_theme_file_uri( $js_admin ),
-			array( 'jquery' ),
-			filemtime( get_theme_file_path( $js_admin ) ),
-			true
-		);
-	}
-
-	if ( file_exists( get_theme_file_path( $css_admin ) ) ) {
-		wp_enqueue_style(
-			'wwd-seitenbilder-admin',
-			get_theme_file_uri( $css_admin ),
-			array(),
-			filemtime( get_theme_file_path( $css_admin ) ),
-			'all'
-		);
-	}
-}
-add_action( 'admin_enqueue_scripts', 'wwd_seitenbilder_admin_assets' );
+/**
+ * 1) Admin-Menü hinzufügen (wie Vorlage)
+ */
+add_action('admin_menu', function () {
+    add_menu_page(
+        'Seitenbilder ändern',
+        'Seitenbilder',
+        'manage_options', // wie deine Vorgabe: Capability-Check
+        'seitenbilder',
+        'wwd_seitenbilder_callback',
+        'dashicons-format-image',
+        26
+    );
+});
 
 
+/**
+ * 2) Media-Uploader aktivieren (nur auf dieser Admin-Seite)
+ */
+add_action('admin_enqueue_scripts', function ($hook) {
+    if ($hook !== 'toplevel_page_seitenbilder') return;
 
+    wp_enqueue_media();
+
+    $css_admin = 'assets/css/admin-seitenbilder.css';
+    $js_admin  = 'assets/js/admin-seitenbilder.js';
+
+    wp_enqueue_style(
+        'wwd-seitenbilder-admin',
+        get_theme_file_uri( $css_admin ),
+        array(),
+        file_exists( get_theme_file_path( $css_admin ) ) ? filemtime( get_theme_file_path( $css_admin ) ) : null
+    );
+    wp_enqueue_script(
+        'wwd-admin-seitenbilder',
+        get_theme_file_uri( $js_admin ),
+        array( 'jquery' ),
+        file_exists( get_theme_file_path( $js_admin ) ) ? filemtime( get_theme_file_path( $js_admin ) ) : null,
+        true
+    );
+});
+
+
+/**
+ * 3) Callback: HTML-Formular + Speicherung (wie Vorlage: POST + Nonce + update_option)
+ */
 function wwd_seitenbilder_callback() {
-    if ( ! current_user_can( 'manage_options' ) ) {
-        wp_die( esc_html__( 'Keine Berechtigung.', 'wwd' ) );
+
+    if (!current_user_can('manage_options')) {
+        wp_die('Keine Berechtigung.');
     }
 
-    $fields  = wwd_get_seitenbilder_fields();
-    $options = get_option( 'wwd_seitenbilder', array() );
+    // Bildschlüssel (nur NICHT-SVG)
+    $fields = [
+        'home' => 'Homepage Hero',
+        'ansatz-1' => 'ansatz-1',
+        'ansatz-2' => 'ansatz-2',
+        'weg-zur-website-1' => 'weg-zur-website-1',
+        'weg-zur-website-2' => 'weg-zur-website-2',
+        'weg-zur-website-3' => 'weg-zur-website-3',
+        'weg-zur-website-4' => 'weg-zur-website-4',
+        'kunden' => 'Kunden Hero',
+        'das-machen-wir-moeglich-1' => 'das-machen-wir-moeglich-1',
+        'das-machen-wir-moeglich-2' => 'das-machen-wir-moeglich-2',
+        'das-machen-wir-moeglich-3' => 'das-machen-wir-moeglich-3',
+        'ki-home' => 'KI Homepage',
+        'ki-integration' => 'KI Integration',
+        'news' => 'News Hero',
+        'ueber-uns' => 'Ueber uns Hero',
+        'kontakt' => 'Kontakt Hero',
+    ];
 
-    echo '<div class="wrap">';
-    echo '<h1>' . esc_html__( 'Seitenbilder verwalten', 'wwd' ) . '</h1>';
-    settings_errors( 'wwd_seitenbilder' );
-    echo '<form method="post" action="options.php">';
-    settings_fields( 'wwd_seitenbilder' );
+    // Speichern
+    if (isset($_POST['wwd_nonce']) && wp_verify_nonce($_POST['wwd_nonce'], 'wwd_bildspeichern')) {
+        foreach ($fields as $key => $label) {
+            if (isset($_POST[$key])) {
+                update_option($key, esc_url_raw($_POST[$key]));
+            }
+        }
 
-    foreach ( $fields as $key => $label ) {
-        $stored_id    = isset( $options[ $key ] ) ? absint( $options[ $key ] ) : 0;
-        $legacy_url   = $stored_id ? '' : get_option( $key );
-        $legacy_id    = $legacy_url ? attachment_url_to_postid( $legacy_url ) : 0;
-        $image_id     = $stored_id ? $stored_id : absint( $legacy_id );
-        $preview_html = $image_id
-            ? wp_get_attachment_image( $image_id, 'medium', false, array( 'class' => 'wwd-seitenbilder-preview-img' ) )
-            : '';
-        $preview_class = $image_id ? '' : ' is-hidden';
-        $remove_class  = $image_id ? '' : ' is-hidden';
-
-        echo '<div class="wwd-seitenbilder-field">';
-        echo '<h3>' . esc_html( $label ) . '</h3>';
-        echo '<input type="hidden" class="wwd-media-id" name="wwd_seitenbilder[' . esc_attr( $key ) . ']" value="' . esc_attr( $image_id ) . '">';
-        echo '<button type="button" class="button wwd-media-select" data-title="' . esc_attr__( 'Bild auswählen', 'wwd' ) . '" data-button="' . esc_attr__( 'Bild verwenden', 'wwd' ) . '">' . esc_html__( 'Bild auswählen', 'wwd' ) . '</button> ';
-        echo '<button type="button" class="button wwd-media-remove' . esc_attr( $remove_class ) . '">' . esc_html__( 'Entfernen', 'wwd' ) . '</button>';
-        echo '<div class="wwd-seitenbilder-preview' . esc_attr( $preview_class ) . '">' . $preview_html . '</div>';
-        echo '</div>';
+        echo '<div class="notice notice-success is-dismissible"><p>Bilder gespeichert.</p></div>';
     }
 
-    submit_button( esc_html__( 'Bilder speichern', 'wwd' ) );
-    echo '</form>';
-    echo '</div>';
-}
+    // Ausgabe
+    echo '<div class="wrap"><h1>Seitenbilder verwalten</h1><form method="post">';
+    wp_nonce_field('wwd_bildspeichern', 'wwd_nonce');
 
-function wwd_get_seitenbild_id( $key ) {
-	$safe_key = sanitize_key( $key );
-	if ( '' === $safe_key ) {
-		return 0;
-	}
+    foreach ($fields as $key => $label) {
+        $url = esc_url(get_option($key));
+        echo "<h3>{$label}</h3>";
+        echo "<input type='text' name='{$key}' value='{$url}' class='widefat'>";
+        echo "<button class='button wwd-upload-button'>Bild auswählen</button><br>";
+        echo "<img src='{$url}' style='max-width:300px; margin-top:10px; " . ($url ? '' : 'display:none;') . "'><br><br>";
+    }
 
-	static $options = null;
-	if ( null === $options ) {
-		$options = get_option( 'wwd_seitenbilder', array() );
-	}
-
-	$image_id = isset( $options[ $safe_key ] ) ? absint( $options[ $safe_key ] ) : 0;
-	if ( $image_id ) {
-		return $image_id;
-	}
-
-	// Legacy fallback only for home.
-	if ( 'home' === $safe_key ) {
-		$legacy_url = get_option( 'home' );
-		if ( $legacy_url ) {
-			return absint( attachment_url_to_postid( $legacy_url ) );
-		}
-	}
-
-	return 0;
-}
-
-function wwd_render_seitenbild( $key, $size = 'full', $attr = array() ) {
-	$image_id = wwd_get_seitenbild_id( $key );
-	if ( ! $image_id ) {
-		return '';
-	}
-
-	return wp_get_attachment_image( $image_id, $size, false, $attr );
+    submit_button('Bilder speichern');
+    echo '</form></div>';
 }

@@ -4,12 +4,8 @@ get_header();
 
 
 <div class="home-hero">
-    <?php
-    $hero_image = wwd_render_seitenbild( 'home', 'full', array( 'class' => 'hero-img' ) );
-    if ( $hero_image ) {
-        echo $hero_image;
-    }
-    ?>
+
+        <img class="hero-img" src="<?php echo esc_url(get_option('home')); ?>" alt="hero image">
     <div class="home-hero-inner mw">
         <h2 class="light">Kreativität trifft<br>Technologie</h2>
         <h1 class="light"><span>W</span>endland <span>W</span>eb <span>D</span>esign</h1>
