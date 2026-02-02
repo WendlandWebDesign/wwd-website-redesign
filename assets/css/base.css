@@ -45,8 +45,6 @@ body{
 
 
 /* fonts */
-
-
 h2,
 h5,
 h6{
@@ -144,3 +142,16 @@ a{
 }
 
 /* transitions */
+.img-transition{
+    width: 100%;
+    aspect-ratio: 10/1;
+    background: linear-gradient(
+            to bottom,
+            rgba(25, 25, 25, 1) 0%,
+            rgba(25, 25, 25, 1) 30%,
+            rgba(25, 25, 25, 0) 100%
+    );
+}
+.img-transition.bottom{
+
+}
