@@ -21,3 +21,26 @@ if (siteOverlay) {
     });
 }
 
+// Menu hover: move burger ::before lines via CSS variable
+document.querySelectorAll(".menu").forEach(menu => {
+    const spans = menu.querySelectorAll(".burger .bar");
+    if (!spans.length || !window.gsap) return;
+
+    const tl = window.gsap.timeline({ paused: true });
+    spans.forEach((span, index) => {
+        const spanW = span.clientWidth;
+        const beforeStyle = window.getComputedStyle(span, "::before");
+        const beforeW = Math.round(parseFloat(beforeStyle.width)) || 0;
+        const maxRight = Math.max(0, Math.round(spanW - beforeW));
+        const targetX = index === 1 ? maxRight : -maxRight;
+        tl.to(span, {
+            "--before-x": `${targetX}px`,
+            duration: 0.3,
+            ease: "power2.out",
+        }, 0);
+    });
+
+    menu.addEventListener("mouseenter", () => tl.play());
+    menu.addEventListener("mouseleave", () => tl.reverse());
+});
+
