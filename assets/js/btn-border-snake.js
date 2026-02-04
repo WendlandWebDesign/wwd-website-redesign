@@ -35,8 +35,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const length = track.getTotalLength();
         if (!length || !Number.isFinite(length)) return null;
 
-        const lenLong = length * 0.22;
-        const lenShort = length * 0.12;
+        const innerW = Math.max(1, w - strokeWidth);
+        const innerH = Math.max(1, h - strokeWidth);
+        const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+        const lenLong = clamp(innerW * 0.60, innerW * 0.40, innerW * 0.75);
+        const lenShort = clamp(innerH * 0.50, innerH * 0.35, innerH * 0.70);
 
         const starts = [
             { len: lenShort, offset: 0.00 * length },
@@ -56,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const tl = gsapInstance.timeline({ paused: true, defaults: { ease: "power2.inOut" } });
         segments.forEach((seg, idx) => {
-            const target = starts[idx].offset - (length / 2);
+            const target = starts[idx].offset + (length * -0.75);
             tl.to(seg, { strokeDashoffset: target, duration: 0.8 }, 0);
         });
         tl.to(segments, { stroke: "var(--hover-clr)", duration: 0.8, ease: "none" }, 0);
