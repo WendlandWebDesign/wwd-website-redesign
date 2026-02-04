@@ -82,16 +82,23 @@ body.is-nav-open .site-overlay{
     position: relative;
     z-index: 10;
 }
+.menu::before{
+    content: "";
+    position: absolute;
+    inset: -10px;
+    pointer-events: auto;
+}
 .menu::after{
     content: "";
     position: absolute;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.15);
+    inset: -10px;
+    background: rgba(255, 255, 255, 0.075);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     opacity: 0;
     transition: opacity 0.25s ease-out;
     pointer-events: none;
+    border-radius: 3px;
 }
 .menu:hover::after{
     opacity: 1;
