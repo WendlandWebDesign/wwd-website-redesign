@@ -135,7 +135,7 @@ a{
 .btn__seg{
     fill: none;
     stroke: var(--ac-clr);
-    stroke-width: 4px;
+    stroke-width: 3.5px;
     vector-effect: non-scaling-stroke;
     stroke-linecap: butt;
     stroke-linejoin: miter;
