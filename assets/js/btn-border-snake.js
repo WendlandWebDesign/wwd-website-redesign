@@ -59,6 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const target = starts[idx].offset - (length / 2);
             tl.to(seg, { strokeDashoffset: target, duration: 0.8 }, 0);
         });
+        tl.to(segments, { stroke: "#42e3ff", duration: 0.8, ease: "none" }, 0);
 
         return tl;
     };

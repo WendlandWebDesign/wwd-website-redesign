@@ -98,6 +98,7 @@ a{
     cursor: pointer;
     width: max-content;
 }
+
 .btn p{
     display: flex;
     align-items: center;
