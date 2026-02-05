@@ -98,7 +98,7 @@ body.is-nav-open .site-overlay{
     opacity: 0;
     transition: opacity 0.25s ease-out;
     pointer-events: none;
-    border-radius: 3px;
+    border-radius: var(--small-radius);
 }
 .menu:hover::after{
     opacity: 1;
