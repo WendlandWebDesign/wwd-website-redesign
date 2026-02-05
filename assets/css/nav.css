@@ -131,6 +131,7 @@ body.is-nav-open .site-overlay{
     width: 58%;
     height: 100%;
     background-color: var(--ac-clr);
+    transition: background .5s;
 }
 .burger .bar:nth-of-type(2)::before{
     content: "";
@@ -140,10 +141,14 @@ body.is-nav-open .site-overlay{
     width: 58%;
     height: 100%;
     background-color: var(--ac-clr);
+    transition: background .5s;
 }
 .burger .bar::before{
     transform: translateX(var(--before-x, 0));
     transition: none;
+}
+.menu:hover .burger .bar::before{
+    background: var(--hover-clr);
 }
 
 
