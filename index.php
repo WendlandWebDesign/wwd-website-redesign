@@ -3,6 +3,7 @@ get_header();
 ?>
 
 
+
 <div class="home-hero">
 
     <img class="hero-img" src="<?php echo esc_url(get_option('home-img')); ?>" alt="hero image">
@@ -25,6 +26,8 @@ get_header();
     <img class="hero-fächer" src="<?php echo esc_url(get_option('faecher-home')); ?>" alt="website-faecher">
     <div class="img-transition-bottom"></div>
 </div>
+
+
 
 
 
