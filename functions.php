@@ -563,7 +563,7 @@ function wwd_seitenbilder_callback() {
 
     // Bildschlüssel (nur NICHT-SVG)
     $fields = [
-        'home' => 'Homepage Hero',
+        'home-img' => 'Homepage Hero',
 		'faecher-home' => 'Fächer Homepage',
         'ansatz-1' => 'ansatz-1',
         'ansatz-2' => 'ansatz-2',
