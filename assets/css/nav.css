@@ -158,7 +158,7 @@ body.is-nav-open .site-overlay{
     top: 0;
     left: 0;
     height: 100svh;
-    background-color: var(--lighter);
+    background-color: var(--dark);
     transform: translateX(-100%);
     transition: transform .5s ease-in-out;
     z-index: 30;
@@ -195,7 +195,7 @@ body.is-nav-open .menu .burger .bar{
     cursor: pointer;
 }
 .close-btn-wrapper:hover{
-    background-color: var(--hover);
+    background-color: var(--dark);
 }
 .close-btn{
     width: 25px;
@@ -207,7 +207,7 @@ body.is-nav-open .menu .burger .bar{
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: var(--dark);
+    background-color: var(--lighter);
     width: 100%;
     height: 2px;
 }
@@ -257,10 +257,10 @@ body.is-nav-open .menu .burger .bar{
     gap: 30px;
 }
 .expand-right.active{
-    background-color: var(--light);
+    background-color: var(--card-clr);
 }
 .list-left-item:hover{
-    background-color: var(--light);
+    background-color: var(--card-clr);
 }
 .list-left-item p,
 .list-left-item a{
@@ -292,7 +292,7 @@ body.is-nav-open .menu .burger .bar{
     width: 50%;
     min-width: 320px;
     height: 100%;
-    background-color: var(--light);
+    background-color: var(--card-clr);
     overflow: hidden;
     min-height: 0;
 }
@@ -341,16 +341,16 @@ body.is-nav-open .menu .burger .bar{
     font-size: 1.2rem;
     width: 100%;
     padding: 14px 16px;
-    border-bottom: 1px solid var(--lighter);
+    border-bottom: 1px solid var(--dark);
     transition: .3s ease;
     display: flex;
     align-items: center;
 }
 .right-buttons a:first-of-type{
-    border-top: 1px solid var(--lighter);
+    border-top: 1px solid var(--dark);
 }
 .right-buttons a:hover{
-    background-color: var(--lighter);
+    background-color: var(--dark);
 }
 
 
@@ -447,13 +447,12 @@ body.is-nav-open .menu .burger .bar{
 
 
 .top-bar{
-
     width: 100%;
     min-height: 60px !important;
     position: sticky;
     top: 0;
     left: 0;
-    background-color: var(--light);
+    background-color: var(--card-clr);
     z-index: 103;
 }
 .back-btn-wrapper{
@@ -471,7 +470,7 @@ body.is-nav-open .menu .burger .bar{
     cursor: pointer;
 }
 .back-btn-wrapper:hover{
-    background-color: var(--hover);
+    background-color: var(--dark);
 }
 .back-btn{
     width: 100%;
@@ -493,12 +492,19 @@ body.is-nav-open .menu .burger .bar{
 }
 
 @media(max-width: 640px){
-    .top-bar{
-        background-color: var(--lighter);
-    }
     .back-btn-wrapper{
         display: inherit;
     }
+
+
+    .top-bar{
+        background-color: var(--dark);
+    }
+    .close-btn-wrapper:hover,
+    .back-btn-wrapper:hover{
+        background-color: var(--card-clr);
+    }
+
 
     .nav-list-wrapper,
     .list-left,
@@ -528,28 +534,24 @@ body.is-nav-open .menu .burger .bar{
     .list-right-content{
         top: 0;
         left: 0;
-        background-color: var(--lighter);
         z-index: 101 !important;
         height: 100%;
     }
     .list-right-content-wrapper{
         flex: 1 1 auto;
+        background-color: var(--dark);
     }
-
 
     .right-buttons a{
-        border-bottom: solid 1px var(--light);
+        border-bottom: 1px solid var(--card-clr);
     }
     .right-buttons a:first-of-type{
-        border-top: 1px solid var(--light);
+        border-top: 1px solid var(--card-clr);
     }
     .right-buttons a:hover{
-        background-color: var(--light);
+        background-color: var(--card-clr);
     }
 
-    .nav-card{
-        background-color: var(--light);
-    }
 
 
 
