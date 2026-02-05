@@ -368,7 +368,7 @@ body.is-nav-open .menu .burger .bar{
     padding: var(--site-padding);
 }
 .nav-card{
-    background-color: var(--lighter);
+    background-color: var(--dark);
     border-radius: var(--big-radius);
     width: 80%;
     min-width: 270px;
@@ -554,6 +554,10 @@ body.is-nav-open .menu .burger .bar{
         border-top: 1px solid var(--card-clr);
     }
     .right-buttons a:hover{
+        background-color: var(--card-clr);
+    }
+
+    .nav-card{
         background-color: var(--card-clr);
     }
 
