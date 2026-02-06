@@ -35,7 +35,7 @@ get_header();
             <img src="<?php echo esc_url(get_option('ansatz-2')); ?>" alt="">
         </div>
         <div class="txt-holder">
-            <p class="light mini-heading">Digital. Durchdacht</p>
+            <p class="light mini-heading">Digital. Durchdacht.</p>
             <p class="light">Wir sind eine Webagentur und begleiten Projekte von der ersten Zeile Code bis zur Sichtbarkeit bei Google. Wir entwickeln moderne Websites, sorgen für stabiles Hosting im Hintergrund und optimieren alles so, dass deine Seite nicht nur läuft, sondern gefunden wird.</p>
         </div>
     </div>
