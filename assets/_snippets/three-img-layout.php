@@ -1,5 +1,5 @@
 <div class="three-img-layout-holder">
-    <h3>Das machen wir möglich</h3>
+    <h3 class="mw-small">Das machen wir möglich</h3>
     <div class="three-img-layout mw-small">
         <div class="img-holder reveal">
             <img src="<?php echo esc_url(get_option('das-machen-wir-moeglich-1')); ?>" alt="">

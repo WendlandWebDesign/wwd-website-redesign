@@ -1,5 +1,5 @@
 <div class="two-img-layout-holder">
-    <h3>Unser Ansatz</h3>
+    <h3 class="mw-small">Unser Ansatz</h3>
     <div class="two-img-layout mw-small">
         <div class="img-holder">
             <img class="reveal" src="<?php echo esc_url(get_option('ansatz-1')); ?>" alt="">
