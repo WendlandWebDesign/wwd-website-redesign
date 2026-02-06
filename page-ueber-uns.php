@@ -10,9 +10,10 @@ get_header();
 	$ueber_query = new WP_Query(
 		array(
 			'post_type'      => 'ueber-uns',
+			// Wenn mehrere Einträge genutzt werden sollen, posts_per_page erhöhen oder auf -1 setzen.
 			'posts_per_page' => 1,
-			'orderby'        => 'date',
-			'order'          => 'DESC',
+			'orderby'        => 'menu_order',
+			'order'          => 'ASC',
 		)
 	);
 

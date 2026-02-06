@@ -273,7 +273,8 @@ function wwd_register_cpts() {
 				'show_in_rest' => true,
 				'has_archive'  => false,
 				'hierarchical' => false,
-				'supports'     => array( 'title', 'editor', 'revisions' ),
+				// "page-attributes" aktiviert das Feld "Reihenfolge" (menu_order) im Editor.
+				'supports'     => array( 'title', 'editor', 'revisions', 'page-attributes' ),
 				'menu_position'=> $config['menu_pos'],
 				'menu_icon'    => $config['menu_icon'],
 				// Hinweis: Falls es bereits Pages mit denselben Slugs gibt, kann es Konflikte geben.
@@ -630,7 +631,14 @@ function wwd_apply_menu_order_sorting( $query ) {
 	}
 }
 
-foreach ( array( 'nav_dienstleistungen', 'nav_referenzen' ) as $post_type ) {
+$menu_order_post_types = array_unique(
+	array_merge(
+		array( 'nav_dienstleistungen', 'nav_referenzen' ),
+		wwd_get_unterseiten_post_types()
+	)
+);
+
+foreach ( $menu_order_post_types as $post_type ) {
 	add_filter( "manage_edit-{$post_type}_columns", 'wwd_add_menu_order_column' );
 	add_action( "manage_{$post_type}_posts_custom_column", 'wwd_render_menu_order_column', 10, 2 );
 	add_filter( "manage_edit-{$post_type}_sortable_columns", 'wwd_make_menu_order_sortable' );
