@@ -67,3 +67,50 @@ function revealOnScroll(selector = '.reveal') {
 document.addEventListener('DOMContentLoaded', () => {
     revealOnScroll('.reveal');
 });
+
+
+//observer for nav
+document.addEventListener("DOMContentLoaded", () => {
+    const navbar = document.querySelector("nav");
+    const hero = document.querySelector(".observe-nav");
+
+    if (!navbar || !hero) return;
+
+    let lastScrollY = window.scrollY;
+    let isActive = false;
+
+    // Intersection Observer für Hero
+    const observer = new IntersectionObserver(
+        ([entry]) => {
+            if (!entry.isIntersecting) {
+                navbar.classList.add("active");
+                isActive = true;
+            } else {
+                navbar.classList.remove("active", "hide");
+                isActive = false;
+            }
+        },
+        {
+            threshold: 0,
+        }
+    );
+
+    observer.observe(hero);
+
+    // Scroll-Logik
+    window.addEventListener("scroll", () => {
+        if (!isActive) return;
+
+        const currentScrollY = window.scrollY;
+
+        if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            // Scroll nach unten
+            navbar.classList.add("hide");
+        } else {
+            // Scroll nach oben
+            navbar.classList.remove("hide");
+        }
+
+        lastScrollY = currentScrollY;
+    });
+});

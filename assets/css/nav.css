@@ -8,7 +8,20 @@ nav{
     top: 0;
     left: 0;
     z-index: 100;
+    transform: translateY(0);
+    transition: transform .5s;
 }
+nav.active{
+    background-color: var(--dark);
+    position: fixed;
+    top: 0;
+    left: 0;
+    border-bottom: solid 1px var(--card-clr);
+}
+nav.hide{
+    transform: translateY(-100%);
+}
+
 .site-overlay{
     position: fixed;
     inset: 0;

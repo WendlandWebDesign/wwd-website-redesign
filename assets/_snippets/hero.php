@@ -1,4 +1,4 @@
-<div class="hero">
+<div class="hero observe-nav">
     <img src="<?php echo $heroImgSrc ?>" alt="">
      <div class="hero-inner mw">
          <h3 class="light"><?php echo $heroTxt; ?></h3>
