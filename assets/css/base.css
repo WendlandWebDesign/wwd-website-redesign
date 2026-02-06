@@ -38,7 +38,10 @@ body{
     list-style: none;
 }
 
-
+main{
+    width: 100%;
+    overflow: hidden;
+}
 
 .mw{
     max-width: 1500px;
@@ -194,4 +197,11 @@ a{
             rgba(25, 25, 25, 0) 100%
     );
     transform: translate(-50%, 2px);
+}
+
+
+/* imgs / icons */
+.icon--check{
+    width: 30px;
+    height: auto;
 }

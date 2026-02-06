@@ -44,3 +44,26 @@ document.querySelectorAll(".menu").forEach(menu => {
     menu.addEventListener("mouseleave", () => tl.reverse());
 });
 
+
+//scroll reveal
+function revealOnScroll(selector = '.reveal') {
+    const elements = document.querySelectorAll(selector);
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('revealed');
+                observer.unobserve(entry.target); // stop observing after reveal
+            }
+        });
+    }, {
+        threshold: 0,            // Sobald ein Pixel sichtbar ist
+        rootMargin: '0px 0px -50px 0px' // 50px vom unteren Viewport-Bereich abziehen
+    });
+
+    elements.forEach(el => observer.observe(el));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    revealOnScroll('.reveal');
+});
