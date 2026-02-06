@@ -369,7 +369,7 @@ body.is-nav-open .menu .burger .bar{
 }
 .nav-card{
     background-color: var(--dark);
-    border-radius: var(--big-radius);
+    border-radius: var(--radius);
     width: 80%;
     min-width: 270px;
     overflow: hidden;
