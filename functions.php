@@ -225,8 +225,338 @@ function wwd_register_cpts() {
 			'menu_icon'    => 'dashicons-megaphone',
 		)
 	);
+
+	// Unterseiten-CPTs (zentral verwaltet, in Schleife registriert).
+	$unterseiten_cpts = array(
+		'home' => array(
+			'singular'   => 'Home',
+			'plural'     => 'Home',
+			'menu_icon'  => 'dashicons-admin-home',
+			'menu_pos'   => 20,
+		),
+		'dienstleistungen' => array(
+			'singular'   => 'Dienstleistung',
+			'plural'     => 'Dienstleistungen',
+			'menu_icon'  => 'dashicons-admin-tools',
+			'menu_pos'   => 21,
+		),
+		'ki-integration' => array(
+			'singular'   => 'KI-Integration',
+			'plural'     => 'KI-Integration',
+			'menu_icon'  => 'dashicons-lightbulb',
+			'menu_pos'   => 22,
+		),
+		'ueber-uns' => array(
+			'singular'   => 'Über uns',
+			'plural'     => 'Über uns',
+			'menu_icon'  => 'dashicons-groups',
+			'menu_pos'   => 23,
+		),
+	);
+
+	foreach ( $unterseiten_cpts as $slug => $config ) {
+		register_post_type(
+			$slug,
+			array(
+				'labels' => array(
+					'name'          => $config['plural'],
+					'singular_name' => $config['singular'],
+					'add_new_item'  => $config['singular'] . ' hinzufügen',
+					'edit_item'     => $config['singular'] . ' bearbeiten',
+					'view_item'     => $config['singular'] . ' ansehen',
+					'search_items'  => $config['plural'] . ' durchsuchen',
+					'all_items'     => $config['plural'],
+				),
+				'public'       => true,
+				'show_ui'      => true,
+				'show_in_menu' => true,
+				'show_in_rest' => true,
+				'has_archive'  => false,
+				'hierarchical' => false,
+				'supports'     => array( 'title', 'editor', 'revisions' ),
+				'menu_position'=> $config['menu_pos'],
+				'menu_icon'    => $config['menu_icon'],
+				// Hinweis: Falls es bereits Pages mit denselben Slugs gibt, kann es Konflikte geben.
+				// In dem Fall muss entweder die Page umbenannt oder der CPT-Slug präfixiert werden.
+				'rewrite'      => array( 'slug' => $slug, 'with_front' => false ),
+			)
+		);
+	}
 }
 add_action( 'init', 'wwd_register_cpts' );
+
+/**
+ * Unterseiten-Layouts Allowlist (niemals freie Dateinamen includen).
+ */
+function wwd_get_allowed_layouts() {
+	return array(
+		'three-img-layout' => 'assets/_snippets/three-img-layout.php',
+		'two-img-layout'   => 'assets/_snippets/two-img-layout.php',
+	);
+}
+
+/**
+ * Unterseiten Meta Boxes (Layout-Auswahl + Inhalte).
+ */
+function wwd_get_unterseiten_post_types() {
+	return array( 'home', 'dienstleistungen', 'ki-integration', 'ueber-uns' );
+}
+
+function wwd_add_unterseiten_metaboxes() {
+	foreach ( wwd_get_unterseiten_post_types() as $post_type ) {
+		add_meta_box(
+			'wwd_layout_template',
+			'Layout-Vorlage',
+			'wwd_render_layout_template_metabox',
+			$post_type,
+			'side',
+			'default'
+		);
+
+		add_meta_box(
+			'wwd_unterseiten_content',
+			'Inhalte',
+			'wwd_render_unterseiten_content_metabox',
+			$post_type,
+			'normal',
+			'high'
+		);
+	}
+}
+add_action( 'add_meta_boxes', 'wwd_add_unterseiten_metaboxes' );
+
+function wwd_render_layout_template_metabox( $post ) {
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$current         = get_post_meta( $post->ID, '_layout_template', true );
+	if ( empty( $current ) || ! isset( $allowed_layouts[ $current ] ) ) {
+		$current = 'two-img-layout';
+	}
+
+	wp_nonce_field( 'wwd_layout_template_save', 'wwd_layout_template_nonce' );
+	?>
+	<p>
+		<label for="wwd-layout-template"><?php echo esc_html( 'Layout-Vorlage' ); ?></label>
+	</p>
+	<select name="wwd_layout_template" id="wwd-layout-template" class="widefat">
+		<option value="two-img-layout" <?php selected( $current, 'two-img-layout' ); ?>><?php echo esc_html( 'Two-Image Layout' ); ?></option>
+		<option value="three-img-layout" <?php selected( $current, 'three-img-layout' ); ?>><?php echo esc_html( 'Three-Image Layout' ); ?></option>
+	</select>
+	<?php
+}
+
+function wwd_render_unterseiten_content_metabox( $post ) {
+	$headline  = get_post_meta( $post->ID, '_section_headline', true );
+	$mini_head = get_post_meta( $post->ID, '_section_mini_heading', true );
+	$text      = get_post_meta( $post->ID, '_section_text', true );
+	$cta_label = get_post_meta( $post->ID, '_cta_label', true );
+	$cta_url   = get_post_meta( $post->ID, '_cta_url', true );
+
+	$img_1_id = absint( get_post_meta( $post->ID, '_img_1_id', true ) );
+	$img_2_id = absint( get_post_meta( $post->ID, '_img_2_id', true ) );
+	$img_3_id = absint( get_post_meta( $post->ID, '_img_3_id', true ) );
+
+	wp_nonce_field( 'wwd_unterseiten_content_save', 'wwd_unterseiten_content_nonce' );
+	?>
+	<p>
+		<label for="wwd-section-headline"><strong><?php echo esc_html( 'Headline' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="wwd-section-headline"
+		name="wwd_section_headline"
+		value="<?php echo esc_attr( $headline ); ?>"
+		class="widefat"
+	/>
+
+	<p>
+		<label for="wwd-section-mini-heading"><strong><?php echo esc_html( 'Mini-Heading' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="wwd-section-mini-heading"
+		name="wwd_section_mini_heading"
+		value="<?php echo esc_attr( $mini_head ); ?>"
+		class="widefat"
+	/>
+	<p class="description"><?php echo esc_html( 'Kleiner Titel oberhalb der Hauptueberschrift.' ); ?></p>
+
+	<p>
+		<label for="wwd-section-text"><strong><?php echo esc_html( 'Text' ); ?></strong></label>
+	</p>
+	<textarea
+		id="wwd-section-text"
+		name="wwd_section_text"
+		rows="6"
+		class="widefat"
+	><?php echo esc_textarea( $text ); ?></textarea>
+	<p class="description"><?php echo esc_html( 'HTML ist erlaubt und wird beim Speichern bereinigt.' ); ?></p>
+
+	<p>
+		<label for="wwd-cta-label"><strong><?php echo esc_html( 'CTA Label' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="wwd-cta-label"
+		name="wwd_cta_label"
+		value="<?php echo esc_attr( $cta_label ); ?>"
+		class="widefat"
+	/>
+
+	<p>
+		<label for="wwd-cta-url"><strong><?php echo esc_html( 'CTA URL' ); ?></strong></label>
+	</p>
+	<input
+		type="url"
+		id="wwd-cta-url"
+		name="wwd_cta_url"
+		value="<?php echo esc_attr( $cta_url ); ?>"
+		class="widefat"
+		placeholder="<?php echo esc_attr( 'https://example.com' ); ?>"
+	/>
+
+	<hr />
+
+	<p><strong><?php echo esc_html( 'Bilder' ); ?></strong></p>
+
+	<?php
+	$images = array(
+		'img_1' => array(
+			'label' => 'Bild 1',
+			'id'    => $img_1_id,
+		),
+		'img_2' => array(
+			'label' => 'Bild 2',
+			'id'    => $img_2_id,
+		),
+		'img_3' => array(
+			'label' => 'Bild 3',
+			'id'    => $img_3_id,
+		),
+	);
+
+	foreach ( $images as $key => $img ) :
+		$preview_url = $img['id'] ? wp_get_attachment_image_url( $img['id'], 'medium' ) : '';
+		$input_id    = 'wwd-' . $key . '-id';
+		?>
+		<div class="wwd-media-field" data-target="<?php echo esc_attr( $input_id ); ?>">
+			<p><label for="<?php echo esc_attr( $input_id ); ?>"><?php echo esc_html( $img['label'] ); ?></label></p>
+			<input
+				type="hidden"
+				id="<?php echo esc_attr( $input_id ); ?>"
+				name="<?php echo esc_attr( $input_id ); ?>"
+				value="<?php echo esc_attr( $img['id'] ); ?>"
+			/>
+			<div class="wwd-media-preview">
+				<?php if ( $preview_url ) : ?>
+					<img src="<?php echo esc_url( $preview_url ); ?>" alt="" />
+				<?php endif; ?>
+			</div>
+			<p>
+				<button type="button" class="button wwd-media-select"><?php echo esc_html( 'Bild auswählen' ); ?></button>
+				<button type="button" class="button wwd-media-remove"><?php echo esc_html( 'Entfernen' ); ?></button>
+			</p>
+		</div>
+	<?php endforeach; ?>
+	<?php
+}
+
+function wwd_save_unterseiten_meta( $post_id ) {
+	if ( ! isset( $_POST['wwd_layout_template_nonce'], $_POST['wwd_unterseiten_content_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( $_POST['wwd_layout_template_nonce'], 'wwd_layout_template_save' ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( $_POST['wwd_unterseiten_content_nonce'], 'wwd_unterseiten_content_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = isset( $_POST['wwd_layout_template'] ) ? sanitize_key( wp_unslash( $_POST['wwd_layout_template'] ) ) : '';
+	if ( ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	update_post_meta( $post_id, '_layout_template', $layout );
+
+	$headline  = isset( $_POST['wwd_section_headline'] ) ? sanitize_text_field( wp_unslash( $_POST['wwd_section_headline'] ) ) : '';
+	$mini_head = isset( $_POST['wwd_section_mini_heading'] ) ? sanitize_text_field( wp_unslash( $_POST['wwd_section_mini_heading'] ) ) : '';
+	// HTML ist erlaubt und wird beim Speichern bereinigt.
+	$text      = isset( $_POST['wwd_section_text'] ) ? wp_kses_post( wp_unslash( $_POST['wwd_section_text'] ) ) : '';
+	$cta_label = isset( $_POST['wwd_cta_label'] ) ? sanitize_text_field( wp_unslash( $_POST['wwd_cta_label'] ) ) : '';
+	$cta_url   = isset( $_POST['wwd_cta_url'] ) ? esc_url_raw( wp_unslash( $_POST['wwd_cta_url'] ) ) : '';
+
+	$meta_map = array(
+		'_section_headline' => $headline,
+		'_section_mini_heading' => $mini_head,
+		'_section_text'     => $text,
+		'_cta_label'        => $cta_label,
+		'_cta_url'          => $cta_url,
+	);
+
+	foreach ( $meta_map as $meta_key => $value ) {
+		if ( '' === $value ) {
+			delete_post_meta( $post_id, $meta_key );
+		} else {
+			update_post_meta( $post_id, $meta_key, $value );
+		}
+	}
+
+	$image_fields = array(
+		'_img_1_id' => 'wwd-img_1-id',
+		'_img_2_id' => 'wwd-img_2-id',
+		'_img_3_id' => 'wwd-img_3-id',
+	);
+	foreach ( $image_fields as $meta_key => $field_key ) {
+		$value = isset( $_POST[ $field_key ] ) ? absint( $_POST[ $field_key ] ) : 0;
+		if ( $value <= 0 ) {
+			delete_post_meta( $post_id, $meta_key );
+		} else {
+			update_post_meta( $post_id, $meta_key, $value );
+		}
+	}
+}
+
+foreach ( wwd_get_unterseiten_post_types() as $post_type ) {
+	add_action( "save_post_{$post_type}", 'wwd_save_unterseiten_meta' );
+}
+
+function wwd_enqueue_unterseiten_admin_media( $hook ) {
+	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+		return;
+	}
+	$screen = get_current_screen();
+	if ( ! $screen || ! in_array( $screen->post_type, wwd_get_unterseiten_post_types(), true ) ) {
+		return;
+	}
+
+	wp_enqueue_media();
+	wp_enqueue_script(
+		'wwd-admin-media',
+		get_theme_file_uri( 'assets/js/admin-media.js' ),
+		array( 'jquery' ),
+		file_exists( get_theme_file_path( 'assets/js/admin-media.js' ) ) ? filemtime( get_theme_file_path( 'assets/js/admin-media.js' ) ) : null,
+		true
+	);
+
+	if ( file_exists( get_theme_file_path( 'assets/css/admin.css' ) ) ) {
+		wp_enqueue_style(
+			'wwd-admin-media',
+			get_theme_file_uri( 'assets/css/admin.css' ),
+			array(),
+			filemtime( get_theme_file_path( 'assets/css/admin.css' ) )
+		);
+	}
+}
+add_action( 'admin_enqueue_scripts', 'wwd_enqueue_unterseiten_admin_media' );
 
 /**
  * CPT queries for nav panels.
