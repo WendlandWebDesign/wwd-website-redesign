@@ -48,15 +48,15 @@ get_header();
         <h3>Das machen wir möglich</h3>
         <div class="three-img-layout mw-small">
             <div class="img-holder reveal">
-                <img src="<?php echo esc_url(get_option('ansatz-1')); ?>" alt="">
+                <img src="<?php echo esc_url(get_option('das-machen-wir-moeglich-1')); ?>" alt="">
                 <p class="light mini-heading">WEBENTWICKLUNG</p>
             </div>
             <div class="img-holder reveal">
-                <img src="<?php echo esc_url(get_option('ansatz-1')); ?>" alt="">
+                <img src="<?php echo esc_url(get_option('das-machen-wir-moeglich-2')); ?>" alt="">
                 <p class="light mini-heading">HOSTING</p>
             </div>
             <div class="img-holder reveal">
-                <img src="<?php echo esc_url(get_option('ansatz-1')); ?>" alt="">
+                <img src="<?php echo esc_url(get_option('das-machen-wir-moeglich-3')); ?>" alt="">
                 <p class="light mini-heading">SEO</p>
             </div>
             <div class="txt-holder reveal">
