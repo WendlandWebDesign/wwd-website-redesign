@@ -25,6 +25,9 @@
 .hero-inner h3{
     position: absolute;
     bottom: 10%;
-    left: 16px;
+    left: 0;
+    padding: 0 16px;
     z-index: 10;
+    width: 100%;
+    text-align: start;
 }

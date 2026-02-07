@@ -1,0 +1,104 @@
+/* kunden grid */
+.kunden-holder {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.kunden{
+    width: 100%;                 /* nimmt immer 100% ein */
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    align-items: stretch;
+    padding: var(--section-padding);
+}
+
+.kunden-card {
+    min-width: 0;
+    background-color: var(--card-clr);
+    border-radius: 14px;
+    padding: 22px;
+    text-decoration: none;
+    min-height: 180px;
+    display: grid;
+    place-items: center;
+    gap: 10px;
+    position: relative;
+    opacity: 0;
+    transform: translateY(50px) scale(.8);
+    transition: all .8s ease;
+}
+.kunden-card.revealed{
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+.kunden-card:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 0 10px #151515;
+    transition: .4s ease;
+}
+
+.kunden-card img {
+    max-width: 140px;
+    max-height: 70px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.kunden-card p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    position: absolute;
+    bottom: 1em;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+
+/* kontakt cta section */
+
+.die-nächsten-holder{
+    margin: 40px 0;
+    width: 100%;
+    aspect-ratio: 16/6;
+    background-image: url("http://localhost/wwd-redesign/wp-content/uploads/2026/02/weltall.jpg");
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 350px;
+    max-height: 600px;
+    position: relative;
+}
+
+.die-nächsten-inner{
+    width: 100%;
+    padding: var(--site-padding);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2em;
+    align-items: flex-start;
+}
+.die-nächsten-inner h3{
+    text-align: left;
+    font-size: clamp(1.9rem, 5vw, 4rem);
+    z-index: 9;
+}
+
+.die-nächsten-holder .img-transition-top,
+.die-nächsten-holder .img-transition-bottom{
+    z-index: 10;
+}
+
+

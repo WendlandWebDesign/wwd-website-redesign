@@ -26,6 +26,7 @@ function wwd_website_redesign_enqueue_assets() {
 	$css_sections = 'assets/css/sections.css';
     $css_home     = 'assets/css/home.css';
     $css_hero     = 'assets/css/hero.css';
+    $css_referenzen     = 'assets/css/referenzen.css';
 
 	// JS-Dateien
 	$js_base       = 'assets/js/base.js';
@@ -77,6 +78,13 @@ function wwd_website_redesign_enqueue_assets() {
         get_theme_file_uri( $css_hero ),
         array( 'wwd-website-redesign-base' ),
         file_exists( get_theme_file_path( $css_hero ) ) ? filemtime( get_theme_file_path( $css_hero ) ) : null
+    );
+
+    wp_enqueue_style(
+        'wwd-website-redesign-referenzen',
+        get_theme_file_uri( $css_referenzen ),
+        array( 'wwd-website-redesign-base' ),
+        file_exists( get_theme_file_path( $css_referenzen ) ) ? filemtime( get_theme_file_path( $css_referenzen ) ) : null
     );
 
 	/**
