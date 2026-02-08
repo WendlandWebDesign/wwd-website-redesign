@@ -46,6 +46,10 @@
 .home-hero__headline .hero-line{
     display: block;
 }
+.home-hero__headline .hero-glow{
+    color: #ffffff;
+    text-shadow: none;
+}
 .home-hero-inner h1{
     font-family: var(--font-body), sans-serif;
     font-size: calc(1rem + 1vw);

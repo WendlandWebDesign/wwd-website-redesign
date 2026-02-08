@@ -36,7 +36,7 @@
 
             <div class="nav-list">
                 <ul class="list-left">
-                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/home/' ) ); ?>'" class="list-left-item"><p class="light" href="">Home</p></li>
+                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/' ) ); ?>'" class="list-left-item"><p class="light" href="">Home</p></li>
                     <li class="list-left-item expand-right" data-nav-target="dienstleistungen">
                         <p class="light"><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'arrow', 'aria_hidden' => true ) ); ?>Dienstleistungen</p>
                         <?php echo wwd_inline_svg( 'mini-arrow.svg', array( 'class' => 'mini-arrow', 'aria_hidden' => true ) ); ?>
