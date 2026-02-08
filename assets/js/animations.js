@@ -272,6 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const typed = title.querySelector(".typed");
     if (!typed) return;
     const cursor = title.querySelector(".cursor");
+    const heroBtn = document.querySelector(".home-hero .btn");
 
     const buildTypedChars = (container) => {
         if (container.dataset.typewriterReady === "1") {
@@ -319,6 +320,14 @@ document.addEventListener("DOMContentLoaded", () => {
         ease: "none",
         stagger: 0.055,
     }, ">");
+
+    if (heroBtn) {
+        tl.to(heroBtn, {
+            autoAlpha: 1,
+            duration: 0.4,
+            ease: "none",
+        }, "<+0.1");
+    }
 
     const cursorBlink = cursor
         ? gsapInstance.to(cursor, {
