@@ -47,7 +47,8 @@
 .kunden-card::before {
     content: "";
     position: absolute;
-    inset: 0;
+    inset: -12px;
+    border-radius: inherit;
     background: radial-gradient(
         120px circle at var(--mx, 50%) var(--my, 50%),
         rgba(var(--ac-clr-rgb), 0.45) 0%,

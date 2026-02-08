@@ -107,12 +107,19 @@ document.addEventListener("DOMContentLoaded", () => {
         card.addEventListener("mousemove", updatePointer);
 
         card.addEventListener("mouseleave", () => {
+            gsapInstance.killTweensOf(card);
             gsapInstance.to(card, {
                 "--spot-opacity": 0,
                 "--spot-scale": 0.9,
                 duration: 0.35,
                 ease: "power2.out",
                 overwrite: true,
+                onComplete: () => {
+                    gsapInstance.set(card, {
+                        "--mx": "50%",
+                        "--my": "50%",
+                    });
+                },
             });
         });
     });
