@@ -39,6 +39,9 @@
     font-size: calc(1rem + 1vw);
     font-weight: 500;
 }
+.home-hero .btn{
+    opacity: 0;
+}
 .home-hero__title .char{
     display: inline-block;
 }

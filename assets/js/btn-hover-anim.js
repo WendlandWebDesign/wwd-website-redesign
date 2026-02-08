@@ -92,11 +92,12 @@
       }
 
       const borderDur = parseFloat(btn.dataset.btnBorderDur) || 0.8;
+      const HOVER_DUR = 0.35;
       const tl = window.gsap.timeline({ paused: true });
       if (chars.length) {
         tl.to(chars, {
           color: acColor,
-          duration: 0.45,
+          duration: HOVER_DUR,
           ease: 'power2.out',
           stagger: { each: 0.03, from: 0 },
         }, 0);
@@ -105,7 +106,7 @@
         tl.to(svgEls, {
           fill: acColor,
           stroke: acColor,
-          duration: 0.4,
+          duration: HOVER_DUR,
           ease: 'power2.out',
           stagger: { each: 0.02, from: 0 },
         }, 0);
@@ -119,7 +120,7 @@
       });
 
       btn.addEventListener('mouseleave', () => {
-        tl.timeScale(baseScale * 0.8).reverse();
+        tl.timeScale(baseScale * 1.0).reverse();
       });
     });
   };
