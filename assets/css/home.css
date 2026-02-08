@@ -76,6 +76,7 @@
     height: auto;
     bottom: 0;
     right: -8%;
+    will-change: transform;
 }
 
 

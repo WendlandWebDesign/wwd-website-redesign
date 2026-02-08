@@ -32,7 +32,7 @@ get_header();
                             <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
                         <?php endif; ?>
                         <p class="light"><?php echo esc_html( get_the_title() ); ?></p>
-                        </a>
+                    </a>
                     <?php
                 endwhile;
                 wp_reset_postdata();

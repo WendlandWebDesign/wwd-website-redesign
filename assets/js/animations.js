@@ -252,6 +252,33 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// home hero fan image intro
+document.addEventListener("DOMContentLoaded", () => {
+    const gsapInstance = window.gsap || null;
+    if (!gsapInstance) return;
+
+    const heroFaecher = document.querySelector(".hero-fächer");
+    if (!heroFaecher) return;
+
+    const getStartX = () => {
+        const rect = heroFaecher.getBoundingClientRect();
+        return window.innerWidth + rect.width + 40;
+    };
+
+    gsapInstance.set(heroFaecher, {
+        x: getStartX(),
+        rotate: 6,
+        transformOrigin: "center center",
+    });
+
+    gsapInstance.to(heroFaecher, {
+        x: 0,
+        rotate: 0,
+        duration: 0.9,
+        ease: "power3.out",
+    });
+});
+
 // home hero headline intro
 document.addEventListener("DOMContentLoaded", () => {
     const gsapInstance = window.gsap || null;

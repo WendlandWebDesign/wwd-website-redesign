@@ -25,6 +25,11 @@
     place-items: center;
     gap: 10px;
     position: relative;
+    overflow: hidden;
+    --mx: 50%;
+    --my: 50%;
+    --spot-opacity: 0;
+    --spot-scale: 0.9;
     opacity: 0;
     transform: translateY(50px) scale(.8);
     transition: all .8s ease;
@@ -37,6 +42,31 @@
     transform: translateY(-3px);
     box-shadow: 0 0 10px #151515;
     transition: .4s ease;
+}
+
+.kunden-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        120px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(var(--ac-clr-rgb), 0.45) 0%,
+        rgba(var(--ac-clr-rgb), 0.30) 35%,
+        rgba(var(--ac-clr-rgb), 0.15) 55%,
+        rgba(var(--ac-clr-rgb), 0.05) 70%,
+        transparent 85%
+    );
+    opacity: var(--spot-opacity, 0);
+    transform: scale(var(--spot-scale, 0.9));
+    transform-origin: center;
+    pointer-events: none;
+    z-index: 0;
+    will-change: opacity, transform;
+}
+
+.kunden-card > * {
+    position: relative;
+    z-index: 1;
 }
 
 .kunden-card img {

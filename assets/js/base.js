@@ -73,6 +73,51 @@ window.addEventListener('load', () => {
     document.documentElement.classList.add('page-loaded');
 });
 
+// Kunden-Card hover spotlight (GSAP + CSS vars)
+document.addEventListener("DOMContentLoaded", () => {
+    const gsapInstance = window.gsap || null;
+    if (!gsapInstance) return;
+
+    const cards = document.querySelectorAll("a.kunden-card");
+    if (!cards.length) return;
+
+    cards.forEach((card) => {
+        const setX = gsapInstance.quickSetter(card, "--mx", "px");
+        const setY = gsapInstance.quickSetter(card, "--my", "px");
+
+        const updatePointer = (event) => {
+            const rect = card.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            setX(x);
+            setY(y);
+        };
+
+        card.addEventListener("mouseenter", (event) => {
+            updatePointer(event);
+            gsapInstance.to(card, {
+                "--spot-opacity": 1,
+                "--spot-scale": 1,
+                duration: 0.35,
+                ease: "power2.out",
+                overwrite: true,
+            });
+        });
+
+        card.addEventListener("mousemove", updatePointer);
+
+        card.addEventListener("mouseleave", () => {
+            gsapInstance.to(card, {
+                "--spot-opacity": 0,
+                "--spot-scale": 0.9,
+                duration: 0.35,
+                ease: "power2.out",
+                overwrite: true,
+            });
+        });
+    });
+});
+
 
 //observer for nav
 document.addEventListener("DOMContentLoaded", () => {
