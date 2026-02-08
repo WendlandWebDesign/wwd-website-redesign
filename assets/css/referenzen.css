@@ -67,10 +67,17 @@
 /* kontakt cta section */
 
 .die-nächsten-holder{
+    overflow: hidden;
     margin: 40px 0;
     width: 100%;
     aspect-ratio: 16/6;
-    background-image: url("http://localhost/wwd-redesign/wp-content/uploads/2026/02/weltall.jpg");
+    background-image:
+        radial-gradient(
+            ellipse at center,
+            rgba(0, 0, 0, 0) 40%,
+            rgba(0, 0, 0, 0.6) 100%
+        ),
+        url("http://localhost/wwd-redesign/wp-content/uploads/2026/02/weltall.jpg");
     background-size: cover;
     background-position: center;
     display: flex;
@@ -94,6 +101,19 @@
     text-align: left;
     font-size: clamp(1.9rem, 5vw, 4rem);
     z-index: 9;
+    transform: translateY(100px);
+    transition: all 1s ease;
+    opacity: 0;
+}
+.die-nächsten-inner button.reveal{
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 1s ease;
+}
+.die-nächsten-inner h3.revealed,
+.die-nächsten-inner button.reveal.revealed{
+    transform: translateY(0);
+    opacity: 1;
 }
 
 .die-nächsten-holder .img-transition-top,
