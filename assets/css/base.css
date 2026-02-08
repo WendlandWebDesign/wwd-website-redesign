@@ -25,12 +25,12 @@
 }
 
 ::selection{
-    background: var(--ac-clr);
+    background: #0097b25d;
     color: var(--lighter);
 }
 
 ::-moz-selection{
-    background: var(--ac-clr);
+    background: #0097b25d;
     color: var(--lighter);
 }
 
