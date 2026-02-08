@@ -22,6 +22,20 @@ get_header();
                 <p class="light mini-heading">Webentwicklung</p>
                 <p>Wir entwickeln Websites individuell und codebasiert – exakt auf dein Projekt abgestimmt. Dabei nutzen wir Wordpress als flexibles Backend, damit Inhalte einfach gepflegt werden können. Das Ergebnis: saubere Technik, starke Performance und volle Kontrolle.</p>
             </div>
+            <div class="dienstleistung-card">
+                <div class="icon-holder">
+                    <img src="" alt="">
+                </div>
+                <p class="light mini-heading">SEO</p>
+                <p>Gutes SEO ist kein Trick, sondern saubere Arbeit. Wir optimieren Technik, Struktur und Inhalte so, dass deine Website sichtbar wird. Auf Wunsch bieten wir auch gezielte SEO-Maßnahmen wie Keyword-Optimierung und Weiterentwicklung an.</p>
+            </div>
+            <div class="dienstleistung-card">
+                <div class="icon-holder">
+                    <img src="" alt="">
+                </div>
+                <p class="light mini-heading">Wartung</p>
+                <p>Eine Website braucht Pflege. Wir übernehmen Wartung, Updates und technische Kontrolle, sorgen für Sicherheit und Stabilität und halten deine Website langfristig auf einem sauberen, zuverlässigen Stand.</p>
+            </div>
         </div>
     </div>
 

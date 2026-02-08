@@ -8,16 +8,17 @@
     padding: var(--section-padding);
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 2em;
+    gap: 2%;
 }
 .dienstleistung-card{
     background-color: var(--card-clr);
     border-radius: var(--radius);
-    padding: var(--card-padding);
+    padding: 1em;
     position: relative;
     display: flex;
     flex-direction: column;
     gap: 1em;
+    max-width: 500px;
 }
 .dienstleistung-card .icon-holder{
     position: absolute;
@@ -41,6 +42,20 @@
     margin-top: 50px;
     text-align: center;
 }
-.dienstleistung-card:last-of-type{
+.dienstleistung-card p:last-of-type{
     color: var(--txt);
+}
+
+
+@media (max-width: 750px) {
+    .dienstleistungen-cards{
+        grid-template-columns: 100%;
+        gap: 3em;
+        place-items: center;
+    }
+    .dienstleistung-card .icon-holder{
+        width: 60px;
+        height: 60px;
+        top: -30px;
+    }
 }

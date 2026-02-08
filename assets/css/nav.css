@@ -202,7 +202,7 @@ body.is-nav-open .menu .burger .bar{
     height: max-content;
     border-radius: 5px;
     position: absolute;
-    top: 17px;
+    top: 13px;
     right: 11px;
     padding: 5px;
     transition: all .3s ease;
@@ -475,7 +475,7 @@ body.is-nav-open .menu .burger .bar{
     height: 35px;
     border-radius: 5px;
     position: absolute;
-    top: 17px;
+    top: 13px;
     left: 11px;
     padding: 5px;
     transition: all .3s ease;
