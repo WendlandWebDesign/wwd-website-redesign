@@ -33,16 +33,6 @@
     max-width: max-content;
     white-space: wrap;
 }
-.home-hero-inner h2::before{
-    content: '';
-    width: 30%;
-    height: 3px;
-    background-color: var(--ac-clr);
-    display: flex;
-    flex-direction: column;
-    transform: translateX(-8px);
-}
-
 .home-hero__headline .hero-line{
     display: block;
 }
