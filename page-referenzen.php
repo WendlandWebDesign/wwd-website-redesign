@@ -12,54 +12,31 @@ get_header();
 
     <div class="kunden-holder">
         <div class="kunden mw">
-            <a class="kunden-card reveal" href="#">
-                <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
-                <p class="light" href="">privatbrauerei-laase.de</p>
-            </a>
-            <a class="kunden-card reveal" href="#">
-                <img src="<?php echo esc_url(get_option('faecher-home')); ?>" alt="">
-                <p class="light" href="">privatbrauerei-laase.de</p>
-            </a>
-            <a class="kunden-card reveal" href="#">
-                <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
-                <p class="light" href="">privatbrauerei-laase.de</p>
-            </a>
-            <a class="kunden-card reveal" href="#">
-                <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
-                <p class="light" href="">privatbrauerei-laase.de</p>
-            </a>
-            <a class="kunden-card reveal" href="#">
-                <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
-                <p class="light" href="">privatbrauerei-laase.de</p>
-            </a>
-            <a class="kunden-card reveal" href="#">
-                <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
-                <p class="light" href="">privatbrauerei-laase.de</p>
-            </a>
-            <a class="kunden-card reveal" href="#">
-                <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
-                <p class="light" href="">privatbrauerei-laase.de</p>
-            </a>
-            <a class="kunden-card reveal" href="#">
-                <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
-                <p class="light" href="">privatbrauerei-laase.de</p>
-            </a>
-            <a class="kunden-card reveal" href="#">
-                <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
-                <p class="light" href="">privatbrauerei-laase.de</p>
-            </a>
-            <a class="kunden-card reveal" href="#">
-                <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
-                <p class="light" href="">privatbrauerei-laase.de</p>
-            </a>
-            <a class="kunden-card reveal" href="#">
-                <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
-                <p class="light" href="">privatbrauerei-laase.de</p>
-            </a>
-            <a class="kunden-card reveal" href="#">
-                <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
-                <p class="light" href="">privatbrauerei-laase.de</p>
-            </a>
+            <?php
+            $referenzen_query = new WP_Query(
+                array(
+                    'post_type'      => 'referenzen',
+                    'posts_per_page' => -1,
+                    'orderby'        => 'menu_order',
+                    'order'          => 'ASC',
+                )
+            );
+            if ( $referenzen_query->have_posts() ) :
+                while ( $referenzen_query->have_posts() ) :
+                    $referenzen_query->the_post();
+                    $image_url = get_post_meta( get_the_ID(), 'referenzen_kundenbild_url', true );
+                    ?>
+                    <div class="kunden-card kunde-card reveal">
+                        <?php if ( ! empty( $image_url ) ) : ?>
+                            <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
+                        <?php endif; ?>
+                        <p class="light"><?php echo esc_html( get_the_title() ); ?></p>
+                    </div>
+                    <?php
+                endwhile;
+                wp_reset_postdata();
+            endif;
+            ?>
         </div>
     </div>
 

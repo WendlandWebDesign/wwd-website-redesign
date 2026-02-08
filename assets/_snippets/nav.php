@@ -115,7 +115,14 @@
                                 </div>
                                 <div class="right-cards">
                                     <?php
-                                    $referenzen_query = wwd_get_nav_referenzen_query();
+                                    $referenzen_query = new WP_Query(
+                                        array(
+                                            'post_type'      => 'referenzen',
+                                            'posts_per_page' => 4,
+                                            'orderby'        => 'date',
+                                            'order'          => 'DESC',
+                                        )
+                                    );
                                     if ( $referenzen_query->have_posts() ) :
                                         while ( $referenzen_query->have_posts() ) :
                                             $referenzen_query->the_post();
