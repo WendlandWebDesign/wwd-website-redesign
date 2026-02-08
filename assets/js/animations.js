@@ -1,4 +1,14 @@
-﻿
+const getGsapScrollTrigger = () => {
+    const gsapInstance = window.gsap || null;
+    const ScrollTrigger = window.ScrollTrigger || null;
+    if (!gsapInstance || !ScrollTrigger) return null;
+    if (!window.__wwdScrollTriggerRegistered) {
+        gsapInstance.registerPlugin(ScrollTrigger);
+        window.__wwdScrollTriggerRegistered = true;
+    }
+    return { gsapInstance, ScrollTrigger };
+};
+
 // menu expands
 document.addEventListener("DOMContentLoaded", () => {
     const expandItems = document.querySelectorAll(".expand-right");
@@ -211,11 +221,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // two-img layout scroll effect (img_2 moves up while section is in view)
 document.addEventListener("DOMContentLoaded", () => {
-    const gsapInstance = window.gsap || null;
-    const ScrollTrigger = window.ScrollTrigger || null;
-    if (!gsapInstance || !ScrollTrigger) return;
-
-    gsapInstance.registerPlugin(ScrollTrigger);
+    const gsapBundle = getGsapScrollTrigger();
+    if (!gsapBundle) return;
+    const { gsapInstance } = gsapBundle;
 
     const layouts = document.querySelectorAll(".two-img-layout");
     if (!layouts.length) return;
@@ -252,12 +260,93 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// one-img layout bottom-holder scroll effect (moves up while section is in view)
+window.addEventListener("load", () => {
+    const gsapBundle = getGsapScrollTrigger();
+    if (!gsapBundle) return;
+    const { gsapInstance } = gsapBundle;
+
+    const containers = document.querySelectorAll(".one-img-layout-holder");
+    if (!containers.length) return;
+
+    const remToPx = (rem) => {
+        const rootSize = getComputedStyle(document.documentElement).fontSize;
+        return rem * parseFloat(rootSize || "16");
+    };
+
+    containers.forEach((container) => {
+        const txtHolder = container.querySelector(".txt-holder");
+        const bottomHolder = container.querySelector(".bottom-holder");
+        if (!txtHolder || !bottomHolder) return;
+
+        const computeShiftUp = () => {
+            // Reset to avoid measuring a transformed position
+            gsapInstance.set(bottomHolder, { y: 0 });
+
+            const gapWanted = remToPx(1.5);
+            const txtRect = txtHolder.getBoundingClientRect();
+            const bottomRect = bottomHolder.getBoundingClientRect();
+            const currentGap = bottomRect.top - txtRect.bottom;
+            return Math.max(0, currentGap - gapWanted);
+        };
+
+        gsapInstance.to(bottomHolder, {
+            y: () => -computeShiftUp(),
+            ease: "none",
+            force3D: false,
+            immediateRender: false,
+            scrollTrigger: {
+                trigger: container,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true,
+                invalidateOnRefresh: true,
+                immediateRender: false,
+                onRefreshInit: () => gsapInstance.set(bottomHolder, { y: 0 }),
+            },
+        });
+    });
+});
+
+// one-img layout img-holder scroll effect (starts at +80px and moves to 0 while section is in view)
+window.addEventListener("load", () => {
+    const gsapBundle = getGsapScrollTrigger();
+    if (!gsapBundle) return;
+    const { gsapInstance } = gsapBundle;
+
+    const containers = document.querySelectorAll(".one-img-layout-holder");
+    if (!containers.length) return;
+
+    containers.forEach((container) => {
+        const imgHolder = container.querySelector(".img-holder");
+        if (!imgHolder) return;
+
+        gsapInstance.fromTo(
+            imgHolder,
+            { y: 80 },
+            {
+                y: 0,
+                ease: "none",
+                immediateRender: false,
+                scrollTrigger: {
+                    trigger: container,
+                    start: "top bottom",
+                    end: "bottom top",
+                    scrub: true,
+                    invalidateOnRefresh: true,
+                    immediateRender: false,
+                    onRefreshInit: () => gsapInstance.set(imgHolder, { y: 80 }),
+                },
+            }
+        );
+    });
+});
 // home hero fan image intro
 document.addEventListener("DOMContentLoaded", () => {
     const gsapInstance = window.gsap || null;
     if (!gsapInstance) return;
 
-    const heroFaecher = document.querySelector(".hero-fächer");
+    const heroFaecher = document.querySelector(".hero-f�cher");
     if (!heroFaecher) return;
 
     const getStartX = () => {
@@ -376,3 +465,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (cursor) gsapInstance.set(cursor, { autoAlpha: 0 });
     }, "+=1");
 });
+
+
+
+
+
+
+
+

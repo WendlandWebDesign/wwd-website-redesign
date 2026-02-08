@@ -324,6 +324,7 @@ function wwd_get_allowed_layouts() {
 	return array(
 		'three-img-layout' => 'assets/_snippets/three-img-layout.php',
 		'two-img-layout'   => 'assets/_snippets/two-img-layout.php',
+		'one-img-layout'   => 'assets/_snippets/one-img-layout.php',
 	);
 }
 
@@ -370,6 +371,7 @@ function wwd_render_layout_template_metabox( $post ) {
 		<label for="wwd-layout-template"><?php echo esc_html( 'Layout-Vorlage' ); ?></label>
 	</p>
 	<select name="wwd_layout_template" id="wwd-layout-template" class="widefat">
+		<option value="one-img-layout" <?php selected( $current, 'one-img-layout' ); ?>><?php echo esc_html( 'One-Image Layout' ); ?></option>
 		<option value="two-img-layout" <?php selected( $current, 'two-img-layout' ); ?>><?php echo esc_html( 'Two-Image Layout' ); ?></option>
 		<option value="three-img-layout" <?php selected( $current, 'three-img-layout' ); ?>><?php echo esc_html( 'Three-Image Layout' ); ?></option>
 	</select>
@@ -659,6 +661,155 @@ function wwd_save_three_img_texts_meta( $post_id ) {
 	}
 }
 add_action( 'save_post', 'wwd_save_three_img_texts_meta' );
+
+/**
+ * Meta box for one-img layout bottom texts.
+ */
+function wwd_add_one_img_bottom_texts_metaboxes( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
+	}
+	if ( ! in_array( $post_type, wwd_get_unterseiten_post_types(), true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = get_post_meta( $post_id, '_layout_template', true );
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'one-img-layout' !== $layout ) {
+		return;
+	}
+
+	add_meta_box(
+		'wwd_one_img_bottom_texts',
+		'One Img Layout Bottom Texte',
+		'wwd_render_one_img_bottom_texts_metabox',
+		$post_type,
+		'normal',
+		'high'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_one_img_bottom_texts_metaboxes', 10, 2 );
+
+function wwd_render_one_img_bottom_texts_metabox( $post ) {
+	$t1 = get_post_meta( $post->ID, 'one_img_bottom_p_1', true );
+	$t2 = get_post_meta( $post->ID, 'one_img_bottom_p_2', true );
+	$t3 = get_post_meta( $post->ID, 'one_img_bottom_p_3', true );
+	$t4 = get_post_meta( $post->ID, 'one_img_bottom_p_4', true );
+
+	wp_nonce_field( 'one_img_bottom_texts_save', 'one_img_bottom_texts_nonce' );
+	?>
+	<p>
+		<label for="one-img-bottom-text-1"><strong><?php echo esc_html( 'Text 1' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="one-img-bottom-text-1"
+		name="one_img_bottom_p_1"
+		value="<?php echo esc_attr( $t1 ); ?>"
+		class="widefat"
+	/>
+
+	<p>
+		<label for="one-img-bottom-text-2"><strong><?php echo esc_html( 'Text 2' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="one-img-bottom-text-2"
+		name="one_img_bottom_p_2"
+		value="<?php echo esc_attr( $t2 ); ?>"
+		class="widefat"
+	/>
+
+	<p>
+		<label for="one-img-bottom-text-3"><strong><?php echo esc_html( 'Text 3' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="one-img-bottom-text-3"
+		name="one_img_bottom_p_3"
+		value="<?php echo esc_attr( $t3 ); ?>"
+		class="widefat"
+	/>
+
+	<p>
+		<label for="one-img-bottom-text-4"><strong><?php echo esc_html( 'Text 4' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="one-img-bottom-text-4"
+		name="one_img_bottom_p_4"
+		value="<?php echo esc_attr( $t4 ); ?>"
+		class="widefat"
+	/>
+	<?php
+}
+
+function wwd_save_one_img_bottom_texts_meta( $post_id ) {
+	if ( ! isset( $_POST['one_img_bottom_texts_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( $_POST['one_img_bottom_texts_nonce'], 'one_img_bottom_texts_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	$allowed_post_types = wwd_get_unterseiten_post_types();
+	if ( ! in_array( get_post_type( $post_id ), $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = isset( $_POST['wwd_layout_template'] ) ? sanitize_key( wp_unslash( $_POST['wwd_layout_template'] ) ) : '';
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = get_post_meta( $post_id, '_layout_template', true );
+	}
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'one-img-layout' !== $layout ) {
+		return;
+	}
+
+	$fields = array(
+		'one_img_bottom_p_1',
+		'one_img_bottom_p_2',
+		'one_img_bottom_p_3',
+		'one_img_bottom_p_4',
+	);
+
+	foreach ( $fields as $key ) {
+		$value = isset( $_POST[ $key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) : '';
+		if ( '' === $value ) {
+			delete_post_meta( $post_id, $key );
+		} else {
+			update_post_meta( $post_id, $key, $value );
+		}
+	}
+}
+add_action( 'save_post', 'wwd_save_one_img_bottom_texts_meta' );
 
 function wwd_enqueue_unterseiten_admin_media( $hook ) {
 	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
