@@ -9,8 +9,18 @@ get_header();
     <div class="home-hero observe-nav">
         <img class="hero-img" src="<?php echo esc_url(get_option('home-img')); ?>" alt="hero image">
         <div class="home-hero-inner mw">
-            <h2 class="light">Gutes Webdesign.<br>Klar umgesetzt.</h2>
-            <h1 class="light"><span>W</span>endland <span>W</span>eb <span>D</span>esign</h1>
+            <h2 class="light home-hero__headline">
+                <span class="hero-line hero-line--1">Gutes Webdesign.</span>
+                <span class="hero-line hero-line--2">Klar umgesetzt.</span>
+            </h2>
+            <h1 class="light home-hero__title" aria-label="Wendland Web Design">
+                <span class="typed">
+                    <span class="char blue">W</span><span class="rest">endland</span><span class="space"> </span>
+                    <span class="char blue">W</span><span class="rest">eb</span><span class="space"> </span>
+                    <span class="char blue">D</span><span class="rest">esign</span>
+                </span>
+                <span class="cursor">|</span>
+            </h1>
             <button onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="btn light">
                 <span class="btn__border" aria-hidden="true">
                     <svg class="btn__svg" viewBox="0 0 100 40" preserveAspectRatio="none">

@@ -251,3 +251,92 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+// home hero headline intro
+document.addEventListener("DOMContentLoaded", () => {
+    const gsapInstance = window.gsap || null;
+    if (!gsapInstance) return;
+
+    const headline = document.querySelector(".home-hero__headline");
+    if (!headline) return;
+    const lines = headline.querySelectorAll(".hero-line");
+    if (!lines.length) return;
+
+    gsapInstance.set(lines, { x: -40, autoAlpha: 0 });
+    const tl = gsapInstance.timeline({ defaults: { ease: "power2.out", duration: 0.6 } });
+    tl.to(lines[0], { x: 0, autoAlpha: 1 })
+      .to(lines[1], { x: 0, autoAlpha: 1 }, "+=0.1");
+
+    const title = document.querySelector(".home-hero__title");
+    if (!title) return;
+    const typed = title.querySelector(".typed");
+    if (!typed) return;
+    const cursor = title.querySelector(".cursor");
+
+    const buildTypedChars = (container) => {
+        if (container.dataset.typewriterReady === "1") {
+            return Array.from(container.querySelectorAll(".char, .space"));
+        }
+        const text = title.getAttribute("aria-label") || container.textContent || "";
+        container.textContent = "";
+        const chars = [];
+        for (let i = 0; i < text.length; i += 1) {
+            const ch = text[i];
+            const span = document.createElement("span");
+            if (ch === " ") {
+                span.classList.add("space");
+                span.textContent = "\u00A0";
+            } else {
+                span.classList.add("char");
+                span.textContent = ch;
+                if (i === 0 || text[i - 1] === " ") {
+                    span.classList.add("blue");
+                }
+            }
+            chars.push(span);
+            container.appendChild(span);
+        }
+        container.dataset.typewriterReady = "1";
+        return chars;
+    };
+
+    const charSpans = buildTypedChars(typed);
+    if (!charSpans.length) return;
+
+    gsapInstance.set(charSpans, { autoAlpha: 0, display: "none" });
+    if (cursor) {
+        gsapInstance.set(cursor, { autoAlpha: 0 });
+    }
+
+    tl.add(() => {
+        if (cursor) gsapInstance.set(cursor, { autoAlpha: 1 });
+    }, "+=0.15");
+
+    tl.to(charSpans, {
+        autoAlpha: 1,
+        display: "inline-block",
+        duration: 0,
+        ease: "none",
+        stagger: 0.055,
+    }, ">");
+
+    const cursorBlink = cursor
+        ? gsapInstance.to(cursor, {
+            autoAlpha: 0,
+            duration: 0.5,
+            repeat: -1,
+            yoyo: true,
+            ease: "none",
+            paused: true,
+        })
+        : null;
+
+    tl.add(() => {
+        if (cursorBlink) cursorBlink.play(0);
+    }, ">");
+
+    tl.add(() => {
+        if (cursorBlink) cursorBlink.pause(0);
+        if (cursor) gsapInstance.set(cursor, { autoAlpha: 0 });
+    }, "+=1");
+});

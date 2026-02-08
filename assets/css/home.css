@@ -27,16 +27,39 @@
     padding: var(--site-padding);
     z-index: 2;
 }
-.home-hero-inner h1 span{
-    color: var(--ac-clr);
-}
+
 .home-hero-inner h2{
     font-size: calc(1.8rem + 1.5vw);
+}
+.home-hero__headline .hero-line{
+    display: block;
 }
 .home-hero-inner h1{
     font-family: var(--font-body), sans-serif;
     font-size: calc(1rem + 1vw);
     font-weight: 500;
+}
+.home-hero__title .char{
+    display: inline-block;
+}
+.home-hero__title .space{
+    display: inline-block;
+}
+.home-hero__title .typed{
+    display: inline-block;
+    white-space: pre;
+}
+.home-hero__title .blue{
+    color: var(--ac-clr);
+}
+.home-hero__title .cursor{
+    display: inline-block;
+    font-weight: 100 !important;
+    width: 1px;
+    margin-left: -8px;
+    opacity: 0;
+    padding: 0;
+    transform: none;
 }
 
 
