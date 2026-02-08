@@ -160,9 +160,6 @@ body.is-nav-open .site-overlay{
     transform: translateX(var(--before-x, 0));
     transition: none;
 }
-.menu:hover .burger .bar::before{
-    background: var(--hover-clr);
-}
 
 
 
