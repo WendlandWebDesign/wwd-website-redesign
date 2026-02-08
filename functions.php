@@ -27,6 +27,7 @@ function wwd_website_redesign_enqueue_assets() {
     $css_home     = 'assets/css/home.css';
     $css_hero     = 'assets/css/hero.css';
     $css_referenzen     = 'assets/css/referenzen.css';
+    $css_dienstleistungen     = 'assets/css/dienstleistungen.css';
 
 	// JS-Dateien
 	$js_base       = 'assets/js/base.js';
@@ -85,6 +86,13 @@ function wwd_website_redesign_enqueue_assets() {
         get_theme_file_uri( $css_referenzen ),
         array( 'wwd-website-redesign-base' ),
         file_exists( get_theme_file_path( $css_referenzen ) ) ? filemtime( get_theme_file_path( $css_referenzen ) ) : null
+    );
+
+    wp_enqueue_style(
+        'wwd-website-redesign-dienstleistungen',
+        get_theme_file_uri( $css_dienstleistungen ),
+        array( 'wwd-website-redesign-base' ),
+        file_exists( get_theme_file_path( $css_dienstleistungen ) ) ? filemtime( get_theme_file_path( $css_dienstleistungen ) ) : null
     );
 
 	/**
@@ -270,8 +278,8 @@ function wwd_register_cpts() {
 			'menu_pos'   => 22,
 		),
 		'ueber-uns' => array(
-			'singular'   => 'Über uns',
-			'plural'     => 'Über uns',
+			'singular'   => 'ï¿½ber uns',
+			'plural'     => 'ï¿½ber uns',
 			'menu_icon'  => 'dashicons-groups',
 			'menu_pos'   => 23,
 		),
@@ -284,7 +292,7 @@ function wwd_register_cpts() {
 				'labels' => array(
 					'name'          => $config['plural'],
 					'singular_name' => $config['singular'],
-					'add_new_item'  => $config['singular'] . ' hinzufügen',
+					'add_new_item'  => $config['singular'] . ' hinzufï¿½gen',
 					'edit_item'     => $config['singular'] . ' bearbeiten',
 					'view_item'     => $config['singular'] . ' ansehen',
 					'search_items'  => $config['plural'] . ' durchsuchen',
@@ -301,7 +309,7 @@ function wwd_register_cpts() {
 				'menu_position'=> $config['menu_pos'],
 				'menu_icon'    => $config['menu_icon'],
 				// Hinweis: Falls es bereits Pages mit denselben Slugs gibt, kann es Konflikte geben.
-				// In dem Fall muss entweder die Page umbenannt oder der CPT-Slug präfixiert werden.
+				// In dem Fall muss entweder die Page umbenannt oder der CPT-Slug prï¿½fixiert werden.
 				'rewrite'      => array( 'slug' => $slug, 'with_front' => false ),
 			)
 		);
@@ -476,7 +484,7 @@ function wwd_render_unterseiten_content_metabox( $post ) {
 				<?php endif; ?>
 			</div>
 			<p>
-				<button type="button" class="button wwd-media-select"><?php echo esc_html( 'Bild auswählen' ); ?></button>
+				<button type="button" class="button wwd-media-select"><?php echo esc_html( 'Bild auswï¿½hlen' ); ?></button>
 				<button type="button" class="button wwd-media-remove"><?php echo esc_html( 'Entfernen' ); ?></button>
 			</p>
 		</div>
@@ -770,7 +778,7 @@ function wwd_render_referenzen_kunde_image_metabox( $post ) {
 			placeholder="<?php echo esc_attr( 'https://example.com/image.jpg' ); ?>"
 		/>
 		<p>
-			<button type="button" class="button wwd-upload-button js-referenzen-media-select"><?php echo esc_html( 'Bild auswählen' ); ?></button>
+			<button type="button" class="button wwd-upload-button js-referenzen-media-select"><?php echo esc_html( 'Bild auswï¿½hlen' ); ?></button>
 			<button type="button" class="button wwd-media-remove js-referenzen-media-remove"><?php echo esc_html( 'Entfernen' ); ?></button>
 		</p>
 		<img src="<?php echo esc_url( $image_url ); ?>" alt="" style="max-width:100%;height:auto;<?php echo empty( $image_url ) ? 'display:none;' : ''; ?>" />
@@ -1018,11 +1026,11 @@ function wwd_inline_svg( $filename, $args = array() ) {
 
 
 /**
- * 1) Admin-Menü hinzufügen (wie Vorlage)
+ * 1) Admin-Menï¿½ hinzufï¿½gen (wie Vorlage)
  */
 add_action('admin_menu', function () {
     add_menu_page(
-        'Seitenbilder ändern',
+        'Seitenbilder ï¿½ndern',
         'Seitenbilder',
         'manage_options', // wie deine Vorgabe: Capability-Check
         'seitenbilder',
@@ -1069,10 +1077,10 @@ function wwd_seitenbilder_callback() {
         wp_die('Keine Berechtigung.');
     }
 
-    // Bildschlüssel (nur NICHT-SVG)
+    // Bildschlï¿½ssel (nur NICHT-SVG)
     $fields = [
         'home-img' => 'Homepage Hero',
-		'faecher-home' => 'Fächer Homepage',
+		'faecher-home' => 'Fï¿½cher Homepage',
         'ansatz-1' => 'ansatz-1',
         'ansatz-2' => 'ansatz-2',
         'weg-zur-website-1' => 'weg-zur-website-1',
@@ -1109,7 +1117,7 @@ function wwd_seitenbilder_callback() {
         $url = esc_url(get_option($key));
         echo "<h3>{$label}</h3>";
         echo "<input type='text' name='{$key}' value='{$url}' class='widefat'>";
-        echo "<button class='button wwd-upload-button'>Bild auswählen</button><br>";
+        echo "<button class='button wwd-upload-button'>Bild auswï¿½hlen</button><br>";
         echo "<img src='{$url}' style='max-width:300px; margin-top:10px; " . ($url ? '' : 'display:none;') . "'><br><br>";
     }
 
