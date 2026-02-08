@@ -16,6 +16,10 @@ $img_3_id = ! empty( $meta['img_3_id'] ) ? (int) $meta['img_3_id'] : 0;
 $img_1_url = $img_1_id ? wp_get_attachment_image_url( $img_1_id, 'large' ) : '';
 $img_2_url = $img_2_id ? wp_get_attachment_image_url( $img_2_id, 'large' ) : '';
 $img_3_url = $img_3_id ? wp_get_attachment_image_url( $img_3_id, 'large' ) : '';
+
+$t1 = get_post_meta( $post_id, 'three_img_text_1', true );
+$t2 = get_post_meta( $post_id, 'three_img_text_2', true );
+$t3 = get_post_meta( $post_id, 'three_img_text_3', true );
 ?>
 
 <div class="three-img-layout-holder">
@@ -25,16 +29,19 @@ $img_3_url = $img_3_id ? wp_get_attachment_image_url( $img_3_id, 'large' ) : '';
 	<div class="three-img-layout mw-small">
 		<?php if ( $img_1_url ) : ?>
 			<div class="img-holder reveal">
+				<p class="mini-heading light"><?php echo esc_html( $t1 ); ?></p>
 				<img src="<?php echo esc_url( $img_1_url ); ?>" alt="<?php echo esc_attr( get_post_meta( $img_1_id, '_wp_attachment_image_alt', true ) ?: get_the_title( $post_id ) ); ?>">
 			</div>
 		<?php endif; ?>
 		<?php if ( $img_2_url ) : ?>
 			<div class="img-holder reveal">
+				<p class="mini-heading light"><?php echo esc_html( $t2 ); ?></p>
 				<img src="<?php echo esc_url( $img_2_url ); ?>" alt="<?php echo esc_attr( get_post_meta( $img_2_id, '_wp_attachment_image_alt', true ) ?: get_the_title( $post_id ) ); ?>">
 			</div>
 		<?php endif; ?>
 		<?php if ( $img_3_url ) : ?>
 			<div class="img-holder reveal">
+				<p class="mini-heading light"><?php echo esc_html( $t3 ); ?></p>
 				<img src="<?php echo esc_url( $img_3_url ); ?>" alt="<?php echo esc_attr( get_post_meta( $img_3_id, '_wp_attachment_image_alt', true ) ?: get_the_title( $post_id ) ); ?>">
 			</div>
 		<?php endif; ?>

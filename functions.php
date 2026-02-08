@@ -561,6 +561,105 @@ foreach ( wwd_get_unterseiten_post_types() as $post_type ) {
 	add_action( "save_post_{$post_type}", 'wwd_save_unterseiten_meta' );
 }
 
+/**
+ * Meta box for three-img layout texts.
+ */
+function wwd_add_three_img_texts_metaboxes() {
+	$post_types = array_merge( array( 'page' ), wwd_get_unterseiten_post_types() );
+	foreach ( $post_types as $post_type ) {
+		add_meta_box(
+			'wwd_three_img_texts',
+			'Three Img Layout Texte',
+			'wwd_render_three_img_texts_metabox',
+			$post_type,
+			'normal',
+			'default'
+		);
+	}
+}
+add_action( 'add_meta_boxes', 'wwd_add_three_img_texts_metaboxes' );
+
+function wwd_render_three_img_texts_metabox( $post ) {
+	$t1 = get_post_meta( $post->ID, 'three_img_text_1', true );
+	$t2 = get_post_meta( $post->ID, 'three_img_text_2', true );
+	$t3 = get_post_meta( $post->ID, 'three_img_text_3', true );
+
+	wp_nonce_field( 'three_img_layout_save', 'three_img_layout_nonce' );
+	?>
+	<p>
+		<label for="three-img-text-1"><strong><?php echo esc_html( 'Text Bild 1' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="three-img-text-1"
+		name="three_img_text_1"
+		value="<?php echo esc_attr( $t1 ); ?>"
+		class="widefat"
+	/>
+
+	<p>
+		<label for="three-img-text-2"><strong><?php echo esc_html( 'Text Bild 2' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="three-img-text-2"
+		name="three_img_text_2"
+		value="<?php echo esc_attr( $t2 ); ?>"
+		class="widefat"
+	/>
+
+	<p>
+		<label for="three-img-text-3"><strong><?php echo esc_html( 'Text Bild 3' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="three-img-text-3"
+		name="three_img_text_3"
+		value="<?php echo esc_attr( $t3 ); ?>"
+		class="widefat"
+	/>
+	<?php
+}
+
+function wwd_save_three_img_texts_meta( $post_id ) {
+	if ( ! isset( $_POST['three_img_layout_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( $_POST['three_img_layout_nonce'], 'three_img_layout_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	$allowed_post_types = array_merge( array( 'page' ), wwd_get_unterseiten_post_types() );
+	if ( ! in_array( get_post_type( $post_id ), $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$fields = array(
+		'three_img_text_1',
+		'three_img_text_2',
+		'three_img_text_3',
+	);
+
+	foreach ( $fields as $key ) {
+		$value = isset( $_POST[ $key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) : '';
+		if ( '' === $value ) {
+			delete_post_meta( $post_id, $key );
+		} else {
+			update_post_meta( $post_id, $key, $value );
+		}
+	}
+}
+add_action( 'save_post', 'wwd_save_three_img_texts_meta' );
+
 function wwd_enqueue_unterseiten_admin_media( $hook ) {
 	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
 		return;

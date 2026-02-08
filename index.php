@@ -9,7 +9,7 @@ get_header();
     <div class="home-hero observe-nav">
         <img class="hero-img" src="<?php echo esc_url(get_option('home-img')); ?>" alt="hero image">
         <div class="home-hero-inner mw">
-            <h2 class="light">Kreativität trifft<br>Technologie</h2>
+            <h2 class="light">Gutes Webdesign.<br>Klar umgesetzt.</h2>
             <h1 class="light"><span>W</span>endland <span>W</span>eb <span>D</span>esign</h1>
             <button onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="btn light">
                 <span class="btn__border" aria-hidden="true">
