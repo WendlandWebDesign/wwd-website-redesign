@@ -24,10 +24,10 @@ $img_2_url = $img_2_id ? wp_get_attachment_image_url( $img_2_id, 'large' ) : '';
 		<?php if ( $img_1_url || $img_2_url ) : ?>
         <div class="img-holder">
 				<?php if ( $img_1_url ) : ?>
-					<img class="reveal" src="<?php echo esc_url( $img_1_url ); ?>" alt="<?php echo esc_attr( get_post_meta( $img_1_id, '_wp_attachment_image_alt', true ) ?: get_the_title( $post_id ) ); ?>">
+					<img class="" data-twoimg="img1" src="<?php echo esc_url( $img_1_url ); ?>" alt="<?php echo esc_attr( get_post_meta( $img_1_id, '_wp_attachment_image_alt', true ) ?: get_the_title( $post_id ) ); ?>">
 				<?php endif; ?>
 				<?php if ( $img_2_url ) : ?>
-					<img class="reveal" src="<?php echo esc_url( $img_2_url ); ?>" alt="<?php echo esc_attr( get_post_meta( $img_2_id, '_wp_attachment_image_alt', true ) ?: get_the_title( $post_id ) ); ?>">
+					<img class="" data-twoimg="img2" src="<?php echo esc_url( $img_2_url ); ?>" alt="<?php echo esc_attr( get_post_meta( $img_2_id, '_wp_attachment_image_alt', true ) ?: get_the_title( $post_id ) ); ?>">
 				<?php endif; ?>
         </div>
 		<?php endif; ?>

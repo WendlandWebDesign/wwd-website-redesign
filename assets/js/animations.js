@@ -206,3 +206,48 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+
+
+// two-img layout scroll effect (img_2 moves up while section is in view)
+document.addEventListener("DOMContentLoaded", () => {
+    const gsapInstance = window.gsap || null;
+    const ScrollTrigger = window.ScrollTrigger || null;
+    if (!gsapInstance || !ScrollTrigger) return;
+
+    gsapInstance.registerPlugin(ScrollTrigger);
+
+    const layouts = document.querySelectorAll(".two-img-layout");
+    if (!layouts.length) return;
+
+    layouts.forEach((layout) => {
+        const img1 = layout.querySelector('[data-twoimg="img1"]');
+        const img2 = layout.querySelector('[data-twoimg="img2"]');
+        if (!img1 || !img2) return;
+
+        const getShiftUp = () => {
+            const rect1 = img1.getBoundingClientRect();
+            const rect2 = img2.getBoundingClientRect();
+            const top1 = rect1.top + window.scrollY;
+            const top2 = rect2.top + window.scrollY;
+            const targetTop2 = top1 + rect1.height * 0.2;
+            return Math.max(0, top2 - targetTop2);
+        };
+
+        gsapInstance.set([img2, img1], { y: 0, clearProps: "x", force3D: false });
+        gsapInstance.to([img2, img1], {
+            y: (index) => (index === 0 ? -getShiftUp() : getShiftUp()),
+            ease: "none",
+            force3D: false,
+            immediateRender: false,
+            scrollTrigger: {
+                trigger: layout,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true,
+                invalidateOnRefresh: true,
+                onRefreshInit: () => gsapInstance.set(img2, { y: 0 }),
+            },
+        });
+    });
+});
