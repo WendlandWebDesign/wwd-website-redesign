@@ -2,7 +2,30 @@
 get_header();
 ?>
 
+
+
 <main>
+    <?php
+        $heroImgSrc = esc_url(get_option('home-img'));
+        $heroTxt = "Dienstleistungen";
+
+    ?>
+
+    <?php include_once "assets/_snippets/hero.php" ?>
+
+    <div class="dienstleistungen-cards-holder">
+        <div class="dienstleistungen-cards mw">
+            <div class="dienstleistung-card">
+                <div class="icon-holder">
+                    <img src="" alt="">
+                </div>
+                <p class="light mini-heading">Webentwicklung</p>
+                <p>Wir entwickeln Websites individuell und codebasiert – exakt auf dein Projekt abgestimmt. Dabei nutzen wir Wordpress als flexibles Backend, damit Inhalte einfach gepflegt werden können. Das Ergebnis: saubere Technik, starke Performance und volle Kontrolle.</p>
+            </div>
+        </div>
+    </div>
+
+
 	<?php
 	$allowed_layouts = function_exists( 'wwd_get_allowed_layouts' ) ? wwd_get_allowed_layouts() : array();
 	$default_layout  = 'two-img-layout';

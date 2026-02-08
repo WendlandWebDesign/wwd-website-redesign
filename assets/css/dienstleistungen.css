@@ -1,0 +1,46 @@
+.dienstleistungen-cards-holder{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+.dienstleistungen-cards{
+    width: 100%;
+    padding: var(--section-padding);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2em;
+}
+.dienstleistung-card{
+    background-color: var(--card-clr);
+    border-radius: var(--radius);
+    padding: var(--card-padding);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+.dienstleistung-card .icon-holder{
+    position: absolute;
+    right: 2em;
+    top: -35px;
+    height: 70px;
+    width: 70px;
+    border-radius: 50%;
+    background-color: var(--ac-clr);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: 8px solid var(--bg-clr);
+}
+.dienstleistung-card .icon-holder img{
+    width: 60%;
+    height: auto;
+}
+
+.dienstleistung-card .mini-heading{
+    margin-top: 50px;
+    text-align: center;
+}
+.dienstleistung-card:last-of-type{
+    color: var(--txt);
+}
