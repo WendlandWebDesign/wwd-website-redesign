@@ -87,6 +87,10 @@
         text-shadow: 0 0 10px var(--dark);
     }
 
+    .home-hero-inner button{
+        backdrop-filter: brightness(.7);
+    }
+
     .hero-fächer{
         width: 50%;
         right: -13%;
