@@ -35,6 +35,9 @@
     transform: translateY(0);
     opacity: 1;
 }
+.two-img-layout button{
+    margin-top: 20px;
+}
 
 .two-img-layout .img-holder img{
     width: 65%;
@@ -200,6 +203,9 @@
 .three-img-layout .txt-holder.revealed{
     transform: translateY(0);
     opacity: 1;
+}
+.three-img-layout button{
+    margin-top: 20px;
 }
 
 

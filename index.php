@@ -13,7 +13,7 @@ get_header();
         <img class="hero-img" src="<?php echo esc_url(get_option('home-img')); ?>" alt="hero image">
         <div class="home-hero-inner mw">
             <h2 class="light home-hero__headline">
-                <span class="hero-line hero-line--1">Gutes <span class="ac">Webdesign.</span></span>
+                <span class="hero-line hero-line--1">Professionelles <span class="ac">Webdesign.</span></span>
                 <span class="hero-line hero-line--2">Klar umgesetzt.</span>
             </h2>
             <h1 class="light home-hero__title" aria-label="Wendland Web Design">

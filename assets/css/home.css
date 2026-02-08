@@ -29,7 +29,7 @@
 }
 
 .home-hero-inner h2{
-    font-size: calc(1.8rem + 1.5vw);
+    font-size: calc(1.7rem + 1.5vw);
     max-width: max-content;
     white-space: wrap;
 }
