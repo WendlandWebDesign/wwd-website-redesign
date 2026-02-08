@@ -282,6 +282,9 @@
 .one-img-layout .txt-holder{
     grid-column: 1/8;
     grid-row: 1/2;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .one-img-layout .img-holder{
