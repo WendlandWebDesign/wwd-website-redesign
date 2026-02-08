@@ -84,17 +84,15 @@
 
 @media(max-width: 900px){
     .home-hero h1,
-    .home-hero h2{
+    .home-hero h2,
+    .home-hero-inner button{
         text-shadow: 0 0 10px var(--dark);
     }
+
     .hero-fächer{
         width: 50%;
         right: -13%;
         min-width: 280px !important;
         filter: brightness(.8);
-    }
-
-    .home-hero-inner button{
-        backdrop-filter: brightness(0.5);
     }
 }
