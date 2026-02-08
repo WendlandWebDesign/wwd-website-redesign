@@ -24,7 +24,7 @@ $bottom_p_4 = get_post_meta( $post_id, 'one_img_bottom_p_4', true );
 	<?php endif; ?>
 	<div class="one-img-layout mw-small">
 		<?php if ( $text || $mini_head ) : ?>
-			<div class="txt-holder">
+			<div class="txt-holder reveal">
 				<?php if ( $mini_head ) : ?>
 					<p class="mini-heading light"><?php echo esc_html( $mini_head ); ?></p>
 				<?php endif; ?>
