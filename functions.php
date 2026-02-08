@@ -144,6 +144,21 @@ function wwd_website_redesign_enqueue_assets() {
 			true
 		);
 	}
+
+	if ( file_exists( get_theme_file_path( 'assets/js/btn-hover-anim.js' ) ) ) {
+		$hover_deps = array();
+		if ( wp_script_is( 'wwd-website-redesign-gsap', 'registered' ) ) {
+			$hover_deps[] = 'wwd-website-redesign-gsap';
+		}
+
+		wp_enqueue_script(
+			'wwd-website-redesign-btn-hover-anim',
+			get_theme_file_uri( 'assets/js/btn-hover-anim.js' ),
+			$hover_deps,
+			filemtime( get_theme_file_path( 'assets/js/btn-hover-anim.js' ) ),
+			true
+		);
+	}
 }
 add_action( 'wp_enqueue_scripts', 'wwd_website_redesign_enqueue_assets' );
 

@@ -7,7 +7,7 @@
     --light: #dfdfdf;
     --lighter: #ffffff;
     --ac-clr: #0097b2;
-    --hover-clr: #f308a5;
+    --hover-clr: #dfdfdf;
     --hover: #d1d1d1;
 
     --small-radius: 5px;
@@ -134,6 +134,14 @@ a{
     width: 20px;
     height: auto;
 }
+.btn p,
+.btn .icon--arrow-white{
+    transition: color 0.25s ease, fill 0.25s ease;
+}
+
+.btn__char{
+    display: inline-block;
+}
 
 
 .btn__border{
@@ -164,6 +172,9 @@ a{
     stroke-miterlimit: 6;
     shape-rendering: geometricPrecision;
 }
+
+/* Hover-Farbwechsel wird per GSAP gesteuert. */
+
 
 /* transitions */
 .img-transition-top{
