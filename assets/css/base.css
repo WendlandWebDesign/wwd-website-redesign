@@ -24,11 +24,33 @@
     --font-subheadline: "Syne", sans-serif;
 }
 
+::selection{
+    background: var(--ac-clr);
+    color: var(--lighter);
+}
+
+::-moz-selection{
+    background: var(--ac-clr);
+    color: var(--lighter);
+}
+
 html,
 body{
     margin: 0;
     padding: 0;
     background-color: var(--bg-clr);
+}
+html.js #page-fade-overlay{
+    position: fixed;
+    inset: 0;
+    background: var(--bg-clr);
+    opacity: 1;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 9999;
+}
+html.js.page-loaded #page-fade-overlay{
+    opacity: 0;
 }
 *{
     box-sizing: border-box;

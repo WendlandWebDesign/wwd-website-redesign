@@ -68,6 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
     revealOnScroll('.reveal');
 });
 
+// page fade-in after load
+window.addEventListener('load', () => {
+    document.documentElement.classList.add('page-loaded');
+});
+
 
 //observer for nav
 document.addEventListener("DOMContentLoaded", () => {
