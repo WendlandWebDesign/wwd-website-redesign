@@ -1,5 +1,5 @@
 <?php
-// Hero Bilder √É¬ºber esc_url(get_option(''));
+// Hero Bilder √ºber esc_url(get_option(''));
 /**
  * Theme Supports
  */
@@ -89,7 +89,7 @@ function wwd_website_redesign_enqueue_assets() {
 
 	/**
 	 * JS einbinden
-	 * √¢‚Ä†‚Äô falls base.js KEIN jQuery nutzt, einfach 'jquery' entfernen
+	 * ‚Üí falls base.js KEIN jQuery nutzt, einfach 'jquery' entfernen
 	 */
 	if ( file_exists( get_theme_file_path( $js_gsap ) ) ) {
 		wp_enqueue_script(
@@ -144,12 +144,27 @@ function wwd_website_redesign_enqueue_assets() {
 			true
 		);
 	}
+
+	if ( file_exists( get_theme_file_path( 'assets/js/btn-hover-anim.js' ) ) ) {
+		$hover_deps = array();
+		if ( wp_script_is( 'wwd-website-redesign-gsap', 'registered' ) ) {
+			$hover_deps[] = 'wwd-website-redesign-gsap';
+		}
+
+		wp_enqueue_script(
+			'wwd-website-redesign-btn-hover-anim',
+			get_theme_file_uri( 'assets/js/btn-hover-anim.js' ),
+			$hover_deps,
+			filemtime( get_theme_file_path( 'assets/js/btn-hover-anim.js' ) ),
+			true
+		);
+	}
 }
 add_action( 'wp_enqueue_scripts', 'wwd_website_redesign_enqueue_assets' );
 
 
 /**
- * Optional: defer f√É¬ºr Theme-JavaScript
+ * Optional: defer f√ºr Theme-JavaScript
  */
 function wwd_website_redesign_defer_scripts( $tag, $handle ) {
 
@@ -195,20 +210,20 @@ function wwd_register_cpts() {
 	);
 
 	register_post_type(
-		'nav_referenzen',
+		'referenzen',
 		array(
 			'labels' => array(
-				'name'          => 'Nav Referenzen',
-				'singular_name' => 'Nav Referenz',
-				'add_new_item'  => 'Neue Nav Referenz',
-				'edit_item'     => 'Nav Referenz bearbeiten',
-				'view_item'     => 'Nav Referenz ansehen',
-				'search_items'  => 'Nav Referenzen durchsuchen',
+				'name'          => 'Referenzen',
+				'singular_name' => 'Referenz',
+				'add_new_item'  => 'Neue Referenz',
+				'edit_item'     => 'Referenz bearbeiten',
+				'view_item'     => 'Referenz ansehen',
+				'search_items'  => 'Referenzen durchsuchen',
 			),
 			'public'       => true,
 			'has_archive'  => false,
 			'show_in_rest' => true,
-			'rewrite'      => array( 'slug' => 'nav-referenzen' ),
+			'rewrite'      => array( 'slug' => 'referenzen' ),
 			'supports'     => $common_supports,
 			'menu_icon'    => 'dashicons-images-alt2',
 		)
@@ -255,8 +270,8 @@ function wwd_register_cpts() {
 			'menu_pos'   => 22,
 		),
 		'ueber-uns' => array(
-			'singular'   => '√úber uns',
-			'plural'     => '√úber uns',
+			'singular'   => '‹ber uns',
+			'plural'     => '‹ber uns',
 			'menu_icon'  => 'dashicons-groups',
 			'menu_pos'   => 23,
 		),
@@ -269,7 +284,7 @@ function wwd_register_cpts() {
 				'labels' => array(
 					'name'          => $config['plural'],
 					'singular_name' => $config['singular'],
-					'add_new_item'  => $config['singular'] . ' hinzuf√ºgen',
+					'add_new_item'  => $config['singular'] . ' hinzuf¸gen',
 					'edit_item'     => $config['singular'] . ' bearbeiten',
 					'view_item'     => $config['singular'] . ' ansehen',
 					'search_items'  => $config['plural'] . ' durchsuchen',
@@ -286,7 +301,7 @@ function wwd_register_cpts() {
 				'menu_position'=> $config['menu_pos'],
 				'menu_icon'    => $config['menu_icon'],
 				// Hinweis: Falls es bereits Pages mit denselben Slugs gibt, kann es Konflikte geben.
-				// In dem Fall muss entweder die Page umbenannt oder der CPT-Slug pr√§fixiert werden.
+				// In dem Fall muss entweder die Page umbenannt oder der CPT-Slug pr‰fixiert werden.
 				'rewrite'      => array( 'slug' => $slug, 'with_front' => false ),
 			)
 		);
@@ -461,7 +476,7 @@ function wwd_render_unterseiten_content_metabox( $post ) {
 				<?php endif; ?>
 			</div>
 			<p>
-				<button type="button" class="button wwd-media-select"><?php echo esc_html( 'Bild ausw√§hlen' ); ?></button>
+				<button type="button" class="button wwd-media-select"><?php echo esc_html( 'Bild ausw‰hlen' ); ?></button>
 				<button type="button" class="button wwd-media-remove"><?php echo esc_html( 'Entfernen' ); ?></button>
 			</p>
 		</div>
@@ -567,6 +582,24 @@ function wwd_enqueue_unterseiten_admin_media( $hook ) {
 }
 add_action( 'admin_enqueue_scripts', 'wwd_enqueue_unterseiten_admin_media' );
 
+function wwd_enqueue_referenzen_admin_media( $hook ) {
+	$screen = get_current_screen();
+	if ( ! $screen || 'referenzen' !== $screen->post_type || 'post' !== $screen->base ) {
+		return;
+	}
+
+	wp_enqueue_media();
+	$js_admin = 'assets/js/admin-seitenbilder.js';
+	wp_enqueue_script(
+		'wwd-admin-seitenbilder',
+		get_theme_file_uri( $js_admin ),
+		array( 'jquery' ),
+		file_exists( get_theme_file_path( $js_admin ) ) ? filemtime( get_theme_file_path( $js_admin ) ) : null,
+		true
+	);
+}
+add_action( 'admin_enqueue_scripts', 'wwd_enqueue_referenzen_admin_media' );
+
 /**
  * CPT queries for nav panels.
  */
@@ -587,13 +620,10 @@ function wwd_get_nav_dienstleistungen_query() {
 function wwd_get_nav_referenzen_query() {
 	return new WP_Query(
 		array(
-			'post_type'      => 'nav_referenzen',
-			'posts_per_page' => -1,
-			'orderby'        => array(
-				'menu_order' => 'ASC',
-				'title'      => 'ASC',
-			),
-			'order'          => 'ASC',
+			'post_type'      => 'referenzen',
+			'posts_per_page' => 4,
+			'orderby'        => 'date',
+			'order'          => 'DESC',
 		)
 	);
 }
@@ -641,7 +671,7 @@ function wwd_apply_menu_order_sorting( $query ) {
 
 $menu_order_post_types = array_unique(
 	array_merge(
-		array( 'nav_dienstleistungen', 'nav_referenzen' ),
+		array( 'nav_dienstleistungen', 'referenzen' ),
 		wwd_get_unterseiten_post_types()
 	)
 );
@@ -661,7 +691,7 @@ function wwd_add_nav_card_link_metabox() {
 		'wwd_nav_card_link',
 		'Card Link (URL)',
 		'wwd_render_nav_card_link_metabox',
-		array( 'nav_dienstleistungen', 'nav_referenzen' ),
+		array( 'nav_dienstleistungen', 'referenzen' ),
 		'side',
 		'default'
 	);
@@ -709,7 +739,131 @@ function wwd_save_nav_card_link_metabox( $post_id ) {
 	}
 }
 add_action( 'save_post_nav_dienstleistungen', 'wwd_save_nav_card_link_metabox' );
-add_action( 'save_post_nav_referenzen', 'wwd_save_nav_card_link_metabox' );
+add_action( 'save_post_referenzen', 'wwd_save_nav_card_link_metabox' );
+
+function wwd_add_referenzen_kunde_image_metabox() {
+	add_meta_box(
+		'wwd_referenzen_kunde_image',
+		'Kundenbild (URL)',
+		'wwd_render_referenzen_kunde_image_metabox',
+		'referenzen',
+		'side',
+		'default'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_referenzen_kunde_image_metabox' );
+
+function wwd_render_referenzen_kunde_image_metabox( $post ) {
+	$image_url = get_post_meta( $post->ID, 'referenzen_kundenbild_url', true );
+	wp_nonce_field( 'referenzen_kundenbild_save', 'referenzen_kundenbild_nonce' );
+	?>
+	<div class="wwd-media-field">
+		<p>
+			<label for="wwd-referenzen-kunde-image"><?php echo esc_html( 'Kundenbild URL' ); ?></label>
+		</p>
+		<input
+			type="text"
+			id="wwd-referenzen-kunde-image"
+			name="referenzen_kundenbild_url"
+			value="<?php echo esc_attr( $image_url ); ?>"
+			class="widefat"
+			placeholder="<?php echo esc_attr( 'https://example.com/image.jpg' ); ?>"
+		/>
+		<p>
+			<button type="button" class="button wwd-upload-button js-referenzen-media-select"><?php echo esc_html( 'Bild ausw‰hlen' ); ?></button>
+			<button type="button" class="button wwd-media-remove js-referenzen-media-remove"><?php echo esc_html( 'Entfernen' ); ?></button>
+		</p>
+		<img src="<?php echo esc_url( $image_url ); ?>" alt="" style="max-width:100%;height:auto;<?php echo empty( $image_url ) ? 'display:none;' : ''; ?>" />
+	</div>
+	<?php
+}
+
+function wwd_save_referenzen_kunde_image_metabox( $post_id ) {
+	if ( ! isset( $_POST['referenzen_kundenbild_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( $_POST['referenzen_kundenbild_nonce'], 'referenzen_kundenbild_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	if ( isset( $_POST['referenzen_kundenbild_url'] ) ) {
+		$image_url = esc_url_raw( wp_unslash( $_POST['referenzen_kundenbild_url'] ) );
+		if ( '' === $image_url ) {
+			delete_post_meta( $post_id, 'referenzen_kundenbild_url' );
+		} else {
+			update_post_meta( $post_id, 'referenzen_kundenbild_url', $image_url );
+		}
+	}
+}
+add_action( 'save_post_referenzen', 'wwd_save_referenzen_kunde_image_metabox' );
+
+/**
+ * Meta box for Referenzen card link.
+ */
+function wwd_add_referenzen_card_link_metabox() {
+	add_meta_box(
+		'wwd_referenzen_card_link',
+		'Card Link URL',
+		'wwd_render_referenzen_card_link_metabox',
+		'referenzen',
+		'side',
+		'default'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_referenzen_card_link_metabox' );
+
+function wwd_render_referenzen_card_link_metabox( $post ) {
+	$link_url = get_post_meta( $post->ID, 'referenzen_card_link_url', true );
+	wp_nonce_field( 'referenzen_card_link_save', 'referenzen_card_link_nonce' );
+	?>
+	<p>
+		<label for="wwd-referenzen-card-link"><?php echo esc_html( 'Card Link URL' ); ?></label>
+	</p>
+	<input
+		type="url"
+		id="wwd-referenzen-card-link"
+		name="referenzen_card_link_url"
+		value="<?php echo esc_attr( $link_url ); ?>"
+		class="widefat"
+		placeholder="<?php echo esc_attr( 'https://example.com' ); ?>"
+	/>
+	<?php
+}
+
+function wwd_save_referenzen_card_link_metabox( $post_id ) {
+	if ( ! isset( $_POST['referenzen_card_link_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( $_POST['referenzen_card_link_nonce'], 'referenzen_card_link_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	if ( isset( $_POST['referenzen_card_link_url'] ) ) {
+		$link_url = esc_url_raw( wp_unslash( $_POST['referenzen_card_link_url'] ) );
+		if ( '' === $link_url ) {
+			delete_post_meta( $post_id, 'referenzen_card_link_url' );
+		} else {
+			update_post_meta( $post_id, 'referenzen_card_link_url', $link_url );
+		}
+	}
+}
+add_action( 'save_post_referenzen', 'wwd_save_referenzen_card_link_metabox' );
 
 /**
  * Inline SVG helper for theme icons (assets/icons).
@@ -864,11 +1018,11 @@ function wwd_inline_svg( $filename, $args = array() ) {
 
 
 /**
- * 1) Admin-Men√º hinzuf√ºgen (wie Vorlage)
+ * 1) Admin-Men¸ hinzuf¸gen (wie Vorlage)
  */
 add_action('admin_menu', function () {
     add_menu_page(
-        'Seitenbilder √§ndern',
+        'Seitenbilder ‰ndern',
         'Seitenbilder',
         'manage_options', // wie deine Vorgabe: Capability-Check
         'seitenbilder',
@@ -915,10 +1069,10 @@ function wwd_seitenbilder_callback() {
         wp_die('Keine Berechtigung.');
     }
 
-    // Bildschl√ºssel (nur NICHT-SVG)
+    // Bildschl¸ssel (nur NICHT-SVG)
     $fields = [
         'home-img' => 'Homepage Hero',
-		'faecher-home' => 'F√§cher Homepage',
+		'faecher-home' => 'F‰cher Homepage',
         'ansatz-1' => 'ansatz-1',
         'ansatz-2' => 'ansatz-2',
         'weg-zur-website-1' => 'weg-zur-website-1',
@@ -955,10 +1109,12 @@ function wwd_seitenbilder_callback() {
         $url = esc_url(get_option($key));
         echo "<h3>{$label}</h3>";
         echo "<input type='text' name='{$key}' value='{$url}' class='widefat'>";
-        echo "<button class='button wwd-upload-button'>Bild ausw√§hlen</button><br>";
+        echo "<button class='button wwd-upload-button'>Bild ausw‰hlen</button><br>";
         echo "<img src='{$url}' style='max-width:300px; margin-top:10px; " . ($url ? '' : 'display:none;') . "'><br><br>";
     }
 
     submit_button('Bilder speichern');
     echo '</form></div>';
 }
+
+
