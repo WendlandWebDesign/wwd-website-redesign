@@ -32,3 +32,13 @@
     text-align: start;
     font-size: clamp(1.85rem, 5vw, 4rem);
 }
+
+.hero-inner h3.reveal{
+    transform: translateY(40px);
+    opacity: 0;
+    transition: all 0.9s ease;
+}
+.hero-inner h3.revealed{
+    transform: translateY(0);
+    opacity: 1;
+}
