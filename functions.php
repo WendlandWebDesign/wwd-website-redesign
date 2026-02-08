@@ -791,6 +791,66 @@ function wwd_save_referenzen_kunde_image_metabox( $post_id ) {
 add_action( 'save_post_referenzen', 'wwd_save_referenzen_kunde_image_metabox' );
 
 /**
+ * Meta box for Referenzen card link.
+ */
+function wwd_add_referenzen_card_link_metabox() {
+	add_meta_box(
+		'wwd_referenzen_card_link',
+		'Card Link URL',
+		'wwd_render_referenzen_card_link_metabox',
+		'referenzen',
+		'side',
+		'default'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_referenzen_card_link_metabox' );
+
+function wwd_render_referenzen_card_link_metabox( $post ) {
+	$link_url = get_post_meta( $post->ID, 'referenzen_card_link_url', true );
+	wp_nonce_field( 'referenzen_card_link_save', 'referenzen_card_link_nonce' );
+	?>
+	<p>
+		<label for="wwd-referenzen-card-link"><?php echo esc_html( 'Card Link URL' ); ?></label>
+	</p>
+	<input
+		type="url"
+		id="wwd-referenzen-card-link"
+		name="referenzen_card_link_url"
+		value="<?php echo esc_attr( $link_url ); ?>"
+		class="widefat"
+		placeholder="<?php echo esc_attr( 'https://example.com' ); ?>"
+	/>
+	<?php
+}
+
+function wwd_save_referenzen_card_link_metabox( $post_id ) {
+	if ( ! isset( $_POST['referenzen_card_link_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( $_POST['referenzen_card_link_nonce'], 'referenzen_card_link_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	if ( isset( $_POST['referenzen_card_link_url'] ) ) {
+		$link_url = esc_url_raw( wp_unslash( $_POST['referenzen_card_link_url'] ) );
+		if ( '' === $link_url ) {
+			delete_post_meta( $post_id, 'referenzen_card_link_url' );
+		} else {
+			update_post_meta( $post_id, 'referenzen_card_link_url', $link_url );
+		}
+	}
+}
+add_action( 'save_post_referenzen', 'wwd_save_referenzen_card_link_metabox' );
+
+/**
  * Inline SVG helper for theme icons (assets/icons).
  */
 function wwd_inline_svg( $filename, $args = array() ) {
@@ -1041,4 +1101,5 @@ function wwd_seitenbilder_callback() {
     submit_button('Bilder speichern');
     echo '</form></div>';
 }
+
 
