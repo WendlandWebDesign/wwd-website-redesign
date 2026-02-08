@@ -18,7 +18,7 @@
 .home-hero-inner{
     display: flex;
     flex-direction: column;
-    gap: 1em;
+    gap: 1.5em;
     width: 100%;
     position: absolute;
     left: 50%;
@@ -30,7 +30,19 @@
 
 .home-hero-inner h2{
     font-size: calc(1.8rem + 1.5vw);
+    max-width: max-content;
+    white-space: wrap;
 }
+.home-hero-inner h2::before{
+    content: '';
+    width: 30%;
+    height: 3px;
+    background-color: var(--ac-clr);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-8px);
+}
+
 .home-hero__headline .hero-line{
     display: block;
 }
@@ -74,10 +86,15 @@
 
 
 @media(max-width: 900px){
+    .home-hero h1,
+    .home-hero h2{
+        text-shadow: 0 0 10px var(--dark);
+    }
     .hero-fächer{
         width: 50%;
         right: -13%;
         min-width: 280px !important;
+        filter: brightness(.8);
     }
 
     .home-hero-inner button{

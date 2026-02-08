@@ -63,6 +63,7 @@ h6{
     font-weight: 700;
 }
 
+
 h3,
 h4{
     font-family: var(--font-subheadline);
@@ -98,6 +99,10 @@ a{
     }
     .dark{
         color: var(--dark);
+    }
+    .ac{
+        color: var(--ac-clr);
+        text-shadow: 0 0 20px var(--ac-clr);
     }
 
 
