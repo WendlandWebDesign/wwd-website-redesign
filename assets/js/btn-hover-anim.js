@@ -91,6 +91,7 @@
         return;
       }
 
+      const borderDur = parseFloat(btn.dataset.btnBorderDur) || 0.8;
       const tl = window.gsap.timeline({ paused: true });
       if (chars.length) {
         tl.to(chars, {
@@ -110,12 +111,15 @@
         }, 0);
       }
 
+      const baseDuration = tl.duration();
+      const baseScale = baseDuration ? (baseDuration / borderDur) : 1;
+
       btn.addEventListener('mouseenter', () => {
-        tl.timeScale(1).play();
+        tl.timeScale(baseScale).play();
       });
 
       btn.addEventListener('mouseleave', () => {
-        tl.timeScale(0.8).reverse();
+        tl.timeScale(baseScale * 0.8).reverse();
       });
     });
   };

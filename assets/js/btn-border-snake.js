@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const timelines = new WeakMap();
     const resizeTimers = new WeakMap();
+    const BORDER_DUR = 0.8;
 
     const buildTimeline = (button) => {
         const svg = button.querySelector(".btn__svg");
@@ -60,9 +61,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const tl = gsapInstance.timeline({ paused: true, defaults: { ease: "power2.inOut" } });
         segments.forEach((seg, idx) => {
             const target = starts[idx].offset + (length * -0.75);
-            tl.to(seg, { strokeDashoffset: target, duration: 0.8 }, 0);
+            tl.to(seg, { strokeDashoffset: target, duration: BORDER_DUR }, 0);
         });
-        tl.to(segments, { stroke: "var(--hover-clr)", duration: 0.8, ease: "none" }, 0);
+        tl.to(segments, { stroke: "var(--hover-clr)", duration: BORDER_DUR, ease: "none" }, 0);
+
+        button.dataset.btnBorderDur = String(BORDER_DUR);
 
         return tl;
     };
