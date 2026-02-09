@@ -672,6 +672,74 @@ document.addEventListener("DOMContentLoaded", () => {
     }, "+=1");
 });
 
+const initSliderRightOnChangeAnimation = () => {
+    const slider = document.querySelector(".slider");
+    if (!slider) return;
+    if (slider.dataset.sliderRightAnimInit === "1") return;
+    slider.dataset.sliderRightAnimInit = "1";
+
+    const slides = Array.from(slider.querySelectorAll(".slide"));
+    if (!slides.length) return;
+
+    let activeSlide = null;
+
+    const getActiveSlide = () => {
+        return slides.find((slide) =>
+            slide.classList.contains("active") || slide.classList.contains("is-active")
+        );
+    };
+
+    const clearAnimated = () => {
+        slides.forEach((slide) => slide.classList.remove("is-animated"));
+    };
+
+    const triggerAnimation = (slide) => {
+        if (!slide) return;
+        clearAnimated();
+        // Force reflow to reliably restart CSS transitions
+        void slide.offsetHeight;
+        slide.classList.add("is-animated");
+    };
+
+    const updateActive = () => {
+        const next = getActiveSlide();
+        if (!next || next === activeSlide) return;
+        activeSlide = next;
+        triggerAnimation(next);
+    };
+
+    updateActive();
+    if (!activeSlide) {
+        requestAnimationFrame(updateActive);
+        setTimeout(updateActive, 50);
+    }
+
+    if (slider.__sliderRightObserver) {
+        slider.__sliderRightObserver.disconnect();
+    }
+
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.type === "attributes" && mutation.attributeName === "class") {
+                updateActive();
+                break;
+            }
+        }
+    });
+
+    slides.forEach((slide) => {
+        observer.observe(slide, { attributes: true, attributeFilter: ["class"] });
+    });
+
+    slider.__sliderRightObserver = observer;
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initSliderRightOnChangeAnimation);
+} else {
+    initSliderRightOnChangeAnimation();
+}
+
 
 
 
