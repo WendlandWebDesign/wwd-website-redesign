@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentIndex = 0;
 
-    const isMobile = () => window.innerWidth < 751;
+    const isMobile = () => window.innerWidth < 801;
 
     function setMarginLeftByIndex(index) {
         if (index === 0) slider.style.marginLeft = '0';

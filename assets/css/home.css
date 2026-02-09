@@ -245,10 +245,9 @@
         width: max-content;
         height: max-content;
         transform: translateY(-66px);
-        z-index: 3;
         align-self: flex-end;
         padding: var(--site-padding);
-        z-index: 5;
+        z-index: 6;
     }
     .slider-btn{
         width: 50px;
