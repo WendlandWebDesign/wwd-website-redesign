@@ -13,31 +13,7 @@ get_header();
 
     <?php include_once "assets/_snippets/hero.php" ?>
 
-    <div class="dienstleistungen-cards-holder">
-        <div class="dienstleistungen-cards mw">
-            <div class="dienstleistung-card">
-                <div class="icon-holder">
-                    <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/webentwicklung-blue.svg' ); ?>" alt="">
-                </div>
-                <p class="light mini-heading">Webentwicklung</p>
-                <p>Wir entwickeln Websites individuell und codebasiert – exakt auf dein Projekt abgestimmt. Dabei nutzen wir Wordpress als flexibles Backend, damit Inhalte einfach gepflegt werden können. Das Ergebnis: saubere Technik, starke Performance und volle Kontrolle.</p>
-            </div>
-            <div class="dienstleistung-card">
-                <div class="icon-holder">
-                    <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/seo-blue.svg' ); ?>" alt="">
-                </div>
-                <p class="light mini-heading">SEO</p>
-                <p>Gutes SEO ist kein Trick, sondern saubere Arbeit. Wir optimieren Technik, Struktur und Inhalte so, dass deine Website sichtbar wird. Auf Wunsch bieten wir auch gezielte SEO-Maßnahmen wie Keyword-Optimierung und Weiterentwicklung an.</p>
-            </div>
-            <div class="dienstleistung-card">
-                <div class="icon-holder">
-                    <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/wartung-blue.svg' ); ?>" alt="">
-                </div>
-                <p class="light mini-heading">Wartung</p>
-                <p>Eine Website braucht Pflege. Wir übernehmen Wartung, Updates und technische Kontrolle, sorgen für Sicherheit und Stabilität und halten deine Website langfristig auf einem sauberen, zuverlässigen Stand.</p>
-            </div>
-        </div>
-    </div>
+
 
 
 	<?php
@@ -48,7 +24,7 @@ get_header();
 		array(
 			'post_type'      => 'dienstleistungen',
 			// Wenn mehrere Einträge genutzt werden sollen, posts_per_page erhöhen oder auf -1 setzen.
-			'posts_per_page' => 1,
+			'posts_per_page' => -1,
 			'orderby'        => 'menu_order',
 			'order'          => 'ASC',
 		)

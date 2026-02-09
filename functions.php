@@ -344,6 +344,7 @@ add_action( 'init', 'wwd_register_cpts' );
  */
 function wwd_get_allowed_layouts() {
 	return array(
+		'leistungen-cards' => 'assets/_snippets/leistungen-cards.php',
 		'three-img-layout' => 'assets/_snippets/three-img-layout.php',
 		'two-img-layout'   => 'assets/_snippets/two-img-layout.php',
 		'one-img-layout'   => 'assets/_snippets/one-img-layout.php',
@@ -394,6 +395,7 @@ function wwd_render_layout_template_metabox( $post ) {
 		<label for="wwd-layout-template"><?php echo esc_html( 'Layout-Vorlage' ); ?></label>
 	</p>
 	<select name="wwd_layout_template" id="wwd-layout-template" class="widefat">
+		<option value="leistungen-cards" <?php selected( $current, 'leistungen-cards' ); ?>><?php echo esc_html( 'Leistungen Cards' ); ?></option>
 		<option value="one-img-layout" <?php selected( $current, 'one-img-layout' ); ?>><?php echo esc_html( 'One-Image Layout' ); ?></option>
 		<option value="two-img-layout" <?php selected( $current, 'two-img-layout' ); ?>><?php echo esc_html( 'Two-Image Layout' ); ?></option>
 		<option value="three-img-layout" <?php selected( $current, 'three-img-layout' ); ?>><?php echo esc_html( 'Three-Image Layout' ); ?></option>
@@ -897,6 +899,173 @@ function wwd_save_one_img_bottom_texts_meta( $post_id ) {
 add_action( 'save_post', 'wwd_save_one_img_bottom_texts_meta' );
 
 /**
+ * Meta box for Leistungen Cards layout (up to 3 cards).
+ */
+function wwd_add_leistungen_cards_metaboxes( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
+	}
+	$allowed_post_types = wwd_get_unterseiten_post_types();
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = get_post_meta( $post_id, '_layout_template', true );
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'leistungen-cards' !== $layout ) {
+		return;
+	}
+
+	add_meta_box(
+		'wwd_leistungen_cards',
+		'Leistungen Cards (bis zu 3)',
+		'wwd_render_leistungen_cards_metabox',
+		$post_type,
+		'normal',
+		'high'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_leistungen_cards_metaboxes', 10, 2 );
+
+function wwd_render_leistungen_cards_metabox( $post ) {
+	wp_nonce_field( 'wwd_leistungen_cards_save', 'wwd_leistungen_cards_nonce' );
+
+	for ( $i = 1; $i <= 3; $i++ ) :
+		$icon_id = absint( get_post_meta( $post->ID, "_leistungen_card_{$i}_icon", true ) );
+		$heading = get_post_meta( $post->ID, "_leistungen_card_{$i}_heading", true );
+		$text    = get_post_meta( $post->ID, "_leistungen_card_{$i}_text", true );
+		$preview = $icon_id ? wp_get_attachment_image_url( $icon_id, 'medium' ) : '';
+		$input_id = "wwd-leistungen-card-{$i}-icon";
+		?>
+		<div class="wwd-leistungen-card" data-card-index="<?php echo esc_attr( $i ); ?>">
+			<hr />
+			<p><strong><?php echo esc_html( 'Card ' . $i ); ?></strong></p>
+
+			<p>
+				<label for="<?php echo esc_attr( $input_id ); ?>"><strong><?php echo esc_html( 'Icon' ); ?></strong></label>
+			</p>
+			<input
+				type="hidden"
+				id="<?php echo esc_attr( $input_id ); ?>"
+				name="<?php echo esc_attr( "_leistungen_card_{$i}_icon" ); ?>"
+				value="<?php echo esc_attr( $icon_id ); ?>"
+				class="wwd-leistungen-icon-id"
+			/>
+			<div class="wwd-leistungen-icon-preview">
+				<?php if ( $preview ) : ?>
+					<img src="<?php echo esc_url( $preview ); ?>" alt="" />
+				<?php endif; ?>
+			</div>
+			<p>
+				<button type="button" class="button wwd-leistungen-icon-select"><?php echo esc_html( 'Icon auswählen' ); ?></button>
+				<button type="button" class="button wwd-leistungen-icon-remove"><?php echo esc_html( 'Icon entfernen' ); ?></button>
+			</p>
+
+			<p>
+				<label for="<?php echo esc_attr( "wwd-leistungen-card-{$i}-heading" ); ?>"><strong><?php echo esc_html( 'Mini-Heading' ); ?></strong></label>
+			</p>
+			<input
+				type="text"
+				id="<?php echo esc_attr( "wwd-leistungen-card-{$i}-heading" ); ?>"
+				name="<?php echo esc_attr( "_leistungen_card_{$i}_heading" ); ?>"
+				value="<?php echo esc_attr( $heading ); ?>"
+				class="widefat"
+			/>
+
+			<p>
+				<label for="<?php echo esc_attr( "wwd-leistungen-card-{$i}-text" ); ?>"><strong><?php echo esc_html( 'Text' ); ?></strong></label>
+			</p>
+			<textarea
+				id="<?php echo esc_attr( "wwd-leistungen-card-{$i}-text" ); ?>"
+				name="<?php echo esc_attr( "_leistungen_card_{$i}_text" ); ?>"
+				rows="5"
+				class="widefat"
+			><?php echo esc_textarea( $text ); ?></textarea>
+		</div>
+	<?php endfor; ?>
+	<?php
+}
+
+function wwd_save_leistungen_cards_meta( $post_id ) {
+	if ( ! isset( $_POST['wwd_leistungen_cards_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( $_POST['wwd_leistungen_cards_nonce'], 'wwd_leistungen_cards_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	$allowed_post_types = wwd_get_unterseiten_post_types();
+	if ( ! in_array( get_post_type( $post_id ), $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = isset( $_POST['wwd_layout_template'] ) ? sanitize_key( wp_unslash( $_POST['wwd_layout_template'] ) ) : '';
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = get_post_meta( $post_id, '_layout_template', true );
+	}
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'leistungen-cards' !== $layout ) {
+		return;
+	}
+
+	for ( $i = 1; $i <= 3; $i++ ) {
+		$icon_key    = "_leistungen_card_{$i}_icon";
+		$heading_key = "_leistungen_card_{$i}_heading";
+		$text_key    = "_leistungen_card_{$i}_text";
+
+		$icon_id = isset( $_POST[ $icon_key ] ) ? absint( $_POST[ $icon_key ] ) : 0;
+		$heading = isset( $_POST[ $heading_key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $heading_key ] ) ) : '';
+		$text    = isset( $_POST[ $text_key ] ) ? sanitize_textarea_field( wp_unslash( $_POST[ $text_key ] ) ) : '';
+
+		if ( $icon_id > 0 ) {
+			update_post_meta( $post_id, $icon_key, $icon_id );
+		} else {
+			delete_post_meta( $post_id, $icon_key );
+		}
+
+		if ( '' === $heading ) {
+			delete_post_meta( $post_id, $heading_key );
+		} else {
+			update_post_meta( $post_id, $heading_key, $heading );
+		}
+
+		if ( '' === $text ) {
+			delete_post_meta( $post_id, $text_key );
+		} else {
+			update_post_meta( $post_id, $text_key, $text );
+		}
+	}
+}
+add_action( 'save_post', 'wwd_save_leistungen_cards_meta' );
+
+/**
  * Meta box for slider layout (3 fixed slides).
  */
 function wwd_add_slider_layout_metaboxes( $post_type, $post ) {
@@ -1092,6 +1261,46 @@ function wwd_slider_layout_admin_notice() {
 add_action( 'admin_notices', 'wwd_slider_layout_admin_notice' );
 
 /**
+ * Hide other layout metaboxes when Leistungen Cards layout is active.
+ */
+function wwd_adjust_metaboxes_for_leistungen_cards_layout( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
+	}
+	$allowed_post_types = wwd_get_unterseiten_post_types();
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = get_post_meta( $post_id, '_layout_template', true );
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'leistungen-cards' !== $layout ) {
+		return;
+	}
+
+	remove_meta_box( 'wwd_unterseiten_content', $post_type, 'normal' );
+	remove_meta_box( 'wwd_three_img_texts', $post_type, 'normal' );
+	remove_meta_box( 'wwd_one_img_bottom_texts', $post_type, 'normal' );
+	remove_meta_box( 'wwd_slider_layout_slides', $post_type, 'normal' );
+}
+add_action( 'add_meta_boxes', 'wwd_adjust_metaboxes_for_leistungen_cards_layout', 20, 2 );
+
+/**
  * Hide other layout metaboxes when slider layout is active.
  */
 function wwd_adjust_metaboxes_for_slider_layout( $post_type, $post ) {
@@ -1171,6 +1380,50 @@ function wwd_enqueue_unterseiten_admin_media( $hook ) {
 	}
 }
 add_action( 'admin_enqueue_scripts', 'wwd_enqueue_unterseiten_admin_media' );
+
+function wwd_enqueue_leistungen_cards_admin_media( $hook ) {
+	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+		return;
+	}
+	$screen = get_current_screen();
+	if ( ! $screen || ! in_array( $screen->post_type, wwd_get_unterseiten_post_types(), true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$layout = get_post_meta( $post_id, '_layout_template', true );
+	if ( 'leistungen-cards' !== $layout ) {
+		return;
+	}
+
+	wp_enqueue_media();
+	wp_enqueue_script(
+		'wwd-admin-leistungen-cards-metabox',
+		get_theme_file_uri( 'assets/js/admin-leistungen-cards-metabox.js' ),
+		array( 'jquery' ),
+		file_exists( get_theme_file_path( 'assets/js/admin-leistungen-cards-metabox.js' ) ) ? filemtime( get_theme_file_path( 'assets/js/admin-leistungen-cards-metabox.js' ) ) : null,
+		true
+	);
+
+	if ( file_exists( get_theme_file_path( 'assets/css/admin.css' ) ) ) {
+		wp_enqueue_style(
+			'wwd-admin-leistungen-cards-metabox',
+			get_theme_file_uri( 'assets/css/admin.css' ),
+			array(),
+			filemtime( get_theme_file_path( 'assets/css/admin.css' ) )
+		);
+	}
+}
+add_action( 'admin_enqueue_scripts', 'wwd_enqueue_leistungen_cards_admin_media' );
 
 function wwd_enqueue_slider_layout_admin_media( $hook ) {
 	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
