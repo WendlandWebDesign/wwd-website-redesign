@@ -337,8 +337,6 @@
     flex-direction: column;
     align-items: center;
     gap: 40px;
-
-
 }
 .website-weg-holder h3{
     padding: 0 16px;
@@ -347,9 +345,6 @@
     width: 100%;
     min-height: 100svh;
     position: relative;
-
-
-
 }
 .website-weg-wrapper .img-transition-top,
 .website-weg-wrapper .img-transition-bottom{
@@ -369,7 +364,6 @@
     width: 100%;
     height: 100svh;
     overflow: hidden;
-    z-index: 0;
 }
 .website-weg__media img{
     width: 100%;
@@ -382,14 +376,12 @@
 }
 .website-weg__overlay{
     position: relative;
-    z-index: 1;
     width: 100%;
 }
 .website-weg__fx-layer{
     position: sticky;
     top: 0;
     height: 100svh;
-    z-index: 3;
     pointer-events: none;
 }
 .website-weg__fx-layer .img-transition-top,
@@ -414,11 +406,11 @@
     min-width: 500px;
     min-height: 100svh;
     position: relative;
-    z-index: 1;
     padding: 30px 10%;
     opacity: 1;
     transform: none;
     transition: none;
+    z-index: 1;
 }
 .website-weg .txt-holder .mini-heading{
     display: flex;
