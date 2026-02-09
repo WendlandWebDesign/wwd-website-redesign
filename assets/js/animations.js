@@ -222,21 +222,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// Adapted from btn-border-snake.js for hero load animation.
-const runHeroLoadSnake = (btn, options = {}) => {
-    if (!btn || btn.dataset.heroSnakeDone === "1" || btn.dataset.heroSnakeRunning === "1") return;
+const runBorderSnakeOnce = (btn, options = {}) => {
+    if (!btn) return false;
 
     const duration = Number.isFinite(options.duration) ? options.duration : 800;
+    const onComplete = typeof options.onComplete === "function" ? options.onComplete : null;
     const svg = btn.querySelector(".btn__svg");
     const path = btn.querySelector(".btn__path") || btn.querySelector(".btn__seg--1");
     const segs = Array.from(btn.querySelectorAll(".btn__seg"));
 
     if (HERO_SNAKE_DEBUG) {
-        console.log("[hero-load-snake] svg:", svg);
-        console.log("[hero-load-snake] path:", path);
-        console.log("[hero-load-snake] segments:", segs.length);
+        console.log("[border-snake] svg:", svg);
+        console.log("[border-snake] path:", path);
+        console.log("[border-snake] segments:", segs.length);
     }
-    if (!svg || !path || segs.length !== 4) return;
+    if (!svg || !path || segs.length !== 4) return false;
 
     const w = Math.max(1, Math.round(btn.clientWidth));
     const h = Math.max(1, Math.round(btn.clientHeight));
@@ -256,7 +256,7 @@ const runHeroLoadSnake = (btn, options = {}) => {
     });
 
     const length = path.getTotalLength();
-    if (!length || !Number.isFinite(length)) return;
+    if (!length || !Number.isFinite(length)) return false;
 
     const innerW = Math.max(1, w - strokeWidth);
     const innerH = Math.max(1, h - strokeWidth);
@@ -284,9 +284,9 @@ const runHeroLoadSnake = (btn, options = {}) => {
     const easeInOutQuad = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
     applyIdleState();
-    btn.dataset.heroSnakeRunning = "1";
+    btn.dataset.borderSnakeRunning = "1";
     if (HERO_SNAKE_DEBUG) {
-        console.log("[hero-load-snake] starting");
+        console.log("[border-snake] starting");
     }
 
     const startOffsets = starts.map((s) => s.offset);
@@ -294,7 +294,7 @@ const runHeroLoadSnake = (btn, options = {}) => {
     let start = null;
 
     const step = (ts) => {
-        if (btn.dataset.heroSnakeRunning !== "1") return;
+        if (btn.dataset.borderSnakeRunning !== "1") return;
         if (start === null) start = ts;
         const p = Math.min(1, (ts - start) / duration);
         const eased = easeInOutQuad(p);
@@ -307,14 +307,33 @@ const runHeroLoadSnake = (btn, options = {}) => {
             return;
         }
         applyIdleState();
+        btn.dataset.borderSnakeRunning = "0";
+        if (onComplete) onComplete();
+        if (HERO_SNAKE_DEBUG) {
+            console.log("[border-snake] done + cleaned");
+        }
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(step));
+    return true;
+};
+
+// Adapted from btn-border-snake.js for hero load animation.
+const runHeroLoadSnake = (btn, options = {}) => {
+    if (!btn || btn.dataset.heroSnakeDone === "1" || btn.dataset.heroSnakeRunning === "1") return;
+    btn.dataset.heroSnakeRunning = "1";
+    if (!runBorderSnakeOnce(btn, options)) {
+        btn.dataset.heroSnakeRunning = "0";
+        return;
+    }
+    const duration = Number.isFinite(options.duration) ? options.duration : 800;
+    setTimeout(() => {
         btn.dataset.heroSnakeRunning = "0";
         btn.dataset.heroSnakeDone = "1";
         if (HERO_SNAKE_DEBUG) {
             console.log("[hero-load-snake] done + cleaned");
         }
-    };
-
-    requestAnimationFrame(() => requestAnimationFrame(step));
+    }, duration + 30);
 };
 
 const initHeroLoadSnake = () => {
@@ -671,6 +690,152 @@ document.addEventListener("DOMContentLoaded", () => {
         if (cursor) gsapInstance.set(cursor, { autoAlpha: 0 });
     }, "+=1");
 });
+
+const initSliderViewportAnimations = () => {
+    const slider = document.querySelector(".slider");
+    if (!slider) return;
+    if (slider.dataset.sliderViewportAnimInit === "1") return;
+    slider.dataset.sliderViewportAnimInit = "1";
+
+    const slides = Array.from(slider.querySelectorAll(".slide"));
+    if (!slides.length) return;
+
+    let activeSlide = null;
+    let textObserver = null;
+    let buttonObserver = null;
+
+    const getActiveSlide = () => {
+        return slides.find((slide) =>
+            slide.classList.contains("active") || slide.classList.contains("is-active")
+        );
+    };
+
+    const clearAnimated = () => {
+        slides.forEach((slide) => slide.classList.remove("is-animated"));
+    };
+
+    const resetSlideSnakeFlags = (slide) => {
+        if (!slide) return;
+        const btn = slide.querySelector('[data-slide-snake-btn="1"]') || slide.querySelector(".right .btn");
+        if (!btn) return;
+        delete btn.dataset.snakeAnimating;
+        delete btn.dataset.snakeDone;
+    };
+
+    const triggerRightTextInview = (slide) => {
+        if (!slide) return;
+        slide.classList.remove("is-animated");
+        void slide.offsetHeight;
+        slide.classList.add("is-animated");
+    };
+
+    const triggerSlideButtonSnakeInview = (slide) => {
+        if (!slide) return;
+        const btn = slide.querySelector('[data-slide-snake-btn="1"]') || slide.querySelector(".right .btn");
+        if (!btn) return;
+        if (btn.dataset.snakeAnimating === "1") return;
+        btn.dataset.snakeAnimating = "1";
+        requestAnimationFrame(() => {
+            const started = runBorderSnakeOnce(btn, {
+                duration: 800,
+                onComplete: () => {
+                    btn.dataset.snakeAnimating = "0";
+                    btn.dataset.snakeDone = "1";
+                },
+            });
+            if (!started) {
+                btn.dataset.snakeAnimating = "0";
+            }
+        });
+    };
+
+    const setupInviewObservers = (slide) => {
+        if (!slide) return;
+
+        if (textObserver) textObserver.disconnect();
+        if (buttonObserver) buttonObserver.disconnect();
+        textObserver = null;
+        buttonObserver = null;
+
+        if (!("IntersectionObserver" in window)) {
+            triggerRightTextInview(slide);
+            triggerSlideButtonSnakeInview(slide);
+            return;
+        }
+
+        const rightEl = slide.querySelector(".right") || slide.querySelector(".slider-heading");
+        const btnEl = slide.querySelector('[data-slide-snake-btn="1"]') || slide.querySelector(".right .btn");
+        const ioOptions = {
+            threshold: 0.35,
+            rootMargin: "0px 0px -10% 0px",
+        };
+
+        if (rightEl) {
+            textObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    triggerRightTextInview(slide);
+                    if (textObserver && rightEl) textObserver.unobserve(rightEl);
+                });
+            }, ioOptions);
+            textObserver.observe(rightEl);
+        }
+
+        if (btnEl) {
+            buttonObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    triggerSlideButtonSnakeInview(slide);
+                    if (buttonObserver && btnEl) buttonObserver.unobserve(btnEl);
+                });
+            }, ioOptions);
+            buttonObserver.observe(btnEl);
+        }
+    };
+
+    const updateActive = () => {
+        const next = getActiveSlide();
+        if (!next || next === activeSlide) return;
+        if (activeSlide) {
+            activeSlide.classList.remove("is-animated");
+            resetSlideSnakeFlags(activeSlide);
+        }
+        activeSlide = next;
+        clearAnimated();
+        setupInviewObservers(next);
+    };
+
+    updateActive();
+    if (!activeSlide) {
+        requestAnimationFrame(updateActive);
+        setTimeout(updateActive, 50);
+    }
+
+    if (slider.__sliderViewportObserver) {
+        slider.__sliderViewportObserver.disconnect();
+    }
+
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.type === "attributes" && mutation.attributeName === "class") {
+                updateActive();
+                break;
+            }
+        }
+    });
+
+    slides.forEach((slide) => {
+        observer.observe(slide, { attributes: true, attributeFilter: ["class"] });
+    });
+
+    slider.__sliderViewportObserver = observer;
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initSliderViewportAnimations);
+} else {
+    initSliderViewportAnimations();
+}
 
 
 
