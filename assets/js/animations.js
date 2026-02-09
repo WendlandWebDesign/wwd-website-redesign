@@ -1,3 +1,8 @@
+const HERO_SNAKE_DEBUG = false;
+if (HERO_SNAKE_DEBUG) {
+    console.log("[animations.js] loaded");
+}
+
 const getGsapScrollTrigger = () => {
     const gsapInstance = window.gsap || null;
     const ScrollTrigger = window.ScrollTrigger || null;
@@ -216,6 +221,181 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+// Adapted from btn-border-snake.js for hero load animation.
+const runHeroLoadSnake = (btn, options = {}) => {
+    if (!btn || btn.dataset.heroSnakeDone === "1" || btn.dataset.heroSnakeRunning === "1") return;
+
+    const duration = Number.isFinite(options.duration) ? options.duration : 800;
+    const svg = btn.querySelector(".btn__svg");
+    const path = btn.querySelector(".btn__path") || btn.querySelector(".btn__seg--1");
+    const segs = Array.from(btn.querySelectorAll(".btn__seg"));
+
+    if (HERO_SNAKE_DEBUG) {
+        console.log("[hero-load-snake] svg:", svg);
+        console.log("[hero-load-snake] path:", path);
+        console.log("[hero-load-snake] segments:", segs.length);
+    }
+    if (!svg || !path || segs.length !== 4) return;
+
+    const w = Math.max(1, Math.round(btn.clientWidth));
+    const h = Math.max(1, Math.round(btn.clientHeight));
+    const strokeWidth = 4;
+    const inset = strokeWidth / 2;
+
+    svg.setAttribute("width", `${w}`);
+    svg.setAttribute("height", `${h}`);
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    svg.setAttribute("preserveAspectRatio", "none");
+
+    const d = `M${inset},${inset} H${w - inset} V${h - inset} H${inset} Z`;
+    path.setAttribute("d", d);
+    segs.forEach((seg) => {
+        seg.setAttribute("d", d);
+        seg.setAttribute("vector-effect", "non-scaling-stroke");
+    });
+
+    const length = path.getTotalLength();
+    if (!length || !Number.isFinite(length)) return;
+
+    const innerW = Math.max(1, w - strokeWidth);
+    const innerH = Math.max(1, h - strokeWidth);
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+    const lenLong = clamp(innerW * 0.60, innerW * 0.40, innerW * 0.75);
+    const lenShort = clamp(innerH * 0.50, innerH * 0.35, innerH * 0.70);
+
+    // Idle corner positions from btn-border-snake.js
+    const starts = [
+        { len: lenShort, offset: 0.00 * length },
+        { len: lenLong, offset: 0.05 * length },
+        { len: lenShort, offset: 0.50 * length },
+        { len: lenLong, offset: 0.55 * length },
+    ];
+
+    const applyIdleState = () => {
+        segs.forEach((seg, idx) => {
+            const segLen = starts[idx].len;
+            const dashArray = `${segLen} ${length - segLen}`;
+            seg.style.strokeDasharray = dashArray;
+            seg.style.strokeDashoffset = `${starts[idx].offset}`;
+        });
+    };
+
+    const easeInOutQuad = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
+    applyIdleState();
+    btn.dataset.heroSnakeRunning = "1";
+    if (HERO_SNAKE_DEBUG) {
+        console.log("[hero-load-snake] starting");
+    }
+
+    const startOffsets = starts.map((s) => s.offset);
+    const targetShift = length * -1;
+    let start = null;
+
+    const step = (ts) => {
+        if (btn.dataset.heroSnakeRunning !== "1") return;
+        if (start === null) start = ts;
+        const p = Math.min(1, (ts - start) / duration);
+        const eased = easeInOutQuad(p);
+        const delta = eased * targetShift;
+        segs.forEach((seg, idx) => {
+            seg.style.strokeDashoffset = `${startOffsets[idx] + delta}`;
+        });
+        if (p < 1) {
+            requestAnimationFrame(step);
+            return;
+        }
+        applyIdleState();
+        btn.dataset.heroSnakeRunning = "0";
+        btn.dataset.heroSnakeDone = "1";
+        if (HERO_SNAKE_DEBUG) {
+            console.log("[hero-load-snake] done + cleaned");
+        }
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(step));
+};
+
+const initHeroLoadSnake = () => {
+    const selector = '[data-hero-snake-load="1"]';
+    let observer = null;
+    let rafId = 0;
+    let timeoutId = 0;
+
+    const stopAll = () => {
+        if (observer) observer.disconnect();
+        if (rafId) cancelAnimationFrame(rafId);
+        if (timeoutId) clearTimeout(timeoutId);
+        observer = null;
+        rafId = 0;
+        timeoutId = 0;
+    };
+
+    const tryStart = (btn) => {
+        if (!btn || btn.dataset.heroSnakeDone === "1") return;
+
+        const startWhenRendered = () => {
+            const maxWaitMs = 5000;
+            const start = performance.now();
+
+            const tick = () => {
+                if (btn.dataset.heroSnakeDone === "1") {
+                    stopAll();
+                    return;
+                }
+                const rect = btn.getBoundingClientRect();
+                if (rect.width > 2 && rect.height > 2) {
+                    stopAll();
+                    runHeroLoadSnake(btn, { duration: 800 });
+                    return;
+                }
+                if (performance.now() - start < maxWaitMs) {
+                    rafId = requestAnimationFrame(tick);
+                } else {
+                    stopAll();
+                }
+            };
+
+            rafId = requestAnimationFrame(tick);
+        };
+
+        startWhenRendered();
+    };
+
+    const immediateBtn = document.querySelector(selector);
+    if (immediateBtn) {
+        tryStart(immediateBtn);
+        return;
+    }
+
+    if (document.body) {
+        observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const node of mutation.addedNodes) {
+                    if (!(node instanceof Element)) continue;
+                    const match = node.matches(selector)
+                        ? node
+                        : node.querySelector(selector);
+                    if (match) {
+                        tryStart(match);
+                        return;
+                    }
+                }
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+        timeoutId = setTimeout(() => {
+            stopAll();
+        }, 8000);
+    }
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initHeroLoadSnake);
+} else {
+    initHeroLoadSnake();
+}
 
 // home hero fan image intro
 document.addEventListener("DOMContentLoaded", () => {
