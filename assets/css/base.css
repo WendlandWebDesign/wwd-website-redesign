@@ -63,7 +63,7 @@ html.js.page-loaded #page-fade-overlay{
 
 main{
     width: 100%;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .mw{
