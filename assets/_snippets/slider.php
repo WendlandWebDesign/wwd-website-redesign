@@ -1,22 +1,38 @@
 <?php
-$slider_query = new WP_Query(
-	array(
-		'post_type'      => 'slider_slide',
-		'posts_per_page' => 3,
-		'orderby'        => 'menu_order',
-		'order'          => 'ASC',
-		'no_found_rows'  => true,
-	)
-);
+$layout_id = isset( $post_id ) ? (int) $post_id : get_the_ID();
+if ( ! $layout_id ) {
+	return;
+}
 
-if ( $slider_query->have_posts() ) :
-	$slides = $slider_query->posts;
-	?>
+$slides = array();
+for ( $i = 1; $i <= 3; $i++ ) {
+	$img_id  = absint( get_post_meta( $layout_id, "_slider_slide_{$i}_image", true ) );
+	$heading = get_post_meta( $layout_id, "_slider_slide_{$i}_heading", true );
+	$text    = get_post_meta( $layout_id, "_slider_slide_{$i}_text", true );
+
+	$url = $img_id ? wp_get_attachment_image_url( $img_id, 'full' ) : '';
+	$alt = $img_id ? get_post_meta( $img_id, '_wp_attachment_image_alt', true ) : '';
+
+	if ( $img_id <= 0 || '' === $heading || '' === $text || ! $url ) {
+		return;
+	}
+
+	$slides[] = array(
+		'url'     => $url,
+		'alt'     => $alt,
+		'heading' => $heading,
+		'text'    => $text,
+	);
+}
+
+if ( 3 !== count( $slides ) ) {
+	return;
+}
+?>
 	<div class="slider-holder">
 		<div class="slider-bar mw-small">
-			<?php foreach ( $slides as $post ) : ?>
-				<?php setup_postdata( $post ); ?>
-				<p class="indikator mini-heading"><?php echo esc_html( get_the_title() ); ?></p>
+			<?php foreach ( $slides as $slide ) : ?>
+				<p class="indikator mini-heading"><?php echo esc_html( $slide['heading'] ); ?></p>
 			<?php endforeach; ?>
 		</div>
 		<div class="slider-buttons">
@@ -30,28 +46,17 @@ if ( $slider_query->have_posts() ) :
 		<div class="slider-wrapper">
 			<div class="img-transition-top"></div>
 			<div class="slider">
-				<?php foreach ( $slides as $post ) : ?>
-					<?php
-					setup_postdata( $post );
-					$thumb_id = get_post_thumbnail_id();
-					$img_url  = $thumb_id ? wp_get_attachment_image_url( $thumb_id, 'full' ) : '';
-					$alt      = $thumb_id ? get_post_meta( $thumb_id, '_wp_attachment_image_alt', true ) : '';
-					$excerpt  = get_the_excerpt();
-					?>
+				<?php foreach ( $slides as $slide ) : ?>
 					<div class="slide">
 						<div class="left">
 							<div class="img-transition-bottom"></div>
 							<div class="img-transition-right"></div>
-							<?php if ( $img_url ) : ?>
-								<img src="<?php echo esc_url( $img_url ); ?>" alt="<?php echo esc_attr( $alt ); ?>">
-							<?php endif; ?>
+							<img src="<?php echo esc_url( $slide['url'] ); ?>" alt="<?php echo esc_attr( $slide['alt'] ); ?>">
 						</div>
 						<div class="right">
 							<div class="txt-holder">
-								<p class="light slider-heading"><?php echo esc_html( get_the_title() ); ?></p>
-								<?php if ( $excerpt ) : ?>
-									<p class="light"><?php echo esc_html( $excerpt ); ?></p>
-								<?php endif; ?>
+								<p class="light slider-heading"><?php echo esc_html( $slide['heading'] ); ?></p>
+								<p class="light"><?php echo esc_html( $slide['text'] ); ?></p>
 								<button onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="btn light">
 									<span class="btn__border" aria-hidden="true">
 										<svg class="btn__svg" viewBox="0 0 100 40" preserveAspectRatio="none">
@@ -72,10 +77,3 @@ if ( $slider_query->have_posts() ) :
 			<div class="img-transition-bottom"></div>
 		</div>
 	</div>
-	<?php
-	wp_reset_postdata();
-elseif ( current_user_can( 'edit_posts' ) ) :
-	?>
-	<p class="mw-small"><?php echo esc_html( 'Keine Slides gefunden. Bitte Einträge im CPT "Slider" anlegen.' ); ?></p>
-	<?php
-endif;
