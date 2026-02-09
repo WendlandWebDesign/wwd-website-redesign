@@ -24,7 +24,7 @@ get_header();
                 </span>
                 <span class="cursor">|</span>
             </h1>
-            <button onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="btn light">
+            <button onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="btn light" data-hero-snake-load="1">
                 <span class="btn__border" aria-hidden="true">
                     <svg class="btn__svg" viewBox="0 0 100 40" preserveAspectRatio="none">
                         <path class="btn__path" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
