@@ -171,3 +171,78 @@ document.addEventListener("DOMContentLoaded", () => {
         lastScrollY = currentScrollY;
     });
 });
+
+
+//slider
+
+document.addEventListener('DOMContentLoaded', () => {
+    const slider = document.querySelector('.slider');
+    const slides = Array.from(document.querySelectorAll('.slide'));
+
+    const indicators = Array.from(document.querySelectorAll('.slider-bar .indikator'));
+    const btnNext = document.querySelector('.slider-btn.next');
+    const btnPrev = document.querySelector('.slider-btn.prev');
+
+    if (!slider || slides.length === 0) return;
+
+    let currentIndex = 0;
+
+    const isMobile = () => window.innerWidth < 751;
+
+    function setMarginLeftByIndex(index) {
+        if (index === 0) slider.style.marginLeft = '0';
+        else if (index === 1) slider.style.marginLeft = '-100%';
+        else if (index === 2) slider.style.marginLeft = '-200%';
+    }
+
+    function setActive(index) {
+        // Slide active
+        slides.forEach(s => s.classList.remove('active'));
+        slides[index].classList.add('active');
+
+        // Indicator active (falls vorhanden)
+        if (indicators.length) {
+            indicators.forEach(i => i.classList.remove('active'));
+            if (indicators[index]) indicators[index].classList.add('active');
+        }
+
+        // Slider Position
+        setMarginLeftByIndex(index);
+    }
+
+    function goTo(index) {
+        currentIndex = (index + slides.length) % slides.length;
+        setActive(currentIndex);
+    }
+
+    // Initial state
+    setActive(currentIndex);
+
+    // Desktop: click indicators
+    indicators.forEach((indikator, idx) => {
+        indikator.addEventListener('click', () => {
+            if (isMobile()) return; // auf Mobile hast du die Bar eh ausgeblendet
+            goTo(idx);
+        });
+    });
+
+    // Mobile: buttons
+    if (btnNext) {
+        btnNext.addEventListener('click', () => {
+            if (!isMobile()) return;
+            goTo(currentIndex + 1);
+        });
+    }
+
+    if (btnPrev) {
+        btnPrev.addEventListener('click', () => {
+            if (!isMobile()) return;
+            goTo(currentIndex - 1);
+        });
+    }
+
+    // Optional: bei Resize Position/Active konsistent halten
+    window.addEventListener('resize', () => {
+        setActive(currentIndex);
+    });
+});
