@@ -168,7 +168,7 @@ get_header();
                     </div>
                     <div class="right">
                         <div class="txt-holder">
-                            <p class="light slider-heading">Privatbrauerei Laase</p>
+                            <p class="light slider-heading">Schrotthandel Smit</p>
                             <p class="light">Kleine Übrschrift blabla bi bapo Kleine Übrschrift blabla bi bapo Kleine Übrschrift blabla bi bapo Kleine Übrschrift blabla bi bapo Kleine Übrschrift blabla bi bapo Kleine Übrschrift blabla bi bapo Kleine Übrschrift blabla bi bapo Kleine Übrschrift blabla bi bapo</p>
                             <button onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="btn light">
                                 <span class="btn__border" aria-hidden="true">
