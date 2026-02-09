@@ -868,6 +868,67 @@ if (document.readyState === "loading") {
     initLeistungenCardsInviewAnimation();
 }
 
+const initWebsiteWegInview = () => {
+    const websiteWeg = document.querySelector(".website-weg");
+    const stickyMedia = document.querySelector(".website-weg__media");
+    const items = Array.from(document.querySelectorAll(".website-weg .txt-holder"));
+    if (!websiteWeg || !stickyMedia || !items.length) return;
+
+    let activated = false;
+    let ticking = false;
+
+    const enableItemObservers = () => {
+        if (!("IntersectionObserver" in window)) {
+            items.forEach((item) => item.classList.add("is-inview"));
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    entry.target.classList.add("is-inview");
+                    observer.unobserve(entry.target);
+                });
+            },
+            {
+                threshold: 0.35,
+                rootMargin: "0px 0px -10% 0px",
+            }
+        );
+
+        items.forEach((item) => observer.observe(item));
+    };
+
+    const checkStuck = () => {
+        ticking = false;
+        if (activated) return;
+        const rect = stickyMedia.getBoundingClientRect();
+        const offset = 0;
+        const isStuck = Math.abs(rect.top - offset) <= 1;
+        if (!isStuck) return;
+        activated = true;
+        websiteWeg.classList.add("is-inview");
+        enableItemObservers();
+    };
+
+    const onScroll = () => {
+        if (ticking || activated) return;
+        ticking = true;
+        requestAnimationFrame(checkStuck);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    onScroll();
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initWebsiteWegInview);
+} else {
+    initWebsiteWegInview();
+}
+
 
 
 
