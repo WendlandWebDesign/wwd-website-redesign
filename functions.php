@@ -257,6 +257,28 @@ function wwd_register_cpts() {
 		)
 	);
 
+	register_post_type(
+		'slider_slide',
+		array(
+			'labels' => array(
+				'name'          => 'Slider',
+				'singular_name' => 'Slide',
+				'add_new_item'  => 'Neuen Slide hinzufügen',
+				'edit_item'     => 'Slide bearbeiten',
+				'view_item'     => 'Slide ansehen',
+				'search_items'  => 'Slides durchsuchen',
+				'all_items'     => 'Alle Slides',
+			),
+			'public'       => true,
+			'has_archive'  => false,
+			'show_in_rest' => true,
+			'rewrite'      => array( 'slug' => 'slider' ),
+			// "page-attributes" aktiviert die Reihenfolge (menu_order) im Editor.
+			'supports'     => array( 'title', 'editor', 'excerpt', 'thumbnail', 'revisions', 'page-attributes' ),
+			'menu_icon'    => 'dashicons-images-alt',
+		)
+	);
+
 	// Unterseiten-CPTs (zentral verwaltet, in Schleife registriert).
 	$unterseiten_cpts = array(
 		'home' => array(
@@ -325,6 +347,7 @@ function wwd_get_allowed_layouts() {
 		'three-img-layout' => 'assets/_snippets/three-img-layout.php',
 		'two-img-layout'   => 'assets/_snippets/two-img-layout.php',
 		'one-img-layout'   => 'assets/_snippets/one-img-layout.php',
+		'slider-layout'    => 'assets/_snippets/slider.php',
 	);
 }
 
@@ -374,6 +397,7 @@ function wwd_render_layout_template_metabox( $post ) {
 		<option value="one-img-layout" <?php selected( $current, 'one-img-layout' ); ?>><?php echo esc_html( 'One-Image Layout' ); ?></option>
 		<option value="two-img-layout" <?php selected( $current, 'two-img-layout' ); ?>><?php echo esc_html( 'Two-Image Layout' ); ?></option>
 		<option value="three-img-layout" <?php selected( $current, 'three-img-layout' ); ?>><?php echo esc_html( 'Three-Image Layout' ); ?></option>
+		<option value="slider-layout" <?php selected( $current, 'slider-layout' ); ?>><?php echo esc_html( 'Slider' ); ?></option>
 	</select>
 	<?php
 }
@@ -872,6 +896,240 @@ function wwd_save_one_img_bottom_texts_meta( $post_id ) {
 }
 add_action( 'save_post', 'wwd_save_one_img_bottom_texts_meta' );
 
+/**
+ * Meta box for slider layout (3 fixed slides).
+ */
+function wwd_add_slider_layout_metaboxes( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
+	}
+	$allowed_post_types = wwd_get_unterseiten_post_types();
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = get_post_meta( $post_id, '_layout_template', true );
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'slider-layout' !== $layout ) {
+		return;
+	}
+
+	add_meta_box(
+		'wwd_slider_layout_slides',
+		'Slider (3 Slides)',
+		'wwd_render_slider_layout_metabox',
+		$post_type,
+		'normal',
+		'high'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_slider_layout_metaboxes', 10, 2 );
+
+function wwd_render_slider_layout_metabox( $post ) {
+	wp_nonce_field( 'wwd_slider_layout_save', 'wwd_slider_layout_nonce' );
+
+	for ( $i = 1; $i <= 3; $i++ ) {
+		$img_id  = absint( get_post_meta( $post->ID, "_slider_slide_{$i}_image", true ) );
+		$heading = get_post_meta( $post->ID, "_slider_slide_{$i}_heading", true );
+		$text    = get_post_meta( $post->ID, "_slider_slide_{$i}_text", true );
+
+		$preview_url = $img_id ? wp_get_attachment_image_url( $img_id, 'medium' ) : '';
+		$input_id    = "wwd-slider-slide-{$i}-image";
+		?>
+		<hr />
+		<h4><?php echo esc_html( "Slide {$i}" ); ?></h4>
+
+		<div class="wwd-media-field" data-target="<?php echo esc_attr( $input_id ); ?>">
+			<p><label for="<?php echo esc_attr( $input_id ); ?>"><?php echo esc_html( 'Bild' ); ?></label></p>
+			<input
+				type="hidden"
+				id="<?php echo esc_attr( $input_id ); ?>"
+				name="<?php echo esc_attr( "slider_slide_{$i}_image" ); ?>"
+				value="<?php echo esc_attr( $img_id ); ?>"
+			/>
+			<div class="wwd-media-preview">
+				<?php if ( $preview_url ) : ?>
+					<img src="<?php echo esc_url( $preview_url ); ?>" alt="" />
+				<?php endif; ?>
+			</div>
+			<p>
+				<button type="button" class="button wwd-media-select"><?php echo esc_html( 'Bild auswählen' ); ?></button>
+				<button type="button" class="button wwd-media-remove"><?php echo esc_html( 'Entfernen' ); ?></button>
+			</p>
+		</div>
+
+		<p>
+			<label for="<?php echo esc_attr( "wwd-slider-slide-{$i}-heading" ); ?>"><strong><?php echo esc_html( 'Heading' ); ?></strong></label>
+		</p>
+		<input
+			type="text"
+			id="<?php echo esc_attr( "wwd-slider-slide-{$i}-heading" ); ?>"
+			name="<?php echo esc_attr( "slider_slide_{$i}_heading" ); ?>"
+			value="<?php echo esc_attr( $heading ); ?>"
+			class="widefat"
+			required
+		/>
+
+		<p>
+			<label for="<?php echo esc_attr( "wwd-slider-slide-{$i}-text" ); ?>"><strong><?php echo esc_html( 'Text' ); ?></strong></label>
+		</p>
+		<textarea
+			id="<?php echo esc_attr( "wwd-slider-slide-{$i}-text" ); ?>"
+			name="<?php echo esc_attr( "slider_slide_{$i}_text" ); ?>"
+			rows="4"
+			class="widefat"
+			required
+		><?php echo esc_textarea( $text ); ?></textarea>
+		<?php
+	}
+}
+
+function wwd_save_slider_layout_meta( $post_id ) {
+	if ( ! isset( $_POST['wwd_slider_layout_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( $_POST['wwd_slider_layout_nonce'], 'wwd_slider_layout_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = isset( $_POST['wwd_layout_template'] ) ? sanitize_key( wp_unslash( $_POST['wwd_layout_template'] ) ) : '';
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = get_post_meta( $post_id, '_layout_template', true );
+	}
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'slider-layout' !== $layout ) {
+		return;
+	}
+
+	$complete = true;
+
+	for ( $i = 1; $i <= 3; $i++ ) {
+		$img_id  = isset( $_POST[ "slider_slide_{$i}_image" ] ) ? absint( $_POST[ "slider_slide_{$i}_image" ] ) : 0;
+		$heading = isset( $_POST[ "slider_slide_{$i}_heading" ] ) ? sanitize_text_field( wp_unslash( $_POST[ "slider_slide_{$i}_heading" ] ) ) : '';
+		$text    = isset( $_POST[ "slider_slide_{$i}_text" ] ) ? sanitize_textarea_field( wp_unslash( $_POST[ "slider_slide_{$i}_text" ] ) ) : '';
+
+		if ( $img_id <= 0 || '' === $heading || '' === $text ) {
+			$complete = false;
+		}
+
+		$meta_map = array(
+			"_slider_slide_{$i}_image"   => $img_id,
+			"_slider_slide_{$i}_heading" => $heading,
+			"_slider_slide_{$i}_text"    => $text,
+		);
+
+		foreach ( $meta_map as $meta_key => $value ) {
+			if ( '' === $value || 0 === $value ) {
+				delete_post_meta( $post_id, $meta_key );
+			} else {
+				update_post_meta( $post_id, $meta_key, $value );
+			}
+		}
+	}
+
+	if ( ! $complete ) {
+		set_transient( 'wwd_slider_layout_incomplete_' . $post_id, 1, 60 );
+	}
+}
+add_action( 'save_post', 'wwd_save_slider_layout_meta' );
+
+function wwd_slider_layout_admin_notice() {
+	$screen = get_current_screen();
+	if ( ! $screen || ! in_array( $screen->post_type, wwd_get_unterseiten_post_types(), true ) ) {
+		return;
+	}
+	if ( 'post' !== $screen->base ) {
+		return;
+	}
+
+	$post_id = isset( $_GET['post'] ) ? (int) $_GET['post'] : 0;
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$layout = get_post_meta( $post_id, '_layout_template', true );
+	if ( 'slider-layout' !== $layout ) {
+		return;
+	}
+
+	$transient_key = 'wwd_slider_layout_incomplete_' . $post_id;
+	if ( get_transient( $transient_key ) ) {
+		delete_transient( $transient_key );
+		?>
+		<div class="notice notice-warning is-dismissible">
+			<p><?php echo esc_html( 'Bitte alle 3 Slider-Slides vollständig befüllen (Bild, Heading, Text).' ); ?></p>
+		</div>
+		<?php
+	}
+}
+add_action( 'admin_notices', 'wwd_slider_layout_admin_notice' );
+
+/**
+ * Hide other layout metaboxes when slider layout is active.
+ */
+function wwd_adjust_metaboxes_for_slider_layout( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
+	}
+	$allowed_post_types = wwd_get_unterseiten_post_types();
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = get_post_meta( $post_id, '_layout_template', true );
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'slider-layout' !== $layout ) {
+		return;
+	}
+
+	remove_meta_box( 'wwd_unterseiten_content', $post_type, 'normal' );
+	remove_meta_box( 'wwd_three_img_texts', $post_type, 'normal' );
+	remove_meta_box( 'wwd_one_img_bottom_texts', $post_type, 'normal' );
+}
+add_action( 'add_meta_boxes', 'wwd_adjust_metaboxes_for_slider_layout', 20, 2 );
+
 function wwd_enqueue_unterseiten_admin_media( $hook ) {
 	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
 		return;
@@ -879,6 +1137,19 @@ function wwd_enqueue_unterseiten_admin_media( $hook ) {
 	$screen = get_current_screen();
 	if ( ! $screen || ! in_array( $screen->post_type, wwd_get_unterseiten_post_types(), true ) ) {
 		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( $post_id ) {
+		$layout = get_post_meta( $post_id, '_layout_template', true );
+		if ( 'slider-layout' === $layout ) {
+			return;
+		}
 	}
 
 	wp_enqueue_media();
@@ -900,6 +1171,50 @@ function wwd_enqueue_unterseiten_admin_media( $hook ) {
 	}
 }
 add_action( 'admin_enqueue_scripts', 'wwd_enqueue_unterseiten_admin_media' );
+
+function wwd_enqueue_slider_layout_admin_media( $hook ) {
+	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+		return;
+	}
+	$screen = get_current_screen();
+	if ( ! $screen || ! in_array( $screen->post_type, wwd_get_unterseiten_post_types(), true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$layout = get_post_meta( $post_id, '_layout_template', true );
+	if ( 'slider-layout' !== $layout ) {
+		return;
+	}
+
+	wp_enqueue_media();
+	wp_enqueue_script(
+		'wwd-admin-slider-metabox',
+		get_theme_file_uri( 'assets/js/admin-slider-metabox.js' ),
+		array( 'jquery' ),
+		file_exists( get_theme_file_path( 'assets/js/admin-slider-metabox.js' ) ) ? filemtime( get_theme_file_path( 'assets/js/admin-slider-metabox.js' ) ) : null,
+		true
+	);
+
+	if ( file_exists( get_theme_file_path( 'assets/css/admin.css' ) ) ) {
+		wp_enqueue_style(
+			'wwd-admin-slider-metabox',
+			get_theme_file_uri( 'assets/css/admin.css' ),
+			array(),
+			filemtime( get_theme_file_path( 'assets/css/admin.css' ) )
+		);
+	}
+}
+add_action( 'admin_enqueue_scripts', 'wwd_enqueue_slider_layout_admin_media' );
 
 function wwd_enqueue_referenzen_admin_media( $hook ) {
 	$screen = get_current_screen();
