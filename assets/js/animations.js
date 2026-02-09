@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // --- Back-Buttons: nur auf Mobile (<641px) aktiviertes Submen schlieen
+    // --- Back-Buttons: nur auf Mobile (<641px) aktiviertes Submenu schließen
     document.querySelectorAll(".back-btn-wrapper").forEach(btn => {
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -217,6 +217,32 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// home hero fan image intro
+document.addEventListener("DOMContentLoaded", () => {
+    const gsapInstance = window.gsap || null;
+    if (!gsapInstance) return;
+
+    const heroFaecher = document.querySelector(".hero-fächer");
+    if (!heroFaecher) return;
+
+    const getStartX = () => {
+        const rect = heroFaecher.getBoundingClientRect();
+        return window.innerWidth + rect.width + 40;
+    };
+
+    gsapInstance.set(heroFaecher, {
+        x: getStartX(),
+        rotate: 6,
+        transformOrigin: "center center",
+    });
+
+    gsapInstance.to(heroFaecher, {
+        x: 0,
+        rotate: 0,
+        duration: 0.9,
+        ease: "power3.out",
+    });
+});
 
 
 // two-img layout scroll effect (img_2 moves up while section is in view)
@@ -346,7 +372,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const gsapInstance = window.gsap || null;
     if (!gsapInstance) return;
 
-    const heroFaecher = document.querySelector(".hero-f�cher");
+    const heroFaecher = document.querySelector(".hero-f�cher");
     if (!heroFaecher) return;
 
     const getStartX = () => {
