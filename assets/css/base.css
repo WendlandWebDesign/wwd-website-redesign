@@ -151,6 +151,7 @@ a{
 .btn p{
     display: flex;
     align-items: center;
+    font-size: .9rem;
 }
 .btn p img{
     margin-right: 5px;
