@@ -257,6 +257,28 @@ function wwd_register_cpts() {
 		)
 	);
 
+	register_post_type(
+		'slider_slide',
+		array(
+			'labels' => array(
+				'name'          => 'Slider',
+				'singular_name' => 'Slide',
+				'add_new_item'  => 'Neuen Slide hinzufügen',
+				'edit_item'     => 'Slide bearbeiten',
+				'view_item'     => 'Slide ansehen',
+				'search_items'  => 'Slides durchsuchen',
+				'all_items'     => 'Alle Slides',
+			),
+			'public'       => true,
+			'has_archive'  => false,
+			'show_in_rest' => true,
+			'rewrite'      => array( 'slug' => 'slider' ),
+			// "page-attributes" aktiviert die Reihenfolge (menu_order) im Editor.
+			'supports'     => array( 'title', 'editor', 'excerpt', 'thumbnail', 'revisions', 'page-attributes' ),
+			'menu_icon'    => 'dashicons-images-alt',
+		)
+	);
+
 	// Unterseiten-CPTs (zentral verwaltet, in Schleife registriert).
 	$unterseiten_cpts = array(
 		'home' => array(
