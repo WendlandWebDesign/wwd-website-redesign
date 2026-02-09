@@ -82,7 +82,7 @@ get_header();
 	else :
 		if ( current_user_can( 'edit_posts' ) ) :
 			?>
-			<p class="mw-small"><?php echo esc_html( 'Kein Home-CPT gefunden. Bitte einen Eintrag im CPT \'home\' anlegen.' ); ?></p>
+			<p class="mw-small"><?php echo esc_html( 'Seite nicht gefunden' ); ?></p>
 			<?php
 		endif;
 	endif;
