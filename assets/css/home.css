@@ -259,6 +259,7 @@
         border: solid 2px var(--ac-clr);
         cursor: pointer;
         color: var(--lighter);
+        box-shadow: inset 0 0 5px var(--ac-clr);
     }
     .slider-btn svg{
         width: 50%;
