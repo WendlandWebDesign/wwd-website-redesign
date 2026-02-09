@@ -874,6 +874,9 @@ const initWebsiteWegInview = () => {
     const items = Array.from(document.querySelectorAll(".website-weg .txt-holder"));
     if (!websiteWeg || !stickyMedia || !items.length) return;
 
+    items.forEach((item) => item.classList.remove("is-inview"));
+    return;
+
     let activated = false;
     let ticking = false;
 
