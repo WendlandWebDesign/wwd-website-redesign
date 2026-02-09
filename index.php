@@ -93,10 +93,11 @@ get_header();
     <div class="website-weg-holder">
         <h3 class="mw">Der Weg zu deiner Website</h3>
         <div class="website-weg-wrapper">
-            <div class="img-transition-top"></div>
             <div class="website-weg">
                 <div class="website-weg__media">
+                    <div class="img-transition-top"></div>
                     <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
+                    <div class="img-transition-bottom"></div>
                 </div>
                 <div class="website-weg__overlay">
                     <div class="txt-holder">
@@ -117,7 +118,7 @@ get_header();
                     </div>
                 </div>
             </div>
-            <div class="img-transition-bottom"></div>
+
         </div>
     </div>
 
