@@ -837,6 +837,37 @@ if (document.readyState === "loading") {
     initSliderViewportAnimations();
 }
 
+const initLeistungenCardsInviewAnimation = () => {
+    const cards = document.querySelectorAll(".dienstleistung-card");
+    if (!cards.length) return;
+
+    if (!("IntersectionObserver" in window)) {
+        cards.forEach((card) => card.classList.add("is-inview"));
+        return;
+    }
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add("is-inview");
+                observer.unobserve(entry.target);
+            });
+        },
+        {
+            threshold: 0.3,
+        }
+    );
+
+    cards.forEach((card) => observer.observe(card));
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initLeistungenCardsInviewAnimation);
+} else {
+    initLeistungenCardsInviewAnimation();
+}
+
 
 
 
