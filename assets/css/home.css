@@ -168,6 +168,7 @@
     position: relative;
     display: flex;
     align-items: center;
+    min-height: 295px;
 }
 .slide .left{
     width: 60%;
@@ -238,7 +239,6 @@
 
 @media(max-width: 800px){
     .slider-holder{
-        gap: 0;
         flex-direction: column-reverse;
     }
 
@@ -251,7 +251,6 @@
         gap: 1em;
         width: max-content;
         height: max-content;
-        transform: translateY(-66px);
         align-self: flex-end;
         padding: var(--site-padding);
         z-index: 6;
