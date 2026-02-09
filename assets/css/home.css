@@ -242,10 +242,10 @@
     will-change: transform, opacity;
 }
 .slide .right .txt-holder > .slider-heading{
-    transition-delay: .15s;
+    transition-delay: .1s;
 }
 .slide .right .txt-holder > p.light{
-    transition-delay: .4s;
+    transition-delay: .25s;
 }
 .slide.is-animated .right .txt-holder > .slider-heading,
 .slide.is-animated .right .txt-holder > p.light{
