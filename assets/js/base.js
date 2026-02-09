@@ -84,17 +84,45 @@ document.addEventListener("DOMContentLoaded", () => {
     cards.forEach((card) => {
         const setX = gsapInstance.quickSetter(card, "--mx", "px");
         const setY = gsapInstance.quickSetter(card, "--my", "px");
+        const ease = 0.1;
+        let targetX = 0;
+        let targetY = 0;
+        let currentX = 0;
+        let currentY = 0;
+        let rafId = null;
 
         const updatePointer = (event) => {
             const rect = card.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
-            setX(x);
-            setY(y);
+            targetX = event.clientX - rect.left;
+            targetY = event.clientY - rect.top;
+        };
+
+        const tick = () => {
+            currentX += (targetX - currentX) * ease;
+            currentY += (targetY - currentY) * ease;
+            setX(currentX);
+            setY(currentY);
+            rafId = requestAnimationFrame(tick);
+        };
+
+        const startRaf = () => {
+            if (rafId) return;
+            rafId = requestAnimationFrame(tick);
+        };
+
+        const stopRaf = () => {
+            if (!rafId) return;
+            cancelAnimationFrame(rafId);
+            rafId = null;
         };
 
         card.addEventListener("mouseenter", (event) => {
             updatePointer(event);
+            currentX = targetX;
+            currentY = targetY;
+            setX(currentX);
+            setY(currentY);
+            startRaf();
             gsapInstance.to(card, {
                 "--spot-opacity": 1,
                 "--spot-scale": 1,
@@ -107,6 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
         card.addEventListener("mousemove", updatePointer);
 
         card.addEventListener("mouseleave", () => {
+            stopRaf();
             gsapInstance.killTweensOf(card);
             gsapInstance.to(card, {
                 "--spot-opacity": 0,
