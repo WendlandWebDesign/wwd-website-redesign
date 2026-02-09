@@ -385,6 +385,12 @@ function wwd_render_unterseiten_content_metabox( $post ) {
 	$cta_label = get_post_meta( $post->ID, '_cta_label', true );
 	$cta_url   = get_post_meta( $post->ID, '_cta_url', true );
 
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = get_post_meta( $post->ID, '_layout_template', true );
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+
 	$img_1_id = absint( get_post_meta( $post->ID, '_img_1_id', true ) );
 	$img_2_id = absint( get_post_meta( $post->ID, '_img_2_id', true ) );
 	$img_3_id = absint( get_post_meta( $post->ID, '_img_3_id', true ) );
@@ -462,11 +468,13 @@ function wwd_render_unterseiten_content_metabox( $post ) {
 			'label' => 'Bild 2',
 			'id'    => $img_2_id,
 		),
-		'img_3' => array(
+	);
+	if ( 'three-img-layout' === $layout ) {
+		$images['img_3'] = array(
 			'label' => 'Bild 3',
 			'id'    => $img_3_id,
-		),
-	);
+		);
+	}
 
 	foreach ( $images as $key => $img ) :
 		$preview_url = $img['id'] ? wp_get_attachment_image_url( $img['id'], 'medium' ) : '';
@@ -547,8 +555,10 @@ function wwd_save_unterseiten_meta( $post_id ) {
 	$image_fields = array(
 		'_img_1_id' => 'wwd-img_1-id',
 		'_img_2_id' => 'wwd-img_2-id',
-		'_img_3_id' => 'wwd-img_3-id',
 	);
+	if ( 'three-img-layout' === $layout ) {
+		$image_fields['_img_3_id'] = 'wwd-img_3-id';
+	}
 	foreach ( $image_fields as $meta_key => $field_key ) {
 		$value = isset( $_POST[ $field_key ] ) ? absint( $_POST[ $field_key ] ) : 0;
 		if ( $value <= 0 ) {
@@ -566,20 +576,46 @@ foreach ( wwd_get_unterseiten_post_types() as $post_type ) {
 /**
  * Meta box for three-img layout texts.
  */
-function wwd_add_three_img_texts_metaboxes() {
-	$post_types = array_merge( array( 'page' ), wwd_get_unterseiten_post_types() );
-	foreach ( $post_types as $post_type ) {
-		add_meta_box(
-			'wwd_three_img_texts',
-			'Three Img Layout Texte',
-			'wwd_render_three_img_texts_metabox',
-			$post_type,
-			'normal',
-			'default'
-		);
+function wwd_add_three_img_texts_metaboxes( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
 	}
+	$allowed_post_types = array_merge( array( 'page' ), wwd_get_unterseiten_post_types() );
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = get_post_meta( $post_id, '_layout_template', true );
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'three-img-layout' !== $layout ) {
+		return;
+	}
+
+	add_meta_box(
+		'wwd_three_img_texts',
+		'Three Img Layout Texte',
+		'wwd_render_three_img_texts_metabox',
+		$post_type,
+		'normal',
+		'default'
+	);
 }
-add_action( 'add_meta_boxes', 'wwd_add_three_img_texts_metaboxes' );
+add_action( 'add_meta_boxes', 'wwd_add_three_img_texts_metaboxes', 10, 2 );
 
 function wwd_render_three_img_texts_metabox( $post ) {
 	$t1 = get_post_meta( $post->ID, 'three_img_text_1', true );
@@ -642,6 +678,18 @@ function wwd_save_three_img_texts_meta( $post_id ) {
 
 	$allowed_post_types = array_merge( array( 'page' ), wwd_get_unterseiten_post_types() );
 	if ( ! in_array( get_post_type( $post_id ), $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = isset( $_POST['wwd_layout_template'] ) ? sanitize_key( wp_unslash( $_POST['wwd_layout_template'] ) ) : '';
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = get_post_meta( $post_id, '_layout_template', true );
+	}
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'three-img-layout' !== $layout ) {
 		return;
 	}
 
@@ -810,7 +858,7 @@ function wwd_save_one_img_bottom_texts_meta( $post_id ) {
 		'one_img_bottom_p_1',
 		'one_img_bottom_p_2',
 		'one_img_bottom_p_3',
-		'one_img_bottom_p_4',,
+		'one_img_bottom_p_4',
 	);
 
 	foreach ( $fields as $key ) {
