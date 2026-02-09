@@ -141,7 +141,6 @@
     position: relative;
     width: 100%;
     height: max-content;
-    overflow: hidden;
     align-self: flex-start;
 }
 .slider-wrapper .img-transition-top,
@@ -162,6 +161,7 @@
     max-height: 600px;
     min-height: 100%;
     position: relative;
+    overflow: hidden;
 }
 .slide .left,
 .slide .right{
@@ -279,6 +279,7 @@
     .slide{
         flex-direction: column;
         min-height: max-content;
+        overflow: visible;
     }
 
     .slide .left .img-transition-bottom{

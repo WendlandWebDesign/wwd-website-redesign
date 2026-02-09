@@ -71,9 +71,9 @@ if ( 3 !== count( $slides ) ) {
 								</button>
 							</div>
 						</div>
+                        <div class="img-transition-bottom"></div>
 					</div>
 				<?php endforeach; ?>
 			</div>
-			<div class="img-transition-bottom"></div>
 		</div>
 	</div>

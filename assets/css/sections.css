@@ -341,6 +341,7 @@
         gap: 40px;
         padding: 0;
         max-width: 500px;
+        margin-bottom: -300px;
     }
     .one-img-layout .img-holder{
         max-width: 350px;
