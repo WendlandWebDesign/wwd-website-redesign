@@ -324,3 +324,111 @@
         max-width: 500px;
     }
 }
+
+
+/* Weg zu deiner Website */
+
+.website-weg-holder{
+    width: 100%;
+    padding: 50px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+}
+.website-weg-holder h3{
+    padding: 0 16px;
+}
+.website-weg-wrapper{
+    width: 100%;
+    height: 100svh;
+    position: relative;
+}
+.website-weg-wrapper .img-transition-top,
+.website-weg-wrapper .img-transition-bottom{
+    z-index: 4;
+}
+.website-weg::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+.website-weg{
+    width: 100%;
+    height: 100svh;
+    overflow-y: scroll;
+    position: sticky;
+    top: 0;
+    left: 0;
+}
+.website-weg img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    position: sticky;
+    top: 0;
+    left: 0;
+    filter: brightness(.7);
+}
+.website-weg .txt-holder{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 50%;
+    min-width: 500px;
+    height: 100%;
+    position: relative;
+    padding: 30px 10%;
+}
+.website-weg .txt-holder .mini-heading{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.website-weg .txt-holder .mini-heading::before{
+    content: "";
+    min-width: 40px;
+    min-height: 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: solid 2px var(--ac-clr);
+    box-shadow: inset 0 0 5px var(--ac-clr);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.4rem;
+    color: var(--ac-clr);
+    font-weight: 900;
+}
+.website-weg .txt-holder:nth-of-type(1) .mini-heading::before{
+    content: "1";
+}
+.website-weg .txt-holder:nth-of-type(2) .mini-heading::before{
+    content: "2";
+}
+.website-weg .txt-holder:nth-of-type(3) .mini-heading::before{
+    content: "3";
+}
+.website-weg .txt-holder:nth-of-type(4) .mini-heading::before{
+    content: "4";
+}
+.website-weg .txt-holder:nth-of-type(5) .mini-heading::before{
+    content: "5";
+}
+
+
+.website-weg .txt-holder:nth-of-type(2),
+.website-weg .txt-holder:nth-of-type(4){
+    justify-self: flex-end;
+}
+
+@media(max-width: 600px){
+    .website-weg .txt-holder{
+        max-width: 500px;
+        width: 100%;
+        min-width: 0;
+        padding: 30px 1em;
+    }
+}
+
