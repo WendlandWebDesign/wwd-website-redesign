@@ -340,6 +340,48 @@ function wwd_register_cpts() {
 add_action( 'init', 'wwd_register_cpts' );
 
 /**
+ * Media taxonomy for attachments.
+ */
+function wwd_register_media_category_taxonomy() {
+	$labels = array(
+		'name'          => __( 'Media-Kategorien', 'wwd' ),
+		'singular_name' => __( 'Media-Kategorie', 'wwd' ),
+		'search_items'  => __( 'Media-Kategorien durchsuchen', 'wwd' ),
+		'all_items'     => __( 'Alle Media-Kategorien', 'wwd' ),
+		'edit_item'     => __( 'Media-Kategorie bearbeiten', 'wwd' ),
+		'update_item'   => __( 'Media-Kategorie aktualisieren', 'wwd' ),
+		'add_new_item'  => __( 'Neue Media-Kategorie hinzufuegen', 'wwd' ),
+		'new_item_name' => __( 'Neue Media-Kategorie', 'wwd' ),
+		'menu_name'     => __( 'Media-Kategorien', 'wwd' ),
+	);
+
+	register_taxonomy(
+		'media_category',
+		array( 'attachment' ),
+		array(
+			'labels'            => $labels,
+			'hierarchical'      => true,
+			'public'            => false,
+			'show_ui'           => true,
+			'show_admin_column' => true,
+			'show_in_rest'      => true,
+			'rewrite'           => false,
+		)
+	);
+
+	if ( ! term_exists( 'icons', 'media_category' ) ) {
+		wp_insert_term(
+			'Icons',
+			'media_category',
+			array(
+				'slug' => 'icons',
+			)
+		);
+	}
+}
+add_action( 'init', 'wwd_register_media_category_taxonomy', 11 );
+
+/**
  * Unterseiten-Layouts Allowlist (niemals freie Dateinamen includen).
  */
 function wwd_get_allowed_layouts() {
@@ -1035,6 +1077,7 @@ function wwd_save_leistungen_cards_meta( $post_id ) {
 		return;
 	}
 
+	$invalid_icon = false;
 	for ( $i = 1; $i <= 3; $i++ ) {
 		$icon_key    = "_leistungen_card_{$i}_icon";
 		$heading_key = "_leistungen_card_{$i}_heading";
@@ -1043,6 +1086,11 @@ function wwd_save_leistungen_cards_meta( $post_id ) {
 		$icon_id = isset( $_POST[ $icon_key ] ) ? absint( $_POST[ $icon_key ] ) : 0;
 		$heading = isset( $_POST[ $heading_key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $heading_key ] ) ) : '';
 		$text    = isset( $_POST[ $text_key ] ) ? sanitize_textarea_field( wp_unslash( $_POST[ $text_key ] ) ) : '';
+
+		if ( $icon_id > 0 && ( ! wp_attachment_is_image( $icon_id ) || ! has_term( 'icons', 'media_category', $icon_id ) ) ) {
+			$icon_id    = 0;
+			$invalid_icon = true;
+		}
 
 		if ( $icon_id > 0 ) {
 			update_post_meta( $post_id, $icon_key, $icon_id );
@@ -1061,6 +1109,10 @@ function wwd_save_leistungen_cards_meta( $post_id ) {
 		} else {
 			update_post_meta( $post_id, $text_key, $text );
 		}
+	}
+
+	if ( $invalid_icon ) {
+		set_transient( 'wwd_leistungen_cards_invalid_icon_' . $post_id, 1, 60 );
 	}
 }
 add_action( 'save_post', 'wwd_save_leistungen_cards_meta' );
@@ -1259,6 +1311,37 @@ function wwd_slider_layout_admin_notice() {
 	}
 }
 add_action( 'admin_notices', 'wwd_slider_layout_admin_notice' );
+
+function wwd_leistungen_cards_admin_notice() {
+	$screen = get_current_screen();
+	if ( ! $screen || ! in_array( $screen->post_type, wwd_get_unterseiten_post_types(), true ) ) {
+		return;
+	}
+	if ( 'post' !== $screen->base ) {
+		return;
+	}
+
+	$post_id = isset( $_GET['post'] ) ? (int) $_GET['post'] : 0;
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$layout = get_post_meta( $post_id, '_layout_template', true );
+	if ( 'leistungen-cards' !== $layout ) {
+		return;
+	}
+
+	$transient_key = 'wwd_leistungen_cards_invalid_icon_' . $post_id;
+	if ( get_transient( $transient_key ) ) {
+		delete_transient( $transient_key );
+		?>
+		<div class="notice notice-warning is-dismissible">
+			<p><?php echo esc_html( 'Mindestens ein Icon ist kein Bild oder nicht der Media-Kategorie "Icons" zugeordnet und wurde entfernt.' ); ?></p>
+		</div>
+		<?php
+	}
+}
+add_action( 'admin_notices', 'wwd_leistungen_cards_admin_notice' );
 
 /**
  * Hide other layout metaboxes when Leistungen Cards layout is active.

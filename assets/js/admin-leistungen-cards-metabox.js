@@ -20,7 +20,17 @@ jQuery(function ($) {
 			frame = wp.media({
 				title: 'Icon auswaehlen',
 				button: { text: 'Icon verwenden' },
-				multiple: false
+				multiple: false,
+				library: {
+					type: 'image',
+					tax_query: [
+						{
+							taxonomy: 'media_category',
+							field: 'slug',
+							terms: ['icons']
+						}
+					]
+				}
 			});
 
 			frame.on('select', function () {
