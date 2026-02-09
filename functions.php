@@ -828,6 +828,7 @@ function wwd_render_one_img_bottom_texts_metabox( $post ) {
 	$t3 = get_post_meta( $post->ID, 'one_img_bottom_p_3', true );
 	$t4 = get_post_meta( $post->ID, 'one_img_bottom_p_4', true );
 	$t5 = get_post_meta( $post->ID, 'one_img_bottom_p_5', true );
+	$t6 = get_post_meta( $post->ID, 'one_img_bottom_p_6', true );
 
 	wp_nonce_field( 'one_img_bottom_texts_save', 'one_img_bottom_texts_nonce' );
 	?>
@@ -885,6 +886,17 @@ function wwd_render_one_img_bottom_texts_metabox( $post ) {
 		value="<?php echo esc_attr( $t5 ); ?>"
 		class="widefat"
 	/>
+
+	<p>
+		<label for="one-img-bottom-text-6"><strong><?php echo esc_html( 'Text 6' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="one-img-bottom-text-6"
+		name="one_img_bottom_p_6"
+		value="<?php echo esc_attr( $t6 ); ?>"
+		class="widefat"
+	/>
 	<?php
 }
 
@@ -927,6 +939,8 @@ function wwd_save_one_img_bottom_texts_meta( $post_id ) {
 		'one_img_bottom_p_2',
 		'one_img_bottom_p_3',
 		'one_img_bottom_p_4',
+		'one_img_bottom_p_5',
+		'one_img_bottom_p_6',
 	);
 
 	foreach ( $fields as $key ) {

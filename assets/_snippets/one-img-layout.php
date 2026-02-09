@@ -12,11 +12,13 @@ $cta_url   = isset( $meta['cta_url'] ) ? $meta['cta_url'] : '';
 $img_1_id  = ! empty( $meta['img_1_id'] ) ? (int) $meta['img_1_id'] : 0;
 $img_1_url = $img_1_id ? wp_get_attachment_image_url( $img_1_id, 'large' ) : '';
 
-$bottom_p_1 = get_post_meta( $post_id, 'one_img_bottom_p_1', true );
-$bottom_p_2 = get_post_meta( $post_id, 'one_img_bottom_p_2', true );
-$bottom_p_3 = get_post_meta( $post_id, 'one_img_bottom_p_3', true );
-$bottom_p_4 = get_post_meta( $post_id, 'one_img_bottom_p_4', true );
-$bottom_p_5 = get_post_meta( $post_id, 'one_img_bottom_p_5', true );
+$bottom_items = array();
+for ( $i = 1; $i <= 6; $i++ ) {
+	$value = get_post_meta( $post_id, "one_img_bottom_p_{$i}", true );
+	if ( '' !== $value ) {
+		$bottom_items[] = $value;
+	}
+}
 ?>
 
 <div class="one-img-layout-holder">
@@ -40,27 +42,16 @@ $bottom_p_5 = get_post_meta( $post_id, 'one_img_bottom_p_5', true );
 			</div>
 		<?php endif; ?>
 		<div class="bottom-holder">
-			<ul>
-				<li>
-					<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/check.svg' ); ?>" alt="">
-					<p class="light"><?php echo esc_html( $bottom_p_1 ); ?></p>
-				</li>
-				<li>
-					<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/check.svg' ); ?>" alt="">
-					<p class="light"><?php echo esc_html( $bottom_p_2 ); ?></p>
-				</li>
-				<li>
-					<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/check.svg' ); ?>" alt="">
-					<p class="light"><?php echo esc_html( $bottom_p_3 ); ?></p>
-				</li>
-				<li>
-					<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/check.svg' ); ?>" alt="">
-					<p class="light"><?php echo esc_html( $bottom_p_4 ); ?></p>
-				</li>
-				<li>
-					<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/check.svg' ); ?>" alt="">
-					<p class="light"><?php echo esc_html( $bottom_p_5 ); ?></p>
-				</li>
+			<?php if ( ! empty( $bottom_items ) ) : ?>
+				<ul>
+					<?php foreach ( $bottom_items as $item ) : ?>
+						<li>
+							<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/check.svg' ); ?>" alt="">
+							<p class="light"><?php echo esc_html( $item ); ?></p>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			<?php endif; ?>
 				<?php if ( $cta_label && $cta_url ) : ?>
 					<button onclick="window.location.href='<?php echo esc_url( $cta_url ); ?>'" class="btn light">
 						<span class="btn__border" aria-hidden="true">
