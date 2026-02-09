@@ -16,6 +16,7 @@ $bottom_p_1 = get_post_meta( $post_id, 'one_img_bottom_p_1', true );
 $bottom_p_2 = get_post_meta( $post_id, 'one_img_bottom_p_2', true );
 $bottom_p_3 = get_post_meta( $post_id, 'one_img_bottom_p_3', true );
 $bottom_p_4 = get_post_meta( $post_id, 'one_img_bottom_p_4', true );
+$bottom_p_5 = get_post_meta( $post_id, 'one_img_bottom_p_5', true );
 ?>
 
 <div class="one-img-layout-holder">
@@ -55,6 +56,10 @@ $bottom_p_4 = get_post_meta( $post_id, 'one_img_bottom_p_4', true );
 				<li>
 					<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/check.svg' ); ?>" alt="">
 					<p class="light"><?php echo esc_html( $bottom_p_4 ); ?></p>
+				</li>
+				<li>
+					<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/check.svg' ); ?>" alt="">
+					<p class="light"><?php echo esc_html( $bottom_p_5 ); ?></p>
 				</li>
 				<?php if ( $cta_label && $cta_url ) : ?>
 					<button onclick="window.location.href='<?php echo esc_url( $cta_url ); ?>'" class="btn light">

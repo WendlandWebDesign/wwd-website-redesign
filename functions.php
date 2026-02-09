@@ -669,7 +669,8 @@ function wwd_add_one_img_bottom_texts_metaboxes( $post_type, $post ) {
 	if ( ! $post ) {
 		return;
 	}
-	if ( ! in_array( $post_type, wwd_get_unterseiten_post_types(), true ) ) {
+	$allowed_post_types = array_merge( array( 'page' ), wwd_get_unterseiten_post_types() );
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
 		return;
 	}
 
@@ -710,6 +711,7 @@ function wwd_render_one_img_bottom_texts_metabox( $post ) {
 	$t2 = get_post_meta( $post->ID, 'one_img_bottom_p_2', true );
 	$t3 = get_post_meta( $post->ID, 'one_img_bottom_p_3', true );
 	$t4 = get_post_meta( $post->ID, 'one_img_bottom_p_4', true );
+	$t5 = get_post_meta( $post->ID, 'one_img_bottom_p_5', true );
 
 	wp_nonce_field( 'one_img_bottom_texts_save', 'one_img_bottom_texts_nonce' );
 	?>
@@ -756,6 +758,17 @@ function wwd_render_one_img_bottom_texts_metabox( $post ) {
 		value="<?php echo esc_attr( $t4 ); ?>"
 		class="widefat"
 	/>
+
+	<p>
+		<label for="one-img-bottom-text-5"><strong><?php echo esc_html( 'Text 5' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="one-img-bottom-text-5"
+		name="one_img_bottom_p_5"
+		value="<?php echo esc_attr( $t5 ); ?>"
+		class="widefat"
+	/>
 	<?php
 }
 
@@ -776,7 +789,7 @@ function wwd_save_one_img_bottom_texts_meta( $post_id ) {
 		return;
 	}
 
-	$allowed_post_types = wwd_get_unterseiten_post_types();
+	$allowed_post_types = array_merge( array( 'page' ), wwd_get_unterseiten_post_types() );
 	if ( ! in_array( get_post_type( $post_id ), $allowed_post_types, true ) ) {
 		return;
 	}
@@ -797,7 +810,7 @@ function wwd_save_one_img_bottom_texts_meta( $post_id ) {
 		'one_img_bottom_p_1',
 		'one_img_bottom_p_2',
 		'one_img_bottom_p_3',
-		'one_img_bottom_p_4',
+		'one_img_bottom_p_4',,
 	);
 
 	foreach ( $fields as $key ) {
