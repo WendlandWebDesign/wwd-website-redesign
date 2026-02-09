@@ -63,7 +63,7 @@ html.js.page-loaded #page-fade-overlay{
 
 main{
     width: 100%;
-    overflow: visible;
+    overflow: hidden;
 }
 
 .mw{
@@ -209,7 +209,7 @@ a{
     position: absolute;
     top: 0;
     left: 50%;
-    width: 102%;
+    width: 100%;
     aspect-ratio: 10/1;
     min-height: 80px;
     max-height: 140px;
@@ -225,7 +225,7 @@ a{
     position: absolute;
     bottom: 0;
     left: 50%;
-    width: 102%;
+    width: 100%;
     aspect-ratio: 10/1;
     min-height: 80px;
     max-height: 140px;

@@ -88,29 +88,33 @@ get_header();
 	endif;
 	?>
 
-
+</main>
 
     <div class="website-weg-holder">
         <h3 class="mw">Der Weg zu deiner Website</h3>
         <div class="website-weg-wrapper">
             <div class="img-transition-top"></div>
             <div class="website-weg">
-                <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
-                <div class="txt-holder">
-                    <p class="light mini-heading">Kostenloses Erstgespräch</p>
-                    <p class="light">Alles beginnt mit einem entspannten Kennenlernen. Wir analysieren deine bestehende Website, sprechen über mögliche Probleme und zeigen ungenutzte Chancen auf. Gemeinsam definieren wir das Ziel deiner neuen Website und den Weg dorthin.</p>
+                <div class="website-weg__media">
+                    <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
                 </div>
-                <div class="txt-holder">
-                    <p class="light mini-heading">Konzept & Design</p>
-                    <p class="light">Auf Basis dieser Ziele entwickeln wir ein durchdachtes Konzept und ein modernes Design. Struktur, Nutzerführung und Inhalte werden von Anfang an sauber geplant – damit alles logisch aufgebaut und zukunftssicher ist.</p>
-                </div>
-                <div class="txt-holder">
-                    <p class="light mini-heading">Custom Entwicklung mit Fokus auf Performance</p>
-                    <p class="light">Nach deiner Freigabe setzen wir das Design individuell und codebasiert um. Performance, Technik und Details stehen dabei im Fokus. Die Inhalte können später bei Bedarf über ein CMS selbst gepflegt werden, ohne die technische Basis anzutasten.</p>
-                </div>
-                <div class="txt-holder">
-                    <p class="light mini-heading">Hosting & Launch</p>
-                    <p class="light">Nach der Fertigstellung übernehmen wir das Hosting und bringen deine Website online. Stabil, sicher und sauber aufgesetzt – damit deine Website nicht nur startet, sondern langfristig zuverlässig läuft.</p>
+                <div class="website-weg__overlay">
+                    <div class="txt-holder">
+                        <p class="light mini-heading">Kostenloses Erstgespräch</p>
+                        <p class="light">Alles beginnt mit einem entspannten Kennenlernen. Wir analysieren deine bestehende Website, sprechen über mögliche Probleme und zeigen ungenutzte Chancen auf. Gemeinsam definieren wir das Ziel deiner neuen Website und den Weg dorthin.</p>
+                    </div>
+                    <div class="txt-holder">
+                        <p class="light mini-heading">Konzept & Design</p>
+                        <p class="light">Auf Basis dieser Ziele entwickeln wir ein durchdachtes Konzept und ein modernes Design. Struktur, Nutzerführung und Inhalte werden von Anfang an sauber geplant – damit alles logisch aufgebaut und zukunftssicher ist.</p>
+                    </div>
+                    <div class="txt-holder">
+                        <p class="light mini-heading">Custom Entwicklung mit Fokus auf Performance</p>
+                        <p class="light">Nach deiner Freigabe setzen wir das Design individuell und codebasiert um. Performance, Technik und Details stehen dabei im Fokus. Die Inhalte können später bei Bedarf über ein CMS selbst gepflegt werden, ohne die technische Basis anzutasten.</p>
+                    </div>
+                    <div class="txt-holder">
+                        <p class="light mini-heading">Hosting & Launch</p>
+                        <p class="light">Nach der Fertigstellung übernehmen wir das Hosting und bringen deine Website online. Stabil, sicher und sauber aufgesetzt – damit deine Website nicht nur startet, sondern langfristig zuverlässig läuft.</p>
+                    </div>
                 </div>
             </div>
             <div class="img-transition-bottom"></div>
@@ -121,6 +125,8 @@ get_header();
 
     <div class="test"></div>
 
+
+<main>
 
 </main>
 
