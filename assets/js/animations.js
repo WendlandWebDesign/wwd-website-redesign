@@ -868,6 +868,149 @@ if (document.readyState === "loading") {
     initLeistungenCardsInviewAnimation();
 }
 
+const initWebsiteWegMiniHeadingConnectors = () => {
+    const gsapBundle = getGsapScrollTrigger();
+    if (!gsapBundle) return;
+    const { gsapInstance, ScrollTrigger } = gsapBundle;
+
+    const websiteWeg = document.querySelector(".website-weg");
+    if (!websiteWeg) return;
+
+    let svg = websiteWeg.querySelector(".website-weg__connector");
+    if (!svg) {
+        svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.classList.add("website-weg__connector");
+        svg.setAttribute("aria-hidden", "true");
+        websiteWeg.prepend(svg);
+    }
+    const holders = Array.from(websiteWeg.querySelectorAll(".website-weg__overlay .txt-holder"));
+    if (!svg || holders.length < 2) return;
+
+    if (typeof websiteWeg.__miniHeadingConnectorCleanup === "function") {
+        websiteWeg.__miniHeadingConnectorCleanup();
+    }
+
+    const svgNs = "http://www.w3.org/2000/svg";
+    const pairs = [];
+    const triggers = [];
+    let resizeRafId = 0;
+    let resizeObserver = null;
+
+    for (let i = 0; i < holders.length - 1; i += 1) {
+        const currentHolder = holders[i];
+        const nextHolder = holders[i + 1];
+        const fromAnchor = currentHolder.querySelector(".mini-heading__anchor");
+        const toAnchor = nextHolder.querySelector(".mini-heading__anchor");
+        if (!fromAnchor || !toAnchor) continue;
+        pairs.push({ currentHolder, nextHolder, fromAnchor, toAnchor });
+    }
+
+    if (!pairs.length) return;
+
+    const clearAll = () => {
+        while (svg.firstChild) {
+            svg.removeChild(svg.firstChild);
+        }
+        while (triggers.length) {
+            const st = triggers.pop();
+            if (st) st.kill();
+        }
+    };
+
+    const getAnchorPoint = (anchor, svgRect) => {
+        const rect = anchor.getBoundingClientRect();
+        return {
+            x: rect.left - svgRect.left + rect.width / 2,
+            y: rect.top - svgRect.top + rect.height / 2,
+        };
+    };
+
+    const buildPaths = () => {
+        clearAll();
+        const svgRect = svg.getBoundingClientRect();
+        if (svgRect.width <= 0 || svgRect.height <= 0) return;
+        svg.setAttribute("viewBox", `0 0 ${svgRect.width} ${svgRect.height}`);
+        svg.setAttribute("preserveAspectRatio", "none");
+
+        pairs.forEach(({ currentHolder, nextHolder, fromAnchor, toAnchor }) => {
+            const fromPoint = getAnchorPoint(fromAnchor, svgRect);
+            const toPoint = getAnchorPoint(toAnchor, svgRect);
+            const path = document.createElementNS(svgNs, "path");
+            path.setAttribute("d", `M ${fromPoint.x} ${fromPoint.y} L ${toPoint.x} ${toPoint.y}`);
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke", "var(--acc-clr)");
+            path.setAttribute("stroke-width", "2");
+            path.setAttribute("vector-effect", "non-scaling-stroke");
+            svg.appendChild(path);
+
+            const length = path.getTotalLength();
+            gsapInstance.set(path, {
+                strokeDasharray: length,
+                strokeDashoffset: length,
+            });
+
+            const tween = gsapInstance.to(path, {
+                strokeDashoffset: 0,
+                ease: "none",
+                scrollTrigger: {
+                    trigger: currentHolder,
+                    endTrigger: nextHolder,
+                    start: "top center",
+                    end: "top center",
+                    scrub: true,
+                    invalidateOnRefresh: true,
+                },
+            });
+
+            if (tween.scrollTrigger) {
+                triggers.push(tween.scrollTrigger);
+            }
+        });
+    };
+
+    const onRefreshInit = () => {
+        buildPaths();
+    };
+
+    buildPaths();
+    ScrollTrigger.addEventListener("refreshInit", onRefreshInit);
+    requestAnimationFrame(() => {
+        ScrollTrigger.refresh(true);
+    });
+
+    if ("ResizeObserver" in window) {
+        resizeObserver = new ResizeObserver(() => {
+            if (resizeRafId) cancelAnimationFrame(resizeRafId);
+            resizeRafId = requestAnimationFrame(() => {
+                ScrollTrigger.refresh();
+            });
+        });
+        resizeObserver.observe(websiteWeg);
+    }
+
+    const onResize = () => {
+        if (resizeRafId) cancelAnimationFrame(resizeRafId);
+        resizeRafId = requestAnimationFrame(() => {
+            ScrollTrigger.refresh();
+        });
+    };
+    window.addEventListener("resize", onResize);
+
+    websiteWeg.__miniHeadingConnectorCleanup = () => {
+        ScrollTrigger.removeEventListener("refreshInit", onRefreshInit);
+        window.removeEventListener("resize", onResize);
+        if (resizeRafId) cancelAnimationFrame(resizeRafId);
+        if (resizeObserver) resizeObserver.disconnect();
+        clearAll();
+    };
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initWebsiteWegMiniHeadingConnectors);
+} else {
+    initWebsiteWegMiniHeadingConnectors();
+}
+
 const initWebsiteWegInview = () => {
     const websiteWeg = document.querySelector(".website-weg");
     const stickyMedia = document.querySelector(".website-weg__media");

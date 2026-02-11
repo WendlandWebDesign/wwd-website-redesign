@@ -356,8 +356,6 @@
     position: relative;
     isolation: isolate;
     background-color: var(--card-clr);
-
-
 }
 .website-weg__media{
     position: sticky;
@@ -379,6 +377,22 @@
 .website-weg__overlay{
     position: relative;
     width: 100%;
+}
+.website-weg__connector{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+    z-index: 5;
+    overflow: hidden;
+}
+.website-weg__connector path{
+    fill: none;
+    stroke: var(--acc-clr, var(--ac-clr));
+    stroke-width: 2;
+    stroke-linecap: round;
 }
 .website-weg__fx-layer{
     position: sticky;
@@ -418,6 +432,18 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    position: relative;
+}
+.website-weg .txt-holder .mini-heading .mini-heading__anchor{
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    width: 1px;
+    height: 1px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    opacity: 0;
+    display: block;
 }
 .website-weg .txt-holder .mini-heading::before{
     content: "";
