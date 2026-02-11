@@ -96,7 +96,6 @@ get_header();
         <div class="website-weg">
             <div class="website-weg__media">
                 <div class="img-transition-top"></div>
-                <img src="<?php echo esc_url(get_option('home-img')); ?>" alt="">
                 <div class="img-transition-bottom"></div>
             </div>
             <div class="website-weg__overlay">

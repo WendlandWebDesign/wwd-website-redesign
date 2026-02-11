@@ -355,6 +355,7 @@
     width: 100%;
     position: relative;
     isolation: isolate;
+    background-color: var(--card-clr);
 
 
 }
@@ -364,6 +365,7 @@
     width: 100%;
     height: 100svh;
     overflow: hidden;
+    z-index: 4;
 }
 .website-weg__media img{
     width: 100%;

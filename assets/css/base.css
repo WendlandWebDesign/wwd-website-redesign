@@ -221,6 +221,7 @@ a{
             rgba(25, 25, 25, 0) 100%
     );
     transform: translate(-50%, -2px);
+    z-index: 4;
 }
 .img-transition-bottom{
     position: absolute;
@@ -237,6 +238,7 @@ a{
             rgba(25, 25, 25, 0) 100%
     );
     transform: translate(-50%, 2px);
+    z-index: 4;
 }
 
 
