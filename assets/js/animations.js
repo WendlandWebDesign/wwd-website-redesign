@@ -925,6 +925,405 @@ const initWebsiteWegMiniHeadingConnectors = () => {
         };
     };
 
+    const clampNumber = (value, min, max) => Math.min(max, Math.max(min, value));
+    const distance = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
+    const lerpPoint = (a, b, t) => ({
+        x: a.x + (b.x - a.x) * t,
+        y: a.y + (b.y - a.y) * t,
+    });
+    const clampPoint = (point, width, height, padding) => ({
+        x: clampNumber(point.x, padding, width - padding),
+        y: clampNumber(point.y, padding, height - padding),
+    });
+    const clampPoints = (points, width, height, padding) =>
+        points.map((point) => clampPoint(point, width, height, padding));
+
+    const dedupeConsecutive = (points, eps) => {
+        if (points.length < 2) return points.slice();
+        const out = [points[0]];
+        for (let i = 1; i < points.length; i += 1) {
+            if (distance(out[out.length - 1], points[i]) > eps) {
+                out.push(points[i]);
+            }
+        }
+        return out;
+    };
+
+    const enforceMinSegmentLength = (points, minLen) => {
+        if (points.length < 3) return points.slice();
+        const out = [points[0]];
+        for (let i = 1; i < points.length - 1; i += 1) {
+            if (distance(out[out.length - 1], points[i]) >= minLen) {
+                out.push(points[i]);
+            }
+        }
+        out.push(points[points.length - 1]);
+        if (out.length > 2 && distance(out[out.length - 2], out[out.length - 1]) < minLen) {
+            out.splice(out.length - 2, 1);
+        }
+        return out;
+    };
+
+    const angleAt = (prev, curr, next) => {
+        const v1x = prev.x - curr.x;
+        const v1y = prev.y - curr.y;
+        const v2x = next.x - curr.x;
+        const v2y = next.y - curr.y;
+        const m1 = Math.hypot(v1x, v1y);
+        const m2 = Math.hypot(v2x, v2y);
+        if (m1 < 1e-6 || m2 < 1e-6) return 180;
+        const dot = clampNumber((v1x * v2x + v1y * v2y) / (m1 * m2), -1, 1);
+        return (Math.acos(dot) * 180) / Math.PI;
+    };
+
+    const removeNearCollinear = (points, angleEpsDeg, distEps) => {
+        if (points.length < 3) return points.slice();
+        const out = [points[0]];
+        for (let i = 1; i < points.length - 1; i += 1) {
+            const prev = out[out.length - 1];
+            const curr = points[i];
+            const next = points[i + 1];
+            const d1 = distance(prev, curr);
+            const d2 = distance(curr, next);
+            const interior = angleAt(prev, curr, next);
+            const nearStraight = Math.abs(180 - interior) <= angleEpsDeg;
+            if ((nearStraight && Math.min(d1, d2) <= distEps * 1.6) || d1 < distEps || d2 < distEps) {
+                continue;
+            }
+            out.push(curr);
+        }
+        out.push(points[points.length - 1]);
+        return out;
+    };
+
+    const chaikinSmooth = (points) => {
+        if (points.length < 2) return points.slice();
+        const out = [points[0]];
+        for (let i = 0; i < points.length - 1; i += 1) {
+            const p0 = points[i];
+            const p1 = points[i + 1];
+            out.push({
+                x: 0.75 * p0.x + 0.25 * p1.x,
+                y: 0.75 * p0.y + 0.25 * p1.y,
+            });
+            out.push({
+                x: 0.25 * p0.x + 0.75 * p1.x,
+                y: 0.25 * p0.y + 0.75 * p1.y,
+            });
+        }
+        out.push(points[points.length - 1]);
+        return out;
+    };
+
+    const safeDiv = (n, d) => n / (Math.abs(d) < 1e-6 ? (d < 0 ? -1e-6 : 1e-6) : d);
+    const mix = (a, b, t) => ({
+        x: a.x + (b.x - a.x) * t,
+        y: a.y + (b.y - a.y) * t,
+    });
+
+    const evalCentripetalCatmullSegment = (p0, p1, p2, p3, u, alpha = 0.5) => {
+        const t0 = 0;
+        const t1 = t0 + Math.pow(Math.max(distance(p0, p1), 1e-3), alpha);
+        const t2 = t1 + Math.pow(Math.max(distance(p1, p2), 1e-3), alpha);
+        const t3 = t2 + Math.pow(Math.max(distance(p2, p3), 1e-3), alpha);
+        const t = t1 + (t2 - t1) * clampNumber(u, 0, 1);
+
+        const a1 = mix(p0, p1, safeDiv(t - t0, t1 - t0));
+        const a2 = mix(p1, p2, safeDiv(t - t1, t2 - t1));
+        const a3 = mix(p2, p3, safeDiv(t - t2, t3 - t2));
+        const b1 = mix(a1, a2, safeDiv(t - t0, t2 - t0));
+        const b2 = mix(a2, a3, safeDiv(t - t1, t3 - t1));
+        return mix(b1, b2, safeDiv(t - t1, t2 - t1));
+    };
+
+    const centripetalSegmentToBezier = (p0, p1, p2, p3, alpha = 0.5, tension = 0.5) => {
+        const evalAt = (u) => evalCentripetalCatmullSegment(p0, p1, p2, p3, u, alpha);
+        const derivativeAt = (u) => {
+            const eps = 0.002;
+            const u0 = clampNumber(u - eps, 0, 1);
+            const u1 = clampNumber(u + eps, 0, 1);
+            const a = evalAt(u0);
+            const b = evalAt(u1);
+            const inv = 1 / Math.max(1e-6, u1 - u0);
+            return { x: (b.x - a.x) * inv, y: (b.y - a.y) * inv };
+        };
+
+        const tangentScale = 1 - tension * 0.5;
+        const d1 = derivativeAt(0);
+        const d2 = derivativeAt(1);
+        return {
+            c1: { x: p1.x + (d1.x * tangentScale) / 3, y: p1.y + (d1.y * tangentScale) / 3 },
+            c2: { x: p2.x - (d2.x * tangentScale) / 3, y: p2.y - (d2.y * tangentScale) / 3 },
+            p2,
+        };
+    };
+
+    const sampleSplinePoints = (points, minSamples, alpha = 0.5) => {
+        if (points.length < 2) return points.slice();
+        const segCount = points.length - 1;
+        const totalSamples = Math.max(minSamples, segCount * 20);
+        const out = [];
+        for (let i = 0; i <= totalSamples; i += 1) {
+            const globalT = (i / totalSamples) * segCount;
+            const seg = Math.min(segCount - 1, Math.floor(globalT));
+            const u = globalT - seg;
+            const p0 = points[Math.max(0, seg - 1)];
+            const p1 = points[seg];
+            const p2 = points[seg + 1];
+            const p3 = points[Math.min(points.length - 1, seg + 2)];
+            out.push(evalCentripetalCatmullSegment(p0, p1, p2, p3, u, alpha));
+        }
+        return out;
+    };
+
+    const segmentIntersection = (a, b, c, d) => {
+        const orient = (p, q, r) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+        const onSeg = (p, q, r) =>
+            Math.min(p.x, r.x) - 1e-6 <= q.x &&
+            q.x <= Math.max(p.x, r.x) + 1e-6 &&
+            Math.min(p.y, r.y) - 1e-6 <= q.y &&
+            q.y <= Math.max(p.y, r.y) + 1e-6;
+
+        const o1 = orient(a, b, c);
+        const o2 = orient(a, b, d);
+        const o3 = orient(c, d, a);
+        const o4 = orient(c, d, b);
+
+        if ((o1 > 0 && o2 < 0 || o1 < 0 && o2 > 0) && (o3 > 0 && o4 < 0 || o3 < 0 && o4 > 0)) {
+            return true;
+        }
+        if (Math.abs(o1) < 1e-6 && onSeg(a, c, b)) return true;
+        if (Math.abs(o2) < 1e-6 && onSeg(a, d, b)) return true;
+        if (Math.abs(o3) < 1e-6 && onSeg(c, a, d)) return true;
+        if (Math.abs(o4) < 1e-6 && onSeg(c, b, d)) return true;
+        return false;
+    };
+
+    const detectSelfIntersections = (samples) => {
+        if (samples.length < 4) return false;
+        for (let i = 0; i < samples.length - 1; i += 1) {
+            for (let j = i + 2; j < samples.length - 1; j += 1) {
+                if (j === i + 1) continue;
+                if (segmentIntersection(samples[i], samples[i + 1], samples[j], samples[j + 1])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    const hasSharpTurn = (samples, minInteriorAngleDeg = 140) => {
+        if (samples.length < 3) return false;
+        for (let i = 1; i < samples.length - 1; i += 1) {
+            const interior = angleAt(samples[i - 1], samples[i], samples[i + 1]);
+            if (interior < minInteriorAngleDeg) return true;
+        }
+        return false;
+    };
+
+    const hasLocalReversal = (samples, start, end, segmentIndex) => {
+        if (samples.length < 4) return false;
+        const base = { x: end.x - start.x, y: end.y - start.y };
+        const n = samples.length - 1;
+        const frontWindow = Math.max(3, Math.floor(n * 0.12));
+        const backStart = Math.max(1, Math.floor(n * 0.88));
+
+        for (let i = 1; i < frontWindow; i += 1) {
+            const step = { x: samples[i].x - samples[i - 1].x, y: samples[i].y - samples[i - 1].y };
+            if (step.x * base.x + step.y * base.y < 0) return true;
+        }
+
+        for (let i = backStart; i < n; i += 1) {
+            const step = { x: samples[i].x - samples[i - 1].x, y: samples[i].y - samples[i - 1].y };
+            if (step.x * base.x + step.y * base.y < 0) return true;
+        }
+
+        // Segment 3->4 special progress guard in final 40%.
+        if (segmentIndex === 2) {
+            const guardStart = Math.floor(n * 0.6);
+            for (let i = guardStart; i < n; i += 1) {
+                const curr = samples[i];
+                const next = samples[Math.min(i + 1, n)];
+                const step = { x: next.x - curr.x, y: next.y - curr.y };
+                const towardEnd = { x: end.x - curr.x, y: end.y - curr.y };
+                if (step.x * towardEnd.x + step.y * towardEnd.y <= 0) return true;
+            }
+        }
+        return false;
+    };
+
+    const normalizeVector = (v) => {
+        const m = Math.hypot(v.x, v.y);
+        if (m < 1e-6) return { x: 0, y: 0 };
+        return { x: v.x / m, y: v.y / m };
+    };
+    const scaleVector = (v, s) => ({ x: v.x * s, y: v.y * s });
+    const addVectors = (a, b) => ({ x: a.x + b.x, y: a.y + b.y });
+    const subVectors = (a, b) => ({ x: a.x - b.x, y: a.y - b.y });
+    const perpendicular = (v) => ({ x: -v.y, y: v.x });
+
+    const segmentNearCircle = (a, b, center, radius) => {
+        if (distance(a, center) <= radius || distance(b, center) <= radius) return true;
+        const ab = subVectors(b, a);
+        const ac = subVectors(center, a);
+        const abLenSq = Math.max(1e-6, ab.x * ab.x + ab.y * ab.y);
+        const t = clampNumber((ac.x * ab.x + ac.y * ab.y) / abLenSq, 0, 1);
+        const proj = { x: a.x + ab.x * t, y: a.y + ab.y * t };
+        return distance(proj, center) <= radius;
+    };
+
+    const hasLocalSelfIntersection = (points, center, radius) => {
+        if (points.length < 4) return false;
+        for (let i = 0; i < points.length - 1; i += 1) {
+            const a = points[i];
+            const b = points[i + 1];
+            if (!segmentNearCircle(a, b, center, radius)) continue;
+            for (let j = i + 2; j < points.length - 1; j += 1) {
+                if (j === i + 1) continue;
+                const c = points[j];
+                const d = points[j + 1];
+                if (!segmentNearCircle(c, d, center, radius)) continue;
+                if (segmentIntersection(a, b, c, d)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    const buildJunctionPortTransition = (
+        anchor,
+        prevFar,
+        nextFar,
+        width,
+        height,
+        padding,
+        dropScale = 1,
+        sideScale = 1
+    ) => {
+        const anchorClamped = clampPoint(anchor, width, height, padding);
+        const prevClamped = clampPoint(prevFar, width, height, padding);
+        const nextClamped = clampPoint(nextFar, width, height, padding);
+
+        const base = Math.max(10, height * 0.025);
+        const maxDropToBottom = Math.max(0, (height - padding) - anchorClamped.y);
+        const preferredDrop = clampNumber(base * 0.9 * dropScale, 12, 48);
+        const exitDrop = clampNumber(preferredDrop, 8, Math.max(8, maxDropToBottom));
+        const exitLead = base * 0.8;
+        const sideShift = base * 0.25 * sideScale;
+
+        const vin = normalizeVector(subVectors(anchorClamped, prevClamped));
+        const vout = normalizeVector(subVectors(nextClamped, anchorClamped));
+        const fallbackOut = Math.hypot(vout.x, vout.y) < 1e-6 ? { x: 0, y: 1 } : vout;
+
+        const blend = normalizeVector(addVectors(vin, fallbackOut));
+        const normalBase = Math.hypot(blend.x, blend.y) < 1e-6 ? fallbackOut : blend;
+        const n = normalizeVector(perpendicular(normalBase));
+        const pOut = clampPoint(
+            { x: anchorClamped.x, y: anchorClamped.y + exitDrop },
+            width,
+            height,
+            padding
+        );
+
+        const drop1 = clampPoint(
+            {
+                x: anchorClamped.x + fallbackOut.x * (exitLead * 0.25) + n.x * sideShift,
+                y: anchorClamped.y + exitDrop * 0.55 + fallbackOut.y * (exitLead * 0.15),
+            },
+            width,
+            height,
+            padding
+        );
+        const drop2 = clampPoint(
+            {
+                x: anchorClamped.x + fallbackOut.x * (exitLead * 0.45) + n.x * (sideShift * 0.6),
+                y: anchorClamped.y + exitDrop + fallbackOut.y * (exitLead * 0.2),
+            },
+            width,
+            height,
+            padding
+        );
+        const transitionPoints = [anchorClamped, drop1, drop2, pOut];
+        return {
+            transitionPoints,
+            startOut: pOut,
+            base,
+            exitDrop,
+        };
+    };
+
+    const deterministicOffset = (t, seed, amplitude, k1, k2) => {
+        const phase = Math.PI * 2 * t;
+        return (
+            Math.sin(phase * k1 + seed * 0.013) * amplitude +
+            Math.sin(phase * k2 + seed * 0.021) * amplitude * 0.5
+        );
+    };
+
+    const buildMacroWaypoints = (from, to, segmentIndex, anchorCount, ampScale, width, height, padding) => {
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const span = Math.max(distance(from, to), 1);
+        const seed = (segmentIndex + 1) * 10007 + anchorCount * 97 + Math.round(from.x + from.y);
+        const dirX = dx >= 0 ? 1 : -1;
+        const ampBase = clampNumber(span * 0.2 * ampScale, 22, Math.min(width, height) * 0.24);
+        const nudgeX = deterministicOffset(0.5, seed, ampBase * 0.12, 0.65, 1.1);
+        const nudgeY = deterministicOffset(0.35, seed + 17, ampBase * 0.2, 0.75, 1.2);
+
+        let points = [from];
+        if (segmentIndex === 0) {
+            const dxKick = clampNumber(Math.abs(dx) * 0.18 + ampBase * 0.16, 14, span * 0.4);
+            const dyKick = clampNumber(Math.abs(dy) * 0.18 + ampBase * 0.3, 16, span * 0.45);
+            const approachX = clampNumber(Math.abs(dx) * 0.12 + ampBase * 0.4, 16, span * 0.5);
+            const approachY = clampNumber(Math.abs(dy) * 0.08 + ampBase * 0.25, 12, span * 0.35);
+            points = points.concat([
+                { x: from.x - dxKick * dirX * 0.3, y: from.y + dyKick + nudgeY * 0.3 },
+                { x: lerpPoint(from, to, 0.4).x - ampBase + nudgeX, y: lerpPoint(from, to, 0.4).y + ampBase * 0.8 + nudgeY },
+                { x: lerpPoint(from, to, 0.7).x + ampBase * 0.6 + nudgeX * 0.4, y: lerpPoint(from, to, 0.7).y + ampBase * 0.2 + nudgeY * 0.3 },
+                { x: to.x - approachX * dirX, y: to.y + approachY },
+            ]);
+        } else if (segmentIndex === 1) {
+            const amp = ampBase * 1.1;
+            const p33 = lerpPoint(from, to, 0.33);
+            const p66 = lerpPoint(from, to, 0.66);
+            const approachX = clampNumber(Math.abs(dx) * 0.1 + amp * 0.28, 14, span * 0.45);
+            const approachY = clampNumber(Math.abs(dy) * 0.08 + amp * 0.2, 10, span * 0.35);
+            points = points.concat([
+                { x: p33.x + amp * dirX + deterministicOffset(0.33, seed, amp * 0.15, 0.8, 1.15), y: p33.y - amp * 0.3 + deterministicOffset(0.33, seed + 9, amp * 0.18, 0.72, 1.05) },
+                { x: p66.x - amp * dirX + deterministicOffset(0.66, seed, amp * 0.15, 0.8, 1.15), y: p66.y + amp * 0.3 + deterministicOffset(0.66, seed + 9, amp * 0.18, 0.72, 1.05) },
+                { x: to.x - approachX * dirX, y: to.y + approachY },
+            ]);
+        } else {
+            const amp = ampBase * 1.2;
+            const p30 = lerpPoint(from, to, 0.3);
+            const p55 = lerpPoint(from, to, 0.55);
+            const p80 = lerpPoint(from, to, 0.8);
+            points = points.concat([
+                { x: p30.x + amp * 1.2 * dirX + deterministicOffset(0.3, seed, amp * 0.12, 0.7, 1.0), y: p30.y - amp * 0.2 + deterministicOffset(0.3, seed + 5, amp * 0.12, 0.8, 1.2) },
+                { x: p55.x + amp * 1.6 * dirX + deterministicOffset(0.55, seed, amp * 0.15, 0.7, 1.1), y: p55.y + amp * 0.4 + deterministicOffset(0.55, seed + 5, amp * 0.1, 0.75, 1.05) },
+                { x: p80.x + amp * 0.6 * dirX + deterministicOffset(0.8, seed, amp * 0.1, 0.7, 1.1), y: p80.y + amp * 0.2 + deterministicOffset(0.8, seed + 5, amp * 0.1, 0.75, 1.05) },
+            ]);
+        }
+        points.push(to);
+        return clampPoints(points, width, height, padding);
+    };
+
+    const pathFromPoints = (points, alpha = 0.5, tension = 0.5) => {
+        if (points.length < 2) return "";
+        const fmt = (n) => Number(n.toFixed(2));
+        let d = `M ${fmt(points[0].x)} ${fmt(points[0].y)}`;
+        for (let i = 0; i < points.length - 1; i += 1) {
+            const p0 = points[Math.max(0, i - 1)];
+            const p1 = points[i];
+            const p2 = points[i + 1];
+            const p3 = points[Math.min(points.length - 1, i + 2)];
+            const curve = centripetalSegmentToBezier(p0, p1, p2, p3, alpha, tension);
+            d += ` C ${fmt(curve.c1.x)} ${fmt(curve.c1.y)}, ${fmt(curve.c2.x)} ${fmt(curve.c2.y)}, ${fmt(curve.p2.x)} ${fmt(curve.p2.y)}`;
+        }
+        return d;
+    };
+
     const buildPaths = () => {
         clearAll();
         const svgRect = svg.getBoundingClientRect();
@@ -932,11 +1331,100 @@ const initWebsiteWegMiniHeadingConnectors = () => {
         svg.setAttribute("viewBox", `0 0 ${svgRect.width} ${svgRect.height}`);
         svg.setAttribute("preserveAspectRatio", "none");
 
-        pairs.forEach(({ currentHolder, nextHolder, fromAnchor, toAnchor }) => {
-            const fromPoint = getAnchorPoint(fromAnchor, svgRect);
+        const allAnchors = holders.map((holder) => {
+            const anchor = holder.querySelector(".mini-heading__anchor");
+            return anchor ? getAnchorPoint(anchor, svgRect) : null;
+        }).filter(Boolean);
+
+        const getAnchorSafe = (index, fallback) => {
+            if (index < 0 || index >= allAnchors.length) return fallback;
+            return allAnchors[index];
+        };
+
+        pairs.forEach(({ currentHolder, nextHolder, fromAnchor, toAnchor }, segmentIndex) => {
+            const fromAnchorPoint = getAnchorPoint(fromAnchor, svgRect);
             const toPoint = getAnchorPoint(toAnchor, svgRect);
+            const padding = 10;
+            const minLenBase = clampNumber(Math.min(svgRect.width, svgRect.height) * 0.025, 8, 26);
+            let amplitudeScale = 1;
+            let finalPoints = [fromAnchorPoint, toPoint];
+            const isPortJunctionStart = segmentIndex === 1 || segmentIndex === 2;
+            let dropScale = 1;
+            let sideScale = 1;
+
+            for (let iteration = 0; iteration < 4; iteration += 1) {
+                let fromPoint = fromAnchorPoint;
+                let transitionMeta = null;
+                let transitionPoints = null;
+
+                if (isPortJunctionStart) {
+                    const prevFar = getAnchorSafe(segmentIndex - 1, fromAnchorPoint);
+                    const nextFar = getAnchorSafe(segmentIndex + 1, toPoint);
+                    transitionMeta = buildJunctionPortTransition(
+                        fromAnchorPoint,
+                        prevFar,
+                        nextFar,
+                        svgRect.width,
+                        svgRect.height,
+                        padding,
+                        dropScale,
+                        sideScale
+                    );
+                    fromPoint = transitionMeta.startOut;
+                    transitionPoints = transitionMeta.transitionPoints;
+                }
+
+                let rawMacro = buildMacroWaypoints(
+                    fromPoint,
+                    toPoint,
+                    segmentIndex,
+                    holders.length,
+                    amplitudeScale,
+                    svgRect.width,
+                    svgRect.height,
+                    padding
+                );
+
+                if (transitionPoints && transitionPoints.length) {
+                    rawMacro = transitionPoints.concat(rawMacro.slice(1));
+                }
+
+                let candidate = clampPoints(rawMacro, svgRect.width, svgRect.height, padding);
+                candidate = chaikinSmooth(candidate);
+                candidate = chaikinSmooth(candidate);
+                candidate = dedupeConsecutive(candidate, 0.8);
+                candidate = enforceMinSegmentLength(candidate, minLenBase + iteration * 1.5);
+                candidate = removeNearCollinear(candidate, 8, minLenBase * 0.55);
+                candidate = clampPoints(candidate, svgRect.width, svgRect.height, padding);
+                candidate = dedupeConsecutive(candidate, 0.8);
+                candidate = enforceMinSegmentLength(candidate, minLenBase + iteration * 1.5);
+
+                if (candidate.length < 2) {
+                    candidate = [fromPoint, toPoint];
+                }
+
+                const samples = sampleSplinePoints(candidate, 80, 0.5);
+                const localAnchorInvalid =
+                    Boolean(transitionMeta) &&
+                    hasLocalSelfIntersection(candidate, transitionMeta.transitionPoints[0], transitionMeta.base * 3);
+                const invalid =
+                    detectSelfIntersections(samples) ||
+                    hasLocalReversal(samples, fromPoint, toPoint, segmentIndex) ||
+                    hasSharpTurn(samples, 140) ||
+                    localAnchorInvalid;
+
+                finalPoints = candidate;
+                if (!invalid) break;
+                if (localAnchorInvalid) {
+                    sideScale *= 0.5;
+                    dropScale *= 0.85;
+                }
+                amplitudeScale *= 0.75;
+            }
+
+            const smoothD = pathFromPoints(finalPoints, 0.5, 0.5) || `M ${fromAnchorPoint.x} ${fromAnchorPoint.y} L ${toPoint.x} ${toPoint.y}`;
             const path = document.createElementNS(svgNs, "path");
-            path.setAttribute("d", `M ${fromPoint.x} ${fromPoint.y} L ${toPoint.x} ${toPoint.y}`);
+            path.setAttribute("d", smoothD);
             path.setAttribute("fill", "none");
             path.setAttribute("stroke", "var(--acc-clr)");
             path.setAttribute("stroke-width", "2");
