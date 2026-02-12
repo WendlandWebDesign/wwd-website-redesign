@@ -1580,8 +1580,8 @@ const initWebsiteWegMiniHeadingConnectors = () => {
                 scrollTrigger: {
                     trigger: currentHolder,
                     endTrigger: nextHolder,
-                    start: "top center",
-                    end: "top center",
+                    start: "top 35%",
+                    end: "top 35%",
                     scrub: true,
                     invalidateOnRefresh: true,
                 },
