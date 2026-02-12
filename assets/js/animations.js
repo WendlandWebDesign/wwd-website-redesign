@@ -949,6 +949,11 @@ const initWebsiteWegMiniHeadingConnectors = () => {
         return out;
     };
 
+    const smoothstep = (edge0, edge1, x) => {
+        const t = clampNumber((x - edge0) / (edge1 - edge0), 0, 1);
+        return t * t * (3 - 2 * t);
+    };
+
     const enforceMinSegmentLength = (points, minLen) => {
         if (points.length < 3) return points.slice();
         const out = [points[0]];
@@ -1160,7 +1165,10 @@ const initWebsiteWegMiniHeadingConnectors = () => {
     const scaleVector = (v, s) => ({ x: v.x * s, y: v.y * s });
     const addVectors = (a, b) => ({ x: a.x + b.x, y: a.y + b.y });
     const subVectors = (a, b) => ({ x: a.x - b.x, y: a.y - b.y });
-    const perpendicular = (v) => ({ x: -v.y, y: v.x });
+    const parsePx = (value, fallback = 0) => {
+        const n = parseFloat(value);
+        return Number.isFinite(n) ? n : fallback;
+    };
 
     const segmentNearCircle = (a, b, center, radius) => {
         if (distance(a, center) <= radius || distance(b, center) <= radius) return true;
@@ -1191,36 +1199,91 @@ const initWebsiteWegMiniHeadingConnectors = () => {
         return false;
     };
 
-    const buildJunctionPortTransition = (
-        anchor,
+    const getMiniHeadingBeforePort = (
+        holder,
+        svgRect,
+        fallbackPoint = null
+    ) => {
+        if (!holder || !svgRect) return fallbackPoint;
+        const heading = holder.querySelector(".mini-heading");
+        if (!heading) return fallbackPoint;
+
+        const headingRect = heading.getBoundingClientRect();
+        const headingStyle = window.getComputedStyle(heading);
+        const beforeStyle = window.getComputedStyle(heading, "::before");
+
+        const beforeWidth = Math.max(
+            parsePx(beforeStyle.width, 0),
+            parsePx(beforeStyle.minWidth, 0),
+            parsePx(beforeStyle.height, 0),
+            40
+        );
+        const headingPadLeft = parsePx(headingStyle.paddingLeft, 0);
+        const beforeMarginLeft = parsePx(beforeStyle.marginLeft, 0);
+        const portX = headingRect.left + headingPadLeft + beforeMarginLeft + beforeWidth * 0.5;
+        const portY = headingRect.top + headingRect.height * 0.5;
+
+        return {
+            x: portX - svgRect.left,
+            y: portY - svgRect.top,
+        };
+    };
+
+    const buildPoint2PortTransition = (
+        port,
         prevFar,
         nextFar,
         width,
         height,
         padding,
-        dropScale = 1,
-        sideScale = 1
+        handleScale = 1,
+        dropScale = 1
     ) => {
-        const anchorClamped = clampPoint(anchor, width, height, padding);
+        const anchorClamped = clampPoint(port, width, height, padding);
         const prevClamped = clampPoint(prevFar, width, height, padding);
         const nextClamped = clampPoint(nextFar, width, height, padding);
 
-        const base = Math.max(10, height * 0.025);
+        const base = Math.max(12, height * 0.03);
+        const handleLen = Math.max(18, width * 0.04) * handleScale;
         const maxDropToBottom = Math.max(0, (height - padding) - anchorClamped.y);
-        const preferredDrop = clampNumber(base * 0.9 * dropScale, 12, 48);
+        const preferredDrop = clampNumber(base * 0.9 * dropScale, 12, 50);
         const exitDrop = clampNumber(preferredDrop, 8, Math.max(8, maxDropToBottom));
-        const exitLead = base * 0.8;
-        const sideShift = base * 0.25 * sideScale;
 
         const vin = normalizeVector(subVectors(anchorClamped, prevClamped));
-        const vout = normalizeVector(subVectors(nextClamped, anchorClamped));
-        const fallbackOut = Math.hypot(vout.x, vout.y) < 1e-6 ? { x: 0, y: 1 } : vout;
+        const rawOut = normalizeVector(subVectors(nextClamped, anchorClamped));
+        const fallbackIn = Math.hypot(vin.x, vin.y) < 1e-6 ? { x: 0, y: 1 } : vin;
+        const fallbackOut = Math.hypot(rawOut.x, rawOut.y) < 1e-6 ? fallbackIn : rawOut;
 
-        const blend = normalizeVector(addVectors(vin, fallbackOut));
-        const normalBase = Math.hypot(blend.x, blend.y) < 1e-6 ? fallbackOut : blend;
-        const n = normalizeVector(perpendicular(normalBase));
-        const pOut = clampPoint(
-            { x: anchorClamped.x, y: anchorClamped.y + exitDrop },
+        const interiorAtPort = angleAt(
+            { x: anchorClamped.x - fallbackIn.x, y: anchorClamped.y - fallbackIn.y },
+            anchorClamped,
+            { x: anchorClamped.x + fallbackOut.x, y: anchorClamped.y + fallbackOut.y }
+        );
+        let vout = fallbackOut;
+        if (interiorAtPort < 150) {
+            const blendedOut = normalizeVector(addVectors(
+                scaleVector(fallbackOut, 0.65),
+                scaleVector(fallbackIn, 0.35)
+            ));
+            if (Math.hypot(blendedOut.x, blendedOut.y) > 1e-6) {
+                vout = blendedOut;
+            }
+        }
+
+        const p2Pre = clampPoint(
+            {
+                x: anchorClamped.x - fallbackIn.x * handleLen,
+                y: anchorClamped.y - fallbackIn.y * handleLen,
+            },
+            width,
+            height,
+            padding
+        );
+        const p2Post = clampPoint(
+            {
+                x: anchorClamped.x + vout.x * handleLen,
+                y: anchorClamped.y + vout.y * handleLen,
+            },
             width,
             height,
             padding
@@ -1228,8 +1291,8 @@ const initWebsiteWegMiniHeadingConnectors = () => {
 
         const drop1 = clampPoint(
             {
-                x: anchorClamped.x + fallbackOut.x * (exitLead * 0.25) + n.x * sideShift,
-                y: anchorClamped.y + exitDrop * 0.55 + fallbackOut.y * (exitLead * 0.15),
+                x: anchorClamped.x + vout.x * (handleLen * 0.35),
+                y: anchorClamped.y + vout.y * (handleLen * 0.35) + exitDrop * 0.55,
             },
             width,
             height,
@@ -1237,20 +1300,579 @@ const initWebsiteWegMiniHeadingConnectors = () => {
         );
         const drop2 = clampPoint(
             {
-                x: anchorClamped.x + fallbackOut.x * (exitLead * 0.45) + n.x * (sideShift * 0.6),
-                y: anchorClamped.y + exitDrop + fallbackOut.y * (exitLead * 0.2),
+                x: anchorClamped.x + vout.x * (handleLen * 0.75),
+                y: anchorClamped.y + vout.y * (handleLen * 0.75) + exitDrop,
             },
             width,
             height,
             padding
         );
-        const transitionPoints = [anchorClamped, drop1, drop2, pOut];
+
         return {
-            transitionPoints,
-            startOut: pOut,
+            port: anchorClamped,
+            p2Pre,
+            p2Post,
+            drop1,
+            drop2,
+            startOut: drop2,
             base,
             exitDrop,
+            handleLen,
         };
+    };
+
+    const buildPoint2IncomingPortMatchedWaypoints = (
+        fromPoint,
+        port,
+        width,
+        height,
+        padding,
+        topInScale = 1,
+        ampScale = 1,
+        tailLenScale = 1,
+        tailAmpScale = 1,
+        useTail0 = true
+    ) => {
+        const signBased = (port.x - fromPoint.x) >= 0 ? 1 : -1;
+        const A1x = clampNumber(width * 0.06, 20, 90) * ampScale;
+        const A1y = clampNumber(height * 0.05, 18, 70) * ampScale;
+        const A2x = A1x * 1.15;
+        const A2y = A1y * 0.85;
+
+        const leadOutBase = lerpPoint(fromPoint, port, 0.12);
+        const swing1Base = lerpPoint(fromPoint, port, 0.30);
+        const crossOverBase = lerpPoint(fromPoint, port, 0.48);
+        const swing2Base = lerpPoint(fromPoint, port, 0.60);
+
+        const smallX = signBased * 0.15;
+        const tIn = normalizeVector({ x: smallX, y: 1 });
+        let nIn = normalizeVector({ x: -tIn.y, y: tIn.x });
+        if ((signBased > 0 && nIn.x < 0) || (signBased < 0 && nIn.x > 0)) {
+            nIn = scaleVector(nIn, -1);
+        }
+
+        const tailLen = clampNumber(Math.max(40, width * 0.10) * tailLenScale, 40, 140);
+        const tailAmp = clampNumber(Math.max(8, width * 0.012) * tailAmpScale, 8, 24);
+        const tailLift = clampNumber(Math.max(16, height * 0.04) * topInScale, 16, 70);
+        const tail2 = clampPoint(
+            {
+                x: port.x - tIn.x * (tailLen * 0.95) + nIn.x * (tailAmp * 0.9),
+                y: port.y - tIn.y * (tailLen * 0.95) + nIn.y * (tailAmp * 0.9) - tailLift * 0.35,
+            },
+            width,
+            height,
+            padding
+        );
+        const tail1 = clampPoint(
+            {
+                x: port.x - tIn.x * (tailLen * 0.55) + nIn.x * (-tailAmp * 0.6),
+                y: port.y - tIn.y * (tailLen * 0.55) + nIn.y * (-tailAmp * 0.6) - tailLift * 0.15,
+            },
+            width,
+            height,
+            padding
+        );
+        const tail0 = clampPoint(
+            {
+                x: port.x - tIn.x * (tailLen * 0.25) + nIn.x * (tailAmp * 0.25),
+                y: port.y - tIn.y * (tailLen * 0.25) + nIn.y * (tailAmp * 0.25),
+            },
+            width,
+            height,
+            padding
+        );
+
+        const leadOut = {
+            x: leadOutBase.x - A1x * 0.75 * signBased,
+            y: leadOutBase.y + A1y * 0.6,
+        };
+        const swing1 = {
+            x: swing1Base.x - A2x * signBased,
+            y: swing1Base.y + A2y,
+        };
+        const crossOver = {
+            x: crossOverBase.x + A2x * 0.55 * signBased,
+            y: crossOverBase.y + A2y * 0.15,
+        };
+        const swing2 = {
+            x: swing2Base.x + A1x * signBased,
+            y: swing2Base.y - A1y * 0.25,
+        };
+
+        const points = [
+            fromPoint,
+            leadOut,
+            swing1,
+            crossOver,
+            swing2,
+            tail2,
+            tail1,
+            ...(useTail0 ? [tail0] : []),
+            clampPoint(port, width, height, padding),
+        ];
+        return {
+            points: clampPoints(points, width, height, padding),
+            tIn,
+        };
+    };
+
+    const hasSharpTurnNearPoint = (samples, center, radius, minInteriorAngleDeg = 150) => {
+        if (samples.length < 3) return false;
+        const r = Math.max(8, radius);
+        for (let i = 1; i < samples.length - 1; i += 1) {
+            if (distance(samples[i], center) > r) continue;
+            const interior = angleAt(samples[i - 1], samples[i], samples[i + 1]);
+            if (interior < minInteriorAngleDeg) return true;
+        }
+        return false;
+    };
+
+    const hasSharpTurnAroundNearestSample = (samples, center, window = 10, minInteriorAngleDeg = 155) => {
+        if (samples.length < 3) return false;
+        let nearest = 0;
+        let nearestDist = Number.POSITIVE_INFINITY;
+        for (let i = 0; i < samples.length; i += 1) {
+            const d = distance(samples[i], center);
+            if (d < nearestDist) {
+                nearestDist = d;
+                nearest = i;
+            }
+        }
+        const start = Math.max(1, nearest - window);
+        const end = Math.min(samples.length - 2, nearest + window);
+        for (let i = start; i <= end; i += 1) {
+            const interior = angleAt(samples[i - 1], samples[i], samples[i + 1]);
+            if (interior < minInteriorAngleDeg) return true;
+        }
+        return false;
+    };
+
+    const findNearestSampleIndex = (samples, center) => {
+        let nearest = 0;
+        let nearestDist = Number.POSITIVE_INFINITY;
+        for (let i = 0; i < samples.length; i += 1) {
+            const d = distance(samples[i], center);
+            if (d < nearestDist) {
+                nearestDist = d;
+                nearest = i;
+            }
+        }
+        return nearest;
+    };
+
+    const getSampleTangent = (samples, index) => {
+        if (samples.length < 2) return { x: 0, y: 1 };
+        const i = clampNumber(index, 1, samples.length - 1);
+        return normalizeVector(subVectors(samples[i], samples[i - 1]));
+    };
+
+    const hasInteriorKinkBeforeNearest = (samples, center, backWindow = 8, minInteriorAngleDeg = 160) => {
+        if (samples.length < 3) return false;
+        const nearest = findNearestSampleIndex(samples, center);
+        const start = Math.max(1, nearest - backWindow);
+        const end = Math.max(start, nearest);
+        for (let i = start; i <= end; i += 1) {
+            if (i <= 0 || i >= samples.length - 1) continue;
+            const interior = angleAt(samples[i - 1], samples[i], samples[i + 1]);
+            if (interior < minInteriorAngleDeg) return true;
+        }
+        return false;
+    };
+
+    const hasInteriorKinkAfterNearest = (samples, center, forwardWindow = 8, minInteriorAngleDeg = 160) => {
+        if (samples.length < 3) return false;
+        const nearest = findNearestSampleIndex(samples, center);
+        const start = Math.max(1, nearest);
+        const end = Math.min(samples.length - 2, nearest + forwardWindow);
+        for (let i = start; i <= end; i += 1) {
+            if (i <= 0 || i >= samples.length - 1) continue;
+            const interior = angleAt(samples[i - 1], samples[i], samples[i + 1]);
+            if (interior < minInteriorAngleDeg) return true;
+        }
+        return false;
+    };
+
+    const hasImmediateCurvatureAfterNearest = (samples, center, minTurnDeg = 2.5) => {
+        if (samples.length < 5) return false;
+        const nearest = findNearestSampleIndex(samples, center);
+        const start = Math.max(1, nearest);
+        const end = Math.min(samples.length - 3, nearest + 2);
+        let hits = 0;
+        for (let i = start; i <= end; i += 1) {
+            const t0 = getSampleTangent(samples, i);
+            const t1 = getSampleTangent(samples, i + 1);
+            const dot = clampNumber(t0.x * t1.x + t0.y * t1.y, -1, 1);
+            const turnDeg = (Math.acos(dot) * 180) / Math.PI;
+            if (turnDeg > minTurnDeg) hits += 1;
+        }
+        return hits >= 2;
+    };
+
+    const hasStraightRunAfterNearest = (samples, center, steps = 10, dotThreshold = 0.999, maxAllowed = 2) => {
+        if (samples.length < 4) return false;
+        const nearest = findNearestSampleIndex(samples, center);
+        const start = Math.max(1, nearest);
+        const end = Math.min(samples.length - 3, nearest + steps);
+        let nearStraightHits = 0;
+        for (let i = start; i <= end; i += 1) {
+            const t0 = getSampleTangent(samples, i);
+            const t1 = getSampleTangent(samples, i + 1);
+            const dot = clampNumber(t0.x * t1.x + t0.y * t1.y, -1, 1);
+            if (dot > dotThreshold) nearStraightHits += 1;
+        }
+        return nearStraightHits > maxAllowed;
+    };
+
+    const hasCurvyApproachBeforeNearest = (samples, center, backWindow = 20, minTurnDeg = 1.8, minHits = 5) => {
+        if (samples.length < 4) return false;
+        const nearest = findNearestSampleIndex(samples, center);
+        const start = Math.max(1, nearest - backWindow);
+        const end = Math.max(start, nearest - 1);
+        let hits = 0;
+        for (let i = start; i <= end; i += 1) {
+            const t0 = getSampleTangent(samples, i);
+            const t1 = getSampleTangent(samples, i + 1);
+            const dot = clampNumber(t0.x * t1.x + t0.y * t1.y, -1, 1);
+            const turnDeg = (Math.acos(dot) * 180) / Math.PI;
+            if (turnDeg > minTurnDeg) hits += 1;
+        }
+        return hits >= minHits;
+    };
+
+    const hasStraightRunBeforeNearest = (samples, center, backWindow = 20, dotThreshold = 0.999, maxRun = 3) => {
+        if (samples.length < 4) return false;
+        const nearest = findNearestSampleIndex(samples, center);
+        const start = Math.max(1, nearest - backWindow);
+        const end = Math.max(start, nearest - 1);
+        let run = 0;
+        for (let i = start; i <= end; i += 1) {
+            const t0 = getSampleTangent(samples, i);
+            const t1 = getSampleTangent(samples, i + 1);
+            const dot = clampNumber(t0.x * t1.x + t0.y * t1.y, -1, 1);
+            if (dot > dotThreshold) {
+                run += 1;
+                if (run > maxRun) return true;
+            } else {
+                run = 0;
+            }
+        }
+        return false;
+    };
+
+    const hasPositiveDxAfterNearest = (samples, center, steps = 8, minSumDx = 8) => {
+        if (samples.length < 3) return false;
+        const nearest = findNearestSampleIndex(samples, center);
+        const start = Math.max(0, nearest);
+        const end = Math.min(samples.length - 2, nearest + steps);
+        let sumDx = 0;
+        for (let i = start; i <= end; i += 1) {
+            sumDx += samples[i + 1].x - samples[i].x;
+        }
+        return sumDx > minSumDx;
+    };
+
+    const evaluatePoint3ExitQuality = (samples, p3Out, e5Point, boundsWidth) => {
+        if (samples.length < 6) {
+            return {
+                largeRadiusInvalid: true,
+                handoffKinkInvalid: true,
+                straightInvalid: true,
+                rightCurveInvalid: true,
+            };
+        }
+        const sOut = findNearestSampleIndex(samples, p3Out);
+        const e5Index = e5Point ? findNearestSampleIndex(samples, e5Point) : sOut;
+        const handoffIdx = clampNumber(e5Index, 1, samples.length - 3);
+        const handoffT0 = getSampleTangent(samples, handoffIdx);
+        const handoffT1 = getSampleTangent(samples, handoffIdx + 1);
+        const handoffDot = clampNumber(handoffT0.x * handoffT1.x + handoffT0.y * handoffT1.y, -1, 1);
+        const handoffKinkInvalid = handoffDot < 0.97;
+
+        const bStart = clampNumber(sOut, 1, samples.length - 3);
+        const bEnd = Math.min(samples.length - 3, bStart + 25);
+        let largeRadiusTurnHits = 0;
+        let hasSpike = false;
+        let straightRun = 0;
+        let hasLongStraightRun = false;
+        for (let i = bStart; i <= bEnd; i += 1) {
+            const t0 = getSampleTangent(samples, i);
+            const t1 = getSampleTangent(samples, i + 1);
+            const dot = clampNumber(t0.x * t1.x + t0.y * t1.y, -1, 1);
+            const turnDeg = (Math.acos(dot) * 180) / Math.PI;
+            if (turnDeg > 2.5) largeRadiusTurnHits += 1;
+            if (i > 0 && i < samples.length - 1) {
+                const interior = angleAt(samples[i - 1], samples[i], samples[i + 1]);
+                if (interior < 155) hasSpike = true;
+            }
+            if (dot > 0.999) {
+                straightRun += 1;
+                if (straightRun > 3) hasLongStraightRun = true;
+            } else {
+                straightRun = 0;
+            }
+        }
+        const largeRadiusInvalid = largeRadiusTurnHits < 6 || hasSpike;
+        const straightInvalid = hasLongStraightRun;
+        const rightCurveInvalid = !hasPositiveDxAfterNearest(
+            samples,
+            p3Out,
+            25,
+            Math.max(8, boundsWidth * 0.03)
+        );
+
+        const cStart = clampNumber(sOut, 1, samples.length - 3);
+        const cEnd = Math.min(samples.length - 3, cStart + 18);
+        let cRun = 0;
+        for (let i = cStart; i <= cEnd; i += 1) {
+            const t0 = getSampleTangent(samples, i);
+            const t1 = getSampleTangent(samples, i + 1);
+            const dot = clampNumber(t0.x * t1.x + t0.y * t1.y, -1, 1);
+            if (dot > 0.999) {
+                cRun += 1;
+                if (cRun > 3) {
+                    return {
+                        largeRadiusInvalid,
+                        handoffKinkInvalid,
+                        straightInvalid: true,
+                        rightCurveInvalid,
+                    };
+                }
+            } else {
+                cRun = 0;
+            }
+        }
+
+        return {
+            largeRadiusInvalid,
+            handoffKinkInvalid,
+            straightInvalid,
+            rightCurveInvalid,
+        };
+    };
+
+    const medianOf = (values) => {
+        if (!values.length) return 0;
+        const sorted = values.slice().sort((a, b) => a - b);
+        const mid = Math.floor(sorted.length * 0.5);
+        if (sorted.length % 2 === 0) return (sorted[mid - 1] + sorted[mid]) * 0.5;
+        return sorted[mid];
+    };
+
+    const crossZ = (a, b) => a.x * b.y - a.y * b.x;
+    const signNonZero = (n, eps = 1e-6) => (n > eps ? 1 : (n < -eps ? -1 : 0));
+
+    const detectDentSampleIndices = (samples, turnMin, jerkThresh) => {
+        if (samples.length < 8) return [];
+        const turns = new Array(samples.length).fill(0);
+        const dots = new Array(samples.length).fill(1);
+        const signs = new Array(samples.length).fill(0);
+
+        for (let i = 1; i < samples.length - 1; i += 1) {
+            const v1 = normalizeVector(subVectors(samples[i], samples[i - 1]));
+            const v2 = normalizeVector(subVectors(samples[i + 1], samples[i]));
+            const dot = clampNumber(v1.x * v2.x + v1.y * v2.y, -1, 1);
+            dots[i] = dot;
+            turns[i] = Math.acos(dot);
+            signs[i] = signNonZero(crossZ(v1, v2));
+        }
+
+        const raw = [];
+        for (let i = 2; i < samples.length - 3; i += 1) {
+            const winStart = Math.max(1, i - 6);
+            const winEnd = Math.min(samples.length - 2, i + 6);
+            const winTurns = [];
+            for (let w = winStart; w <= winEnd; w += 1) winTurns.push(turns[w]);
+            const med = medianOf(winTurns);
+
+            const spike = turns[i] > Math.max(turnMin, med * 2.2);
+            const flip =
+                signs[i] !== 0 &&
+                signs[i - 1] !== 0 &&
+                signs[i + 1] !== 0 &&
+                signs[i] !== signs[i - 1] &&
+                signs[i] !== signs[i + 1] &&
+                turns[i] > turnMin * 0.7 &&
+                turns[i] < Math.PI * 0.25;
+            const jerk = Math.abs(dots[i] - dots[i - 1]) > jerkThresh;
+
+            if ((spike && flip) || (spike && jerk) || (flip && jerk)) {
+                raw.push(i);
+            }
+        }
+
+        if (!raw.length) return raw;
+        const grouped = [raw[0]];
+        for (let i = 1; i < raw.length; i += 1) {
+            if (raw[i] - grouped[grouped.length - 1] <= 3) {
+                const prev = grouped[grouped.length - 1];
+                if (turns[raw[i]] > turns[prev]) grouped[grouped.length - 1] = raw[i];
+            } else {
+                grouped.push(raw[i]);
+            }
+        }
+        return grouped;
+    };
+
+    const nearestPointIndexInChain = (points, target, used = null) => {
+        let nearest = 0;
+        let best = Number.POSITIVE_INFINITY;
+        for (let i = 0; i < points.length; i += 1) {
+            if (used && used.has(i)) continue;
+            const d = distance(points[i], target);
+            if (d < best) {
+                best = d;
+                nearest = i;
+            }
+        }
+        return nearest;
+    };
+
+    const enforcePinnedPoints = (points, pinnedPoints) => {
+        if (!points.length || !pinnedPoints.length) return points;
+        const out = points.slice();
+        const used = new Set();
+        pinnedPoints.forEach((pin) => {
+            const idx = nearestPointIndexInChain(out, pin, used);
+            out[idx] = { x: pin.x, y: pin.y };
+            used.add(idx);
+        });
+        return out;
+    };
+
+    const hasGlobalStraightRun = (samples, dotThreshold = 0.999, maxRun = 3) => {
+        if (samples.length < 4) return false;
+        let run = 0;
+        for (let i = 1; i < samples.length - 1; i += 1) {
+            const t0 = normalizeVector(subVectors(samples[i], samples[i - 1]));
+            const t1 = normalizeVector(subVectors(samples[i + 1], samples[i]));
+            const dot = clampNumber(t0.x * t1.x + t0.y * t1.y, -1, 1);
+            if (dot > dotThreshold) {
+                run += 1;
+                if (run > maxRun) return true;
+            } else {
+                run = 0;
+            }
+        }
+        return false;
+    };
+
+    const hasGlobalHardKink = (samples, kinkDotMin = 0.92) => {
+        if (samples.length < 4) return false;
+        for (let i = 1; i < samples.length - 1; i += 1) {
+            const t0 = normalizeVector(subVectors(samples[i], samples[i - 1]));
+            const t1 = normalizeVector(subVectors(samples[i + 1], samples[i]));
+            const dot = clampNumber(t0.x * t1.x + t0.y * t1.y, -1, 1);
+            if (dot < kinkDotMin) return true;
+        }
+        return false;
+    };
+
+    const applyLocalDentFairing = (
+        points,
+        dentIndices,
+        splineSamples,
+        pinnedSet,
+        lambda,
+        bump,
+        width,
+        height,
+        padding
+    ) => {
+        if (!dentIndices.length || points.length < 5) return points.slice();
+        const out = points.slice();
+        dentIndices.forEach((sampleIdx) => {
+            const samplePoint = splineSamples[sampleIdx];
+            const k = nearestPointIndexInChain(out, samplePoint);
+            const start = Math.max(1, k - 2);
+            const end = Math.min(out.length - 2, k + 2);
+            for (let j = start; j <= end; j += 1) {
+                if (j <= 0 || j >= out.length - 1) continue;
+                if (pinnedSet.has(j)) continue;
+                const prev = out[j - 1];
+                const curr = out[j];
+                const next = out[j + 1];
+                const midpoint = {
+                    x: (prev.x + next.x) * 0.5,
+                    y: (prev.y + next.y) * 0.5,
+                };
+                let nextPoint = {
+                    x: curr.x + lambda * (midpoint.x - curr.x),
+                    y: curr.y + lambda * (midpoint.y - curr.y),
+                };
+                const interior = angleAt(prev, nextPoint, next);
+                if (interior > 175) {
+                    const tLocal = normalizeVector(subVectors(next, prev));
+                    let nLocal = normalizeVector({ x: -tLocal.y, y: tLocal.x });
+                    const c = crossZ(subVectors(curr, prev), subVectors(next, curr));
+                    const s = signNonZero(c);
+                    if (s < 0) nLocal = scaleVector(nLocal, -1);
+                    nextPoint = {
+                        x: nextPoint.x + nLocal.x * bump,
+                        y: nextPoint.y + nLocal.y * bump,
+                    };
+                }
+                out[j] = clampPoint(nextPoint, width, height, padding);
+            }
+        });
+        return out;
+    };
+
+    const runCurvatureUniformityPass = (
+        points,
+        pinnedPoints,
+        width,
+        height,
+        padding,
+        minLen,
+        collinearAngleEps,
+        sampleN
+    ) => {
+        if (points.length < 5) return points.slice();
+        const turnMin = (3 * Math.PI) / 180;
+        const jerkThresh = 0.12;
+        const bump = clampNumber(width * 0.002, 1.5, 6);
+        const lambdaPasses = [0.35, 0.35, 0.22];
+
+        let current = points.slice();
+        current = enforcePinnedPoints(current, pinnedPoints);
+
+        for (let pass = 0; pass < lambdaPasses.length; pass += 1) {
+            const samples = sampleSplinePoints(current, sampleN, 0.5);
+            const dents = detectDentSampleIndices(samples, turnMin, jerkThresh);
+            const hasStraight = hasGlobalStraightRun(samples, 0.999, 3);
+            const hasKink = hasGlobalHardKink(samples, 0.92);
+            if (!dents.length && !hasStraight && !hasKink) {
+                return current;
+            }
+
+            const pinnedSet = new Set();
+            const pinnedAnchors = enforcePinnedPoints(current, pinnedPoints);
+            pinnedPoints.forEach((pin) => {
+                pinnedSet.add(nearestPointIndexInChain(pinnedAnchors, pin));
+            });
+
+            current = applyLocalDentFairing(
+                current,
+                dents,
+                samples,
+                pinnedSet,
+                lambdaPasses[pass],
+                bump,
+                width,
+                height,
+                padding
+            );
+            current = enforcePinnedPoints(current, pinnedPoints);
+            current = clampPoints(current, width, height, padding);
+            current = dedupeConsecutive(current, 0.8);
+            current = enforceMinSegmentLength(current, minLen);
+            current = removeNearCollinear(current, collinearAngleEps, minLen * 0.7);
+            current = clampPoints(current, width, height, padding);
+            current = dedupeConsecutive(current, 0.8);
+            current = enforceMinSegmentLength(current, minLen);
+            current = enforcePinnedPoints(current, pinnedPoints);
+        }
+        return current;
     };
 
     const deterministicOffset = (t, seed, amplitude, k1, k2) => {
@@ -1261,13 +1883,219 @@ const initWebsiteWegMiniHeadingConnectors = () => {
         );
     };
 
-    const buildMacroWaypoints = (from, to, segmentIndex, anchorCount, ampScale, width, height, padding) => {
+    const buildPoint2OutgoingPortBlendTransition = (
+        port,
+        toPoint,
+        width,
+        height,
+        padding,
+        tIn,
+        rScale = 1,
+        sScale = 1,
+        blendFactor = 0.55,
+        exit3BackScale = 1
+    ) => {
+        const dirToP3Raw = normalizeVector(subVectors(toPoint, port));
+        const dirToP3 = Math.hypot(dirToP3Raw.x, dirToP3Raw.y) < 1e-6 ? { x: 0, y: 1 } : dirToP3Raw;
+        const tOutBlend = normalizeVector(addVectors(
+            scaleVector(tIn, 1 - blendFactor),
+            scaleVector(dirToP3, blendFactor)
+        ));
+        const tBase = Math.hypot(tOutBlend.x, tOutBlend.y) < 1e-6 ? dirToP3 : tOutBlend;
+        let n = normalizeVector({ x: -tBase.y, y: tBase.x });
+        const wantRight = toPoint.x >= port.x;
+        if ((wantRight && n.x < 0) || (!wantRight && n.x > 0)) {
+            n = scaleVector(n, -1);
+        }
+        n = scaleVector(n, -1);
+
+        const R = clampNumber(Math.max(14, width * 0.020) * rScale, 14, 40);
+        const S = clampNumber(R * 0.70 * sScale, 10, 34);
+
+        const exit1 = clampPoint(
+            {
+                x: port.x + tBase.x * (R * 0.35) + n.x * (S * 1.00),
+                y: port.y + tBase.y * (R * 0.35) + n.y * (S * 1.00),
+            },
+            width,
+            height,
+            padding
+        );
+        const exit2 = clampPoint(
+            {
+                x: port.x + tBase.x * (R * 1.05) + n.x * (S * 0.55),
+                y: port.y + tBase.y * (R * 1.05) + n.y * (S * 0.55),
+            },
+            width,
+            height,
+            padding
+        );
+        const exit3 = clampPoint(
+            {
+                x: port.x + tBase.x * (R * 2.00) + n.x * (-S * 0.12 * exit3BackScale),
+                y: port.y + tBase.y * (R * 2.00) + n.y * (-S * 0.12 * exit3BackScale),
+            },
+            width,
+            height,
+            padding
+        );
+        const transitionPoints = [clampPoint(port, width, height, padding), exit1, exit2, exit3];
+        return {
+            transitionPoints,
+            startOut: exit3,
+            tOut: tBase,
+            n,
+            dirToP3,
+        };
+    };
+
+    const buildPoint3OutgoingOppositeTransition = (
+        p3In,
+        prevFar,
+        toPoint,
+        width,
+        height,
+        padding,
+        rScale = 1,
+        sScale = 1
+    ) => {
+        const p3InClamped = clampPoint(p3In, width, height, padding);
+        const prevClamped = clampPoint(prevFar, width, height, padding);
+        let vin3 = normalizeVector(subVectors(p3InClamped, prevClamped));
+        if (Math.hypot(vin3.x, vin3.y) < 1e-6) vin3 = { x: 0, y: 1 };
+
+        let exitDrop3 = clampNumber(Math.max(18, height * 0.035), 18, 60);
+        let p3Out = clampPoint(
+            {
+                x: p3InClamped.x - vin3.x * exitDrop3,
+                y: p3InClamped.y - vin3.y * exitDrop3,
+            },
+            width,
+            height,
+            padding
+        );
+        for (let i = 0; i < 3; i += 1) {
+            const raw = {
+                x: p3InClamped.x - vin3.x * exitDrop3,
+                y: p3InClamped.y - vin3.y * exitDrop3,
+            };
+            const clamped = clampPoint(raw, width, height, padding);
+            if (distance(raw, clamped) < 0.5) {
+                p3Out = clamped;
+                break;
+            }
+            exitDrop3 *= 0.85;
+            p3Out = clamped;
+        }
+
+        const dirToP4Raw = normalizeVector(subVectors(toPoint, p3Out));
+        const dirToP4 = Math.hypot(dirToP4Raw.x, dirToP4Raw.y) < 1e-6 ? { x: 1, y: 0 } : dirToP4Raw;
+        const tBase3 = dirToP4;
+        let nRight = normalizeVector({ x: -tBase3.y, y: tBase3.x });
+        if (nRight.x < 0) nRight = scaleVector(nRight, -1);
+
+        const p3Mid1 = clampPoint(
+            {
+                x: p3InClamped.x - vin3.x * (exitDrop3 * 0.35) + nRight.x * (exitDrop3 * 0.18),
+                y: p3InClamped.y - vin3.y * (exitDrop3 * 0.35) + nRight.y * (exitDrop3 * 0.18),
+            },
+            width,
+            height,
+            padding
+        );
+        const p3Mid2 = clampPoint(
+            {
+                x: p3InClamped.x - vin3.x * (exitDrop3 * 0.70) + nRight.x * (exitDrop3 * 0.10),
+                y: p3InClamped.y - vin3.y * (exitDrop3 * 0.70) + nRight.y * (exitDrop3 * 0.10),
+            },
+            width,
+            height,
+            padding
+        );
+
+        const R = clampNumber(Math.max(26, width * 0.040) * rScale, 26, 90);
+        const S = clampNumber(R * 1.20 * sScale, 24, 110);
+        const e1 = clampPoint(
+            {
+                x: p3Out.x + tBase3.x * (R * 0.35) + nRight.x * (S * 1.00),
+                y: p3Out.y + tBase3.y * (R * 0.35) + nRight.y * (S * 1.00),
+            },
+            width,
+            height,
+            padding
+        );
+        const e2 = clampPoint(
+            {
+                x: p3Out.x + tBase3.x * (R * 1.15) + nRight.x * (S * 0.92),
+                y: p3Out.y + tBase3.y * (R * 1.15) + nRight.y * (S * 0.92),
+            },
+            width,
+            height,
+            padding
+        );
+        const e3 = clampPoint(
+            {
+                x: p3Out.x + tBase3.x * (R * 2.35) + nRight.x * (S * 0.80),
+                y: p3Out.y + tBase3.y * (R * 2.35) + nRight.y * (S * 0.80),
+            },
+            width,
+            height,
+            padding
+        );
+        const e4 = clampPoint(
+            {
+                x: p3Out.x + tBase3.x * (R * 3.90) + nRight.x * (S * 0.65),
+                y: p3Out.y + tBase3.y * (R * 3.90) + nRight.y * (S * 0.65),
+            },
+            width,
+            height,
+            padding
+        );
+        const e5 = clampPoint(
+            {
+                x: p3Out.x + tBase3.x * (R * 5.60) + nRight.x * (S * 0.48),
+                y: p3Out.y + tBase3.y * (R * 5.60) + nRight.y * (S * 0.48),
+            },
+            width,
+            height,
+            padding
+        );
+
+        const oppositeVec = normalizeVector(subVectors(p3Out, p3InClamped));
+        const oppositeDot = oppositeVec.x * vin3.x + oppositeVec.y * vin3.y;
+
+        return {
+            transitionPoints: [p3InClamped, p3Mid1, p3Mid2, p3Out, e1, e2, e3, e4, e5],
+            startOut: e5,
+            p3In: p3InClamped,
+            p3Out,
+            e5,
+            vin3,
+            oppositeDot,
+            tBase3,
+            nRight,
+        };
+    };
+
+    const buildMacroWaypoints = (
+        from,
+        to,
+        segmentIndex,
+        anchorCount,
+        ampScale,
+        width,
+        height,
+        padding,
+        options = {}
+    ) => {
+        const earlyRampEnd = Number.isFinite(options.earlyRampEnd) ? options.earlyRampEnd : 0.4;
+        const ampMultiplier = Number.isFinite(options.ampMultiplier) ? options.ampMultiplier : 1;
         const dx = to.x - from.x;
         const dy = to.y - from.y;
         const span = Math.max(distance(from, to), 1);
         const seed = (segmentIndex + 1) * 10007 + anchorCount * 97 + Math.round(from.x + from.y);
         const dirX = dx >= 0 ? 1 : -1;
-        const ampBase = clampNumber(span * 0.2 * ampScale, 22, Math.min(width, height) * 0.24);
+        const ampBase = clampNumber(span * 0.2 * ampScale * ampMultiplier, 22, Math.min(width, height) * 0.24);
         const nudgeX = deterministicOffset(0.5, seed, ampBase * 0.12, 0.65, 1.1);
         const nudgeY = deterministicOffset(0.35, seed + 17, ampBase * 0.2, 0.75, 1.2);
 
@@ -1306,6 +2134,47 @@ const initWebsiteWegMiniHeadingConnectors = () => {
             ]);
         }
         points.push(to);
+
+        if (segmentIndex === 0 && points.length > 3) {
+            const base = subVectors(to, from);
+            const baseLenSq = Math.max(1e-6, base.x * base.x + base.y * base.y);
+            for (let i = 1; i < points.length - 1; i += 1) {
+                const rel = subVectors(points[i], from);
+                const t = clampNumber((rel.x * base.x + rel.y * base.y) / baseLenSq, 0, 1);
+                if (t <= 0.6) continue;
+                const linePoint = lerpPoint(from, to, t);
+                const offset = subVectors(points[i], linePoint);
+                const keep = 1 - smoothstep(0.6, 1, t);
+                points[i] = addVectors(linePoint, scaleVector(offset, keep));
+            }
+        }
+        if (segmentIndex === 1 && points.length > 3) {
+            const base = subVectors(to, from);
+            const baseLenSq = Math.max(1e-6, base.x * base.x + base.y * base.y);
+            for (let i = 1; i < points.length - 1; i += 1) {
+                const rel = subVectors(points[i], from);
+                const t = clampNumber((rel.x * base.x + rel.y * base.y) / baseLenSq, 0, 1);
+                if (t >= earlyRampEnd) continue;
+                const linePoint = lerpPoint(from, to, t);
+                const offset = subVectors(points[i], linePoint);
+                const ramp = smoothstep(0, earlyRampEnd, t);
+                points[i] = addVectors(linePoint, scaleVector(offset, ramp));
+            }
+        }
+        if (segmentIndex === 2 && points.length > 3) {
+            const base = subVectors(to, from);
+            const baseLenSq = Math.max(1e-6, base.x * base.x + base.y * base.y);
+            for (let i = 1; i < points.length - 1; i += 1) {
+                const rel = subVectors(points[i], from);
+                const t = clampNumber((rel.x * base.x + rel.y * base.y) / baseLenSq, 0, 1);
+                if (t >= 0.70) continue;
+                const linePoint = lerpPoint(from, to, t);
+                const offset = subVectors(points[i], linePoint);
+                const ramp = smoothstep(0, 0.70, t);
+                points[i] = addVectors(linePoint, scaleVector(offset, ramp));
+            }
+        }
+
         return clampPoints(points, width, height, padding);
     };
 
@@ -1334,100 +2203,411 @@ const initWebsiteWegMiniHeadingConnectors = () => {
         const allAnchors = holders.map((holder) => {
             const anchor = holder.querySelector(".mini-heading__anchor");
             return anchor ? getAnchorPoint(anchor, svgRect) : null;
-        }).filter(Boolean);
+        });
 
         const getAnchorSafe = (index, fallback) => {
             if (index < 0 || index >= allAnchors.length) return fallback;
-            return allAnchors[index];
+            return allAnchors[index] || fallback;
         };
+
+        const point2Holder = holders[1] || null;
+        const point2Anchor = getAnchorSafe(1, null);
+        const point2Port =
+            getMiniHeadingBeforePort(point2Holder, svgRect, point2Anchor) || point2Anchor;
+        const point1ForPort = getAnchorSafe(0, point2Port);
+        const point2SignBase = (point2Port.x - point1ForPort.x) >= 0 ? 1 : -1;
+        const point2IncomingTIn = normalizeVector({ x: point2SignBase * 0.15, y: 1 });
 
         pairs.forEach(({ currentHolder, nextHolder, fromAnchor, toAnchor }, segmentIndex) => {
             const fromAnchorPoint = getAnchorPoint(fromAnchor, svgRect);
-            const toPoint = getAnchorPoint(toAnchor, svgRect);
+            const baseToPoint = getAnchorPoint(toAnchor, svgRect);
             const padding = 10;
             const minLenBase = clampNumber(Math.min(svgRect.width, svgRect.height) * 0.025, 8, 26);
             let amplitudeScale = 1;
-            let finalPoints = [fromAnchorPoint, toPoint];
-            const isPortJunctionStart = segmentIndex === 1 || segmentIndex === 2;
-            let dropScale = 1;
-            let sideScale = 1;
+            let finalPoints = [fromAnchorPoint, baseToPoint];
+            const isPoint2Incoming = segmentIndex === 0 && Boolean(point2Port);
+            const isPoint2Outgoing = segmentIndex === 1 && Boolean(point2Port);
+            const isPoint3Outgoing = segmentIndex === 2;
+            const fallbackToPoint = isPoint2Incoming && point2Port ? point2Port : baseToPoint;
+            let p2DropScale = 1;
+            let p2HandleScale = 1;
+            let p2TopInScale = 1;
+            let p2AmpScale = 1;
+            let p2TailLenScale = 1;
+            let p2TailAmpScale = 1;
+            let p2UseTail0 = true;
+            let p2OutBlendFactor = 0.55;
+            let p2OutRampEnd = 0.45;
+            let p2OutAmpScale = 1;
+            let p2OutRScale = 1;
+            let p2OutSScale = 1;
+            let p2OutExit3BackScale = 1;
+            let p3OutRScale = 1;
+            let p3OutSScale = 1;
+            let p3OutAmpScale = 0.82;
+            let p3ExitRetryCount = 0;
+            let p2GuardAdjustments = 0;
 
             for (let iteration = 0; iteration < 4; iteration += 1) {
                 let fromPoint = fromAnchorPoint;
+                let toPoint = baseToPoint;
                 let transitionMeta = null;
                 let transitionPoints = null;
+                let incomingPortMeta = null;
+                let outgoingPortMeta = null;
+                let point3OutgoingMeta = null;
 
-                if (isPortJunctionStart) {
-                    const prevFar = getAnchorSafe(segmentIndex - 1, fromAnchorPoint);
-                    const nextFar = getAnchorSafe(segmentIndex + 1, toPoint);
-                    transitionMeta = buildJunctionPortTransition(
-                        fromAnchorPoint,
+                if (isPoint2Incoming || isPoint2Outgoing) {
+                    const prevFar = getAnchorSafe(0, fromAnchorPoint);
+                    const nextFar = getAnchorSafe(2, baseToPoint);
+                    transitionMeta = buildPoint2PortTransition(
+                        point2Port,
                         prevFar,
                         nextFar,
                         svgRect.width,
                         svgRect.height,
                         padding,
-                        dropScale,
-                        sideScale
+                        p2HandleScale,
+                        p2DropScale
                     );
-                    fromPoint = transitionMeta.startOut;
-                    transitionPoints = transitionMeta.transitionPoints;
+                    if (isPoint2Incoming) {
+                        toPoint = transitionMeta.port;
+                    }
+                    if (isPoint2Outgoing) {
+                        outgoingPortMeta = buildPoint2OutgoingPortBlendTransition(
+                            transitionMeta.port,
+                            toPoint,
+                            svgRect.width,
+                            svgRect.height,
+                            padding,
+                            point2IncomingTIn,
+                            p2OutRScale,
+                            p2OutSScale,
+                            p2OutBlendFactor,
+                            p2OutExit3BackScale
+                        );
+                        fromPoint = outgoingPortMeta.startOut;
+                        transitionPoints = outgoingPortMeta.transitionPoints;
+                    }
+                }
+                if (isPoint3Outgoing) {
+                    const prevFar3 = getAnchorSafe(1, fromAnchorPoint);
+                    point3OutgoingMeta = buildPoint3OutgoingOppositeTransition(
+                        fromAnchorPoint,
+                        prevFar3,
+                        toPoint,
+                        svgRect.width,
+                        svgRect.height,
+                        padding,
+                        p3OutRScale,
+                        p3OutSScale
+                    );
+                    fromPoint = point3OutgoingMeta.startOut;
+                    transitionPoints = point3OutgoingMeta.transitionPoints;
                 }
 
-                let rawMacro = buildMacroWaypoints(
-                    fromPoint,
-                    toPoint,
-                    segmentIndex,
-                    holders.length,
-                    amplitudeScale,
-                    svgRect.width,
-                    svgRect.height,
-                    padding
-                );
-
-                if (transitionPoints && transitionPoints.length) {
-                    rawMacro = transitionPoints.concat(rawMacro.slice(1));
+                let rawMacro;
+                if (isPoint2Incoming && transitionMeta) {
+                    incomingPortMeta = buildPoint2IncomingPortMatchedWaypoints(
+                        fromPoint,
+                        transitionMeta.port,
+                        svgRect.width,
+                        svgRect.height,
+                        padding,
+                        p2TopInScale,
+                        p2AmpScale,
+                        p2TailLenScale,
+                        p2TailAmpScale,
+                        p2UseTail0
+                    );
+                    rawMacro = incomingPortMeta.points;
+                } else {
+                    const macroOptions = isPoint2Outgoing
+                        ? { earlyRampEnd: p2OutRampEnd, ampMultiplier: p2OutAmpScale }
+                        : (
+                            isPoint3Outgoing
+                                ? { earlyRampEnd: 0.70, ampMultiplier: p3OutAmpScale }
+                                : {}
+                        );
+                    rawMacro = buildMacroWaypoints(
+                        fromPoint,
+                        toPoint,
+                        segmentIndex,
+                        holders.length,
+                        amplitudeScale,
+                        svgRect.width,
+                        svgRect.height,
+                        padding,
+                        macroOptions
+                    );
+                    if (transitionPoints && transitionPoints.length) {
+                        rawMacro = transitionPoints.concat(rawMacro.slice(1));
+                    }
                 }
 
                 let candidate = clampPoints(rawMacro, svgRect.width, svgRect.height, padding);
                 candidate = chaikinSmooth(candidate);
                 candidate = chaikinSmooth(candidate);
                 candidate = dedupeConsecutive(candidate, 0.8);
-                candidate = enforceMinSegmentLength(candidate, minLenBase + iteration * 1.5);
-                candidate = removeNearCollinear(candidate, 8, minLenBase * 0.55);
+                const segmentMinLen = isPoint2Outgoing
+                    ? clampNumber(minLenBase * 0.7 + iteration * 1.1, 6, minLenBase + 2)
+                    : (
+                        isPoint2Incoming
+                            ? clampNumber(minLenBase * 0.72 + iteration * 1.1, 6, minLenBase + 2)
+                            : (
+                                isPoint3Outgoing
+                                    ? clampNumber(minLenBase * 0.52 + iteration * 0.6, 4, minLenBase)
+                                    : (minLenBase + iteration * 1.5)
+                            )
+                    );
+                candidate = enforceMinSegmentLength(candidate, segmentMinLen);
+                const collinearAngleEps = isPoint2Incoming ? 6 : (isPoint3Outgoing ? 3 : 8);
+                candidate = removeNearCollinear(candidate, collinearAngleEps, minLenBase * 0.55);
                 candidate = clampPoints(candidate, svgRect.width, svgRect.height, padding);
                 candidate = dedupeConsecutive(candidate, 0.8);
-                candidate = enforceMinSegmentLength(candidate, minLenBase + iteration * 1.5);
+                candidate = enforceMinSegmentLength(candidate, segmentMinLen);
+                const pinnedPoints = [fromAnchorPoint, baseToPoint];
+                if (transitionMeta && transitionMeta.port) pinnedPoints.push(transitionMeta.port);
+                if (point3OutgoingMeta) {
+                    pinnedPoints.push(point3OutgoingMeta.p3In);
+                    pinnedPoints.push(point3OutgoingMeta.p3Out);
+                }
+                const uniformitySamples = holders.length <= 4 ? 300 : 240;
+                candidate = runCurvatureUniformityPass(
+                    candidate,
+                    pinnedPoints,
+                    svgRect.width,
+                    svgRect.height,
+                    padding,
+                    segmentMinLen,
+                    collinearAngleEps,
+                    uniformitySamples
+                );
 
                 if (candidate.length < 2) {
                     candidate = [fromPoint, toPoint];
                 }
 
-                const samples = sampleSplinePoints(candidate, 80, 0.5);
+                const sampleCount = isPoint2Incoming ? 160 : (isPoint3Outgoing ? 220 : (isPoint2Outgoing ? 200 : 80));
+                const samples = sampleSplinePoints(candidate, sampleCount, 0.5);
                 const localAnchorInvalid =
-                    Boolean(transitionMeta) &&
-                    hasLocalSelfIntersection(candidate, transitionMeta.transitionPoints[0], transitionMeta.base * 3);
+                    Boolean(transitionMeta && isPoint2Outgoing) &&
+                    hasLocalSelfIntersection(candidate, transitionMeta.port, transitionMeta.base * 3);
+                const point2SharpTurnInvalid =
+                    Boolean(transitionMeta && (isPoint2Incoming || isPoint2Outgoing)) &&
+                    (
+                        hasSharpTurnNearPoint(samples, transitionMeta.port, transitionMeta.handleLen * 2.4, 155) ||
+                        hasSharpTurnAroundNearestSample(samples, transitionMeta.port, 10, 155)
+                    );
+                const point2NearestIndex = transitionMeta ? findNearestSampleIndex(samples, transitionMeta.port) : 1;
+                const point2Tan = getSampleTangent(samples, point2NearestIndex);
+                const point2Dot = incomingPortMeta ? (point2Tan.x * incomingPortMeta.tIn.x + point2Tan.y * incomingPortMeta.tIn.y) : 1;
+                const point2IncomingFromAboveInvalid =
+                    Boolean(transitionMeta && isPoint2Incoming) &&
+                    point2Tan.y <= 0;
+                const point2TangentMismatchInvalid =
+                    Boolean(transitionMeta && isPoint2Incoming) &&
+                    point2Dot < 0.92;
+                const point2PrePortKinkInvalid =
+                    Boolean(transitionMeta && isPoint2Incoming) &&
+                    hasInteriorKinkBeforeNearest(samples, transitionMeta.port, 8, 160);
+                const point2ApproachNotCurvyInvalid =
+                    Boolean(transitionMeta && isPoint2Incoming) &&
+                    !hasCurvyApproachBeforeNearest(samples, transitionMeta.port, 20, 1.8, 5);
+                const point2ApproachStraightRunInvalid =
+                    Boolean(transitionMeta && isPoint2Incoming) &&
+                    hasStraightRunBeforeNearest(samples, transitionMeta.port, 20, 0.999, 3);
+                const point2TanIn = point2Tan;
+                const point2TanOut = getSampleTangent(samples, Math.min(samples.length - 1, point2NearestIndex + 1));
+                const point2InOutDot = point2TanIn.x * point2TanOut.x + point2TanIn.y * point2TanOut.y;
+                const point2OutToP3Dot = outgoingPortMeta
+                    ? point2TanOut.x * outgoingPortMeta.dirToP3.x + point2TanOut.y * outgoingPortMeta.dirToP3.y
+                    : 1;
+                const point2PostPortContinuityInvalid =
+                    Boolean(transitionMeta && isPoint2Outgoing) &&
+                    (point2InOutDot < 0.95 || point2OutToP3Dot < 0.75);
+                const point2PostPortKinkInvalid =
+                    Boolean(transitionMeta && isPoint2Outgoing) &&
+                    hasInteriorKinkAfterNearest(samples, transitionMeta.port, 8, 160);
+                const point2PostPortStraightInvalid =
+                    Boolean(transitionMeta && isPoint2Outgoing) &&
+                    !hasImmediateCurvatureAfterNearest(samples, transitionMeta.port, 2.5);
+                const point2PostPortStraightRunInvalid =
+                    Boolean(transitionMeta && isPoint2Outgoing) &&
+                    hasStraightRunAfterNearest(samples, transitionMeta.port, 10, 0.999, 2);
+                const point2OutDirSampleIndex = Math.min(samples.length - 1, point2NearestIndex + 2);
+                const point2OutDirRel = subVectors(samples[point2OutDirSampleIndex], transitionMeta ? transitionMeta.port : fromPoint);
+                const point2OutSideSign = outgoingPortMeta
+                    ? (point2OutDirRel.x * outgoingPortMeta.n.x + point2OutDirRel.y * outgoingPortMeta.n.y)
+                    : 1;
+                const point2PostPortDirectionInvalid =
+                    Boolean(transitionMeta && isPoint2Outgoing && outgoingPortMeta) &&
+                    point2OutSideSign <= 0;
+                const point3OppositeExitInvalid =
+                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
+                    point3OutgoingMeta.oppositeDot > -0.85;
+                const point3PostOutNotCurvyInvalid =
+                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
+                    !hasImmediateCurvatureAfterNearest(samples, point3OutgoingMeta.p3Out, 2.5);
+                const point3PostOutStraightRunInvalid =
+                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
+                    hasStraightRunAfterNearest(samples, point3OutgoingMeta.p3Out, 10, 0.999, 3);
+                const point3OutNearestIndex = point3OutgoingMeta ? findNearestSampleIndex(samples, point3OutgoingMeta.p3Out) : 1;
+                const point3TanIn = getSampleTangent(samples, point3OutNearestIndex);
+                const point3TanOut = getSampleTangent(samples, Math.min(samples.length - 1, point3OutNearestIndex + 1));
+                const point3PortKinkInvalid =
+                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
+                    (point3TanIn.x * point3TanOut.x + point3TanIn.y * point3TanOut.y) < 0.95;
+                const point3ExitQuality = (isPoint3Outgoing && point3OutgoingMeta)
+                    ? evaluatePoint3ExitQuality(samples, point3OutgoingMeta.p3Out, point3OutgoingMeta.e5, svgRect.width)
+                    : { largeRadiusInvalid: false, handoffKinkInvalid: false, straightInvalid: false, rightCurveInvalid: false };
+                const point3LargeRadiusInvalid =
+                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
+                    point3ExitQuality.largeRadiusInvalid;
+                const point3HandoffKinkInvalid =
+                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
+                    point3ExitQuality.handoffKinkInvalid;
+                const point3ExitStraightInvalid =
+                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
+                    point3ExitQuality.straightInvalid;
+                const point3RightCurveInvalid =
+                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
+                    point3ExitQuality.rightCurveInvalid;
                 const invalid =
                     detectSelfIntersections(samples) ||
                     hasLocalReversal(samples, fromPoint, toPoint, segmentIndex) ||
                     hasSharpTurn(samples, 140) ||
+                    point2SharpTurnInvalid ||
+                    point2TangentMismatchInvalid ||
+                    point2PrePortKinkInvalid ||
+                    point2ApproachNotCurvyInvalid ||
+                    point2ApproachStraightRunInvalid ||
+                    point2PostPortContinuityInvalid ||
+                    point2PostPortKinkInvalid ||
+                    point2PostPortStraightInvalid ||
+                    point2PostPortStraightRunInvalid ||
+                    point2PostPortDirectionInvalid ||
+                    point3OppositeExitInvalid ||
+                    point3PortKinkInvalid ||
+                    point3LargeRadiusInvalid ||
+                    point3HandoffKinkInvalid ||
+                    point3ExitStraightInvalid ||
+                    point3PostOutNotCurvyInvalid ||
+                    point3PostOutStraightRunInvalid ||
+                    point3RightCurveInvalid ||
+                    point2IncomingFromAboveInvalid ||
                     localAnchorInvalid;
 
                 finalPoints = candidate;
                 if (!invalid) break;
+                if (point2SharpTurnInvalid && p2GuardAdjustments < 3) {
+                    if (isPoint2Incoming) {
+                        p2TopInScale *= 1.1;
+                        p2AmpScale *= 0.9;
+                    } else {
+                        p2HandleScale *= 1.15;
+                        p2DropScale *= 0.85;
+                    }
+                    p2GuardAdjustments += 1;
+                    continue;
+                }
+                if ((point2ApproachNotCurvyInvalid || point2ApproachStraightRunInvalid) && p2GuardAdjustments < 3) {
+                    p2TailAmpScale *= 1.15;
+                    p2TailLenScale *= 1.10;
+                    p2GuardAdjustments += 1;
+                    continue;
+                }
+                if (point2PostPortContinuityInvalid && p2GuardAdjustments < 3) {
+                    p2OutRScale *= 1.1;
+                    p2OutRampEnd = Math.min(0.6, p2OutRampEnd + 0.08);
+                    p2OutAmpScale *= 0.9;
+                    p2GuardAdjustments += 1;
+                    continue;
+                }
+                if (point2PostPortKinkInvalid && p2GuardAdjustments < 3) {
+                    p2OutBlendFactor = 0.45;
+                    p2OutExit3BackScale = Math.min(p2OutExit3BackScale, 0.8);
+                    p2GuardAdjustments += 1;
+                    continue;
+                }
+                if (point2PostPortStraightInvalid && p2GuardAdjustments < 3) {
+                    p2OutSScale *= 1.15;
+                    p2OutRScale *= 0.95;
+                    p2GuardAdjustments += 1;
+                    continue;
+                }
+                if (point2PostPortStraightRunInvalid && p2GuardAdjustments < 3) {
+                    p2OutSScale *= 1.15;
+                    p2OutRScale *= 0.95;
+                    p2GuardAdjustments += 1;
+                    continue;
+                }
+                if (point2PostPortDirectionInvalid && p2GuardAdjustments < 3) {
+                    p2OutSScale *= 1.15;
+                    p2OutRScale *= 1.1;
+                    p2GuardAdjustments += 1;
+                    continue;
+                }
+                if ((point3PostOutNotCurvyInvalid || point3PostOutStraightRunInvalid) && p2GuardAdjustments < 3) {
+                    p3OutSScale *= 1.12;
+                    p3OutRScale *= 1.12;
+                    p3OutAmpScale = Math.max(0.65, p3OutAmpScale * 0.95);
+                    p2GuardAdjustments += 1;
+                    continue;
+                }
+                if ((point3LargeRadiusInvalid || point3HandoffKinkInvalid || point3ExitStraightInvalid || point3RightCurveInvalid) && p3ExitRetryCount < 3) {
+                    if (point3HandoffKinkInvalid) {
+                        p3OutRScale = Math.min(1.08 * 1.08 * 1.08, p3OutRScale * 1.08);
+                    } else if (point3RightCurveInvalid || point3ExitStraightInvalid || point3LargeRadiusInvalid) {
+                        p3OutSScale = Math.min(1.12 * 1.12 * 1.12, p3OutSScale * 1.12);
+                        if (point3LargeRadiusInvalid) {
+                            p3OutRScale = Math.min(1.08 * 1.08 * 1.08, p3OutRScale * 1.08);
+                        }
+                    } else {
+                        p3OutRScale = Math.min(1.08 * 1.08 * 1.08, p3OutRScale * 1.08);
+                    }
+                    p3OutAmpScale = Math.max(0.62, p3OutAmpScale * 0.94);
+                    p3ExitRetryCount += 1;
+                    continue;
+                }
+                if (point3PortKinkInvalid && p2GuardAdjustments < 3) {
+                    p3OutRScale *= 1.08;
+                    p3OutSScale *= 1.08;
+                    p2GuardAdjustments += 1;
+                    continue;
+                }
+                if (point3OppositeExitInvalid && p2GuardAdjustments < 3) {
+                    p3OutRScale *= 1.08;
+                    p2GuardAdjustments += 1;
+                    continue;
+                }
+                if ((point2IncomingFromAboveInvalid || point2TangentMismatchInvalid) && p2GuardAdjustments < 3) {
+                    p2TopInScale *= 1.1;
+                    p2TailAmpScale = Math.max(0.9, p2TailAmpScale * 0.9);
+                    p2TailLenScale *= 1.1;
+                    p2GuardAdjustments += 1;
+                    continue;
+                }
+                if (point2PrePortKinkInvalid && p2GuardAdjustments < 3) {
+                    p2TailAmpScale = Math.max(0.9, p2TailAmpScale * 0.9);
+                    p2TailLenScale *= 1.1;
+                    p2UseTail0 = true;
+                    p2GuardAdjustments += 1;
+                    continue;
+                }
                 if (localAnchorInvalid) {
-                    sideScale *= 0.5;
-                    dropScale *= 0.85;
+                    p2HandleScale *= 1.08;
+                    p2DropScale *= 0.9;
                 }
                 amplitudeScale *= 0.75;
             }
 
-            const smoothD = pathFromPoints(finalPoints, 0.5, 0.5) || `M ${fromAnchorPoint.x} ${fromAnchorPoint.y} L ${toPoint.x} ${toPoint.y}`;
+            const smoothD = pathFromPoints(finalPoints, 0.5, 0.5) || `M ${fromAnchorPoint.x} ${fromAnchorPoint.y} L ${fallbackToPoint.x} ${fallbackToPoint.y}`;
             const path = document.createElementNS(svgNs, "path");
             path.setAttribute("d", smoothD);
             path.setAttribute("fill", "none");
             path.setAttribute("stroke", "var(--acc-clr)");
-            path.setAttribute("stroke-width", "2");
+            path.setAttribute("stroke-width", "4");
             path.setAttribute("vector-effect", "non-scaling-stroke");
             svg.appendChild(path);
 
