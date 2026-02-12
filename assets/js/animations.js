@@ -892,6 +892,7 @@ const initWebsiteWegMiniHeadingConnectors = () => {
     }
 
     const svgNs = "http://www.w3.org/2000/svg";
+    const connectorGlowFilterId = "wwd-website-weg-connector-glow";
     const pairs = [];
     const triggers = [];
     let resizeRafId = 0;
@@ -906,11 +907,59 @@ const initWebsiteWegMiniHeadingConnectors = () => {
     if (!pairs.length) return;
 
     const clearAll = () => {
-        while (svg.firstChild) svg.removeChild(svg.firstChild);
+        const removable = Array.from(svg.children).filter((node) => node.tagName.toLowerCase() !== "defs");
+        removable.forEach((node) => svg.removeChild(node));
         while (triggers.length) {
             const st = triggers.pop();
             if (st) st.kill();
         }
+    };
+
+    const ensureConnectorGlowFilter = () => {
+        let defs = svg.querySelector("defs");
+        if (!defs) {
+            defs = document.createElementNS(svgNs, "defs");
+            svg.prepend(defs);
+        }
+
+        let filter = defs.querySelector(`#${connectorGlowFilterId}`);
+        if (!filter) {
+            filter = document.createElementNS(svgNs, "filter");
+            filter.setAttribute("id", connectorGlowFilterId);
+            filter.setAttribute("x", "-35%");
+            filter.setAttribute("y", "-35%");
+            filter.setAttribute("width", "170%");
+            filter.setAttribute("height", "170%");
+            filter.setAttribute("filterUnits", "objectBoundingBox");
+            filter.setAttribute("color-interpolation-filters", "sRGB");
+
+            const blurOuter = document.createElementNS(svgNs, "feGaussianBlur");
+            blurOuter.setAttribute("in", "SourceGraphic");
+            blurOuter.setAttribute("stdDeviation", "3.5");
+            blurOuter.setAttribute("result", "glowOuter");
+
+            const blurInner = document.createElementNS(svgNs, "feGaussianBlur");
+            blurInner.setAttribute("in", "SourceGraphic");
+            blurInner.setAttribute("stdDeviation", "1.25");
+            blurInner.setAttribute("result", "glowInner");
+
+            const merge = document.createElementNS(svgNs, "feMerge");
+            const mergeOuter = document.createElementNS(svgNs, "feMergeNode");
+            mergeOuter.setAttribute("in", "glowOuter");
+            const mergeInner = document.createElementNS(svgNs, "feMergeNode");
+            mergeInner.setAttribute("in", "glowInner");
+            const mergeSource = document.createElementNS(svgNs, "feMergeNode");
+            mergeSource.setAttribute("in", "SourceGraphic");
+
+            merge.appendChild(mergeOuter);
+            merge.appendChild(mergeInner);
+            merge.appendChild(mergeSource);
+            filter.appendChild(blurOuter);
+            filter.appendChild(blurInner);
+            filter.appendChild(merge);
+            defs.appendChild(filter);
+        }
+        return filter;
     };
 
     const clampNumber = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -1477,6 +1526,7 @@ const initWebsiteWegMiniHeadingConnectors = () => {
 
     const buildPaths = () => {
         clearAll();
+        ensureConnectorGlowFilter();
 
         const svgRect = websiteWeg.getBoundingClientRect();
         const padding = clampNumber(Math.min(svgRect.width, svgRect.height) * 0.03, 14, 40);
@@ -1515,6 +1565,7 @@ const initWebsiteWegMiniHeadingConnectors = () => {
             path.setAttribute("stroke", "var(--acc-clr)");
             path.setAttribute("stroke-width", "6");
             path.setAttribute("vector-effect", "non-scaling-stroke");
+            path.setAttribute("filter", `url(#${connectorGlowFilterId})`);
             svg.appendChild(path);
 
             const length = path.getTotalLength();
