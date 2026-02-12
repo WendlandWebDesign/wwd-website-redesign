@@ -586,3 +586,133 @@ body.is-nav-open .menu .burger .bar{
         display: none;
     }
 }
+
+
+/* footer */
+
+footer{
+    background: #0e0e0e;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.footer-holder{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+footer .top{
+    position: relative;
+    width: 100%;
+    display: flex;
+    gap: max(3em, 20%);
+    padding: var(--section-padding);
+}
+footer .top ul{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+footer .top ul p{
+    font-size: 1.3rem;
+}
+footer .top ul .ac{
+    text-shadow: 0 0 8px var(--ac-clr);
+}
+
+footer .top ul li a{
+    position: relative;
+}
+footer .top ul li a::after{
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 0;
+    height: 2px;
+    content: '';
+    background-color: var(--ac-clr);
+    transition: width .4s ease;
+    box-shadow: 0 0 8px var(--ac-clr);
+}
+footer .top ul li a:hover::after{
+    width: 100%;
+}
+
+
+
+footer .top .socials{
+    display: flex;
+    gap: 10px;
+    position: absolute;
+    top: 50px;
+    right: 16px;
+}
+footer .top .social{
+    height: 35px;
+    width: auto;
+    cursor: pointer;
+}
+footer .top .social path{
+    transition: all .4s ease;
+}
+footer .top .social:hover path{
+    fill: var(--ac-clr);
+}
+
+
+
+footer .bottom ul{
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 15px 16px;
+    border-top: 1px solid var(--card-clr);
+}
+footer .bottom a{
+    font-size: .95rem;
+    position: relative;
+}
+footer .bottom a::after{
+    position: absolute;
+    width: 0;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    content: '';
+    height: 1px;
+    background-color: var(--txt);
+    transition: width .4s ease;
+}
+footer .bottom a:hover::after{
+    width: 100%;
+}
+
+
+@media(max-width: 700px){
+    footer .top{
+        justify-content: center;
+        margin-bottom: 70px;
+    }
+    footer .top .socials{
+        width: max-content;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+@media(max-width: 370px){
+    footer .top{
+        flex-direction: column;
+        gap: 50px;
+    }
+    footer .bottom ul{
+        flex-direction: column;
+    }
+    footer .top .socials{
+      left: 1em;
+        transform: translateX(0);
+    }
+}
