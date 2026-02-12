@@ -356,8 +356,6 @@
     position: relative;
     isolation: isolate;
     background-color: var(--card-clr);
-
-
 }
 .website-weg__media{
     position: sticky;
@@ -379,6 +377,23 @@
 .website-weg__overlay{
     position: relative;
     width: 100%;
+    z-index: 2;
+}
+.website-weg__connector{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+.website-weg__connector path{
+    fill: none;
+    stroke: var(--acc-clr, var(--ac-clr));
+    stroke-width: 2;
+    stroke-linecap: round;
 }
 .website-weg__fx-layer{
     position: sticky;
@@ -412,12 +427,25 @@
     opacity: 1;
     transform: none;
     transition: none;
-    z-index: 1;
+    z-index: 3;
 }
 .website-weg .txt-holder .mini-heading{
     display: flex;
     align-items: center;
     gap: 10px;
+    position: relative;
+    z-index: 4;
+}
+.website-weg .txt-holder .mini-heading .mini-heading__anchor{
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    width: 1px;
+    height: 1px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    opacity: 0;
+    display: block;
 }
 .website-weg .txt-holder .mini-heading::before{
     content: "";
@@ -426,6 +454,9 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
+    position: relative;
+    z-index: 5;
+    background-color: var(--card-clr);
     border: solid 2px var(--ac-clr);
     box-shadow: inset 0 0 5px var(--ac-clr);
     display: flex;
