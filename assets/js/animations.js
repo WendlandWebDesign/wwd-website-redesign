@@ -1571,85 +1571,6 @@ const initWebsiteWegMiniHeadingConnectors = () => {
         return sumDx > minSumDx;
     };
 
-    const evaluatePoint3ExitQuality = (samples, p3Out, e5Point, boundsWidth) => {
-        if (samples.length < 6) {
-            return {
-                largeRadiusInvalid: true,
-                handoffKinkInvalid: true,
-                straightInvalid: true,
-                rightCurveInvalid: true,
-            };
-        }
-        const sOut = findNearestSampleIndex(samples, p3Out);
-        const e5Index = e5Point ? findNearestSampleIndex(samples, e5Point) : sOut;
-        const handoffIdx = clampNumber(e5Index, 1, samples.length - 3);
-        const handoffT0 = getSampleTangent(samples, handoffIdx);
-        const handoffT1 = getSampleTangent(samples, handoffIdx + 1);
-        const handoffDot = clampNumber(handoffT0.x * handoffT1.x + handoffT0.y * handoffT1.y, -1, 1);
-        const handoffKinkInvalid = handoffDot < 0.97;
-
-        const bStart = clampNumber(sOut, 1, samples.length - 3);
-        const bEnd = Math.min(samples.length - 3, bStart + 25);
-        let largeRadiusTurnHits = 0;
-        let hasSpike = false;
-        let straightRun = 0;
-        let hasLongStraightRun = false;
-        for (let i = bStart; i <= bEnd; i += 1) {
-            const t0 = getSampleTangent(samples, i);
-            const t1 = getSampleTangent(samples, i + 1);
-            const dot = clampNumber(t0.x * t1.x + t0.y * t1.y, -1, 1);
-            const turnDeg = (Math.acos(dot) * 180) / Math.PI;
-            if (turnDeg > 2.5) largeRadiusTurnHits += 1;
-            if (i > 0 && i < samples.length - 1) {
-                const interior = angleAt(samples[i - 1], samples[i], samples[i + 1]);
-                if (interior < 155) hasSpike = true;
-            }
-            if (dot > 0.999) {
-                straightRun += 1;
-                if (straightRun > 3) hasLongStraightRun = true;
-            } else {
-                straightRun = 0;
-            }
-        }
-        const largeRadiusInvalid = largeRadiusTurnHits < 6 || hasSpike;
-        const straightInvalid = hasLongStraightRun;
-        const rightCurveInvalid = !hasPositiveDxAfterNearest(
-            samples,
-            p3Out,
-            25,
-            Math.max(8, boundsWidth * 0.03)
-        );
-
-        const cStart = clampNumber(sOut, 1, samples.length - 3);
-        const cEnd = Math.min(samples.length - 3, cStart + 18);
-        let cRun = 0;
-        for (let i = cStart; i <= cEnd; i += 1) {
-            const t0 = getSampleTangent(samples, i);
-            const t1 = getSampleTangent(samples, i + 1);
-            const dot = clampNumber(t0.x * t1.x + t0.y * t1.y, -1, 1);
-            if (dot > 0.999) {
-                cRun += 1;
-                if (cRun > 3) {
-                    return {
-                        largeRadiusInvalid,
-                        handoffKinkInvalid,
-                        straightInvalid: true,
-                        rightCurveInvalid,
-                    };
-                }
-            } else {
-                cRun = 0;
-            }
-        }
-
-        return {
-            largeRadiusInvalid,
-            handoffKinkInvalid,
-            straightInvalid,
-            rightCurveInvalid,
-        };
-    };
-
     const medianOf = (values) => {
         if (!values.length) return 0;
         const sorted = values.slice().sort((a, b) => a - b);
@@ -1660,6 +1581,104 @@ const initWebsiteWegMiniHeadingConnectors = () => {
 
     const crossZ = (a, b) => a.x * b.y - a.y * b.x;
     const signNonZero = (n, eps = 1e-6) => (n > eps ? 1 : (n < -eps ? -1 : 0));
+
+    const getSampleRangeForSegment = (samples, startPoint, endPoint) => {
+        const rawStart = findNearestSampleIndex(samples, startPoint);
+        const rawEnd = findNearestSampleIndex(samples, endPoint);
+        const s0 = Math.max(0, Math.min(rawStart, rawEnd));
+        const s1 = Math.min(samples.length - 1, Math.max(rawStart, rawEnd));
+        return { s0, s1 };
+    };
+
+    const analyzeWaveSegmentQuality = (segPoints, startPoint, endPoint, debugLabel = "") => {
+        const sampleN = 220;
+        const samples = sampleSplinePoints(segPoints, sampleN, 0.5);
+        if (samples.length < 12) {
+            return {
+                samples,
+                startAngleHits: 0,
+                startStraightRunInvalid: true,
+                crossSignFlips: 99,
+                spikeCount: 99,
+                straightRunMax: 99,
+                noStraightInvalid: true,
+                zigZagInvalid: true,
+                dentInvalid: true,
+                pass: false,
+            };
+        }
+
+        const { s0, s1 } = getSampleRangeForSegment(samples, startPoint, endPoint);
+        const firstWindowEnd = Math.min(samples.length - 3, s0 + 12);
+        let startAngleHits = 0;
+        let straightRun = 0;
+        let straightRunMax = 0;
+
+        for (let i = Math.max(1, s0); i <= firstWindowEnd; i += 1) {
+            const t0 = normalizeVector(subVectors(samples[i], samples[i - 1]));
+            const t1 = normalizeVector(subVectors(samples[i + 1], samples[i]));
+            const dot = clampNumber(t0.x * t1.x + t0.y * t1.y, -1, 1);
+            const turnDeg = (Math.acos(dot) * 180) / Math.PI;
+            if (turnDeg > 2.0) startAngleHits += 1;
+            if (dot > 0.999) {
+                straightRun += 1;
+                straightRunMax = Math.max(straightRunMax, straightRun);
+            } else {
+                straightRun = 0;
+            }
+        }
+
+        let crossSignFlips = 0;
+        let prevSign = 0;
+        const turnDegSamples = [];
+        for (let i = Math.max(1, s0 + 1); i <= Math.min(samples.length - 2, s1 - 1); i += 1) {
+            const t0 = normalizeVector(subVectors(samples[i], samples[i - 1]));
+            const t1 = normalizeVector(subVectors(samples[i + 1], samples[i]));
+            const dot = clampNumber(t0.x * t1.x + t0.y * t1.y, -1, 1);
+            const turnDeg = (Math.acos(dot) * 180) / Math.PI;
+            turnDegSamples.push(turnDeg);
+            const sign = signNonZero(crossZ(t0, t1), 1e-5);
+            if (sign !== 0) {
+                if (prevSign !== 0 && sign !== prevSign) crossSignFlips += 1;
+                prevSign = sign;
+            }
+        }
+        const turnMedian = Math.max(0.001, medianOf(turnDegSamples));
+        const turnSpikeThreshold = Math.max(4.0, turnMedian * 2.0);
+        let spikeCount = 0;
+        for (let i = 0; i < turnDegSamples.length; i += 1) {
+            if (turnDegSamples[i] > turnSpikeThreshold) spikeCount += 1;
+        }
+
+        const noStraightInvalid = startAngleHits < 3 || straightRunMax > 3;
+        const zigZagInvalid = crossSignFlips > 2;
+        const dentInvalid = spikeCount > 0;
+        const pass = !noStraightInvalid && !zigZagInvalid && !dentInvalid;
+
+        if (HERO_SNAKE_DEBUG) {
+            console.groupCollapsed(`wave-segment quality ${debugLabel}`);
+            console.log("startAngleHits:", startAngleHits);
+            console.log("straightRunMax:", straightRunMax);
+            console.log("crossSignFlips:", crossSignFlips);
+            console.log("turnMedian:", turnMedian);
+            console.log("spikeCount:", spikeCount);
+            console.log("pass:", pass);
+            console.groupEnd();
+        }
+
+        return {
+            samples,
+            startAngleHits,
+            startStraightRunInvalid: straightRunMax > 3,
+            crossSignFlips,
+            spikeCount,
+            straightRunMax,
+            noStraightInvalid,
+            zigZagInvalid,
+            dentInvalid,
+            pass,
+        };
+    };
 
     const detectDentSampleIndices = (samples, turnMin, jerkThresh) => {
         if (samples.length < 8) return [];
@@ -1949,132 +1968,80 @@ const initWebsiteWegMiniHeadingConnectors = () => {
         };
     };
 
-    const buildPoint3OutgoingOppositeTransition = (
-        p3In,
-        prevFar,
-        toPoint,
-        width,
-        height,
-        padding,
-        rScale = 1,
-        sScale = 1
-    ) => {
-        const p3InClamped = clampPoint(p3In, width, height, padding);
-        const prevClamped = clampPoint(prevFar, width, height, padding);
-        let vin3 = normalizeVector(subVectors(p3InClamped, prevClamped));
-        if (Math.hypot(vin3.x, vin3.y) < 1e-6) vin3 = { x: 0, y: 1 };
+    const makeWaveSegment = (start, end, bounds, options = {}) => {
+        const width = bounds.width;
+        const height = bounds.height;
+        const padding = bounds.padding;
+        const earlyRampEnd = Number.isFinite(options.earlyRampEnd) ? options.earlyRampEnd : 0.45;
+        const ampMultiplier = Number.isFinite(options.ampMultiplier) ? options.ampMultiplier : 1;
+        const includeStartMicroArc = options.includeStartMicroArc !== false;
 
-        let exitDrop3 = clampNumber(Math.max(18, height * 0.035), 18, 60);
-        let p3Out = clampPoint(
-            {
-                x: p3InClamped.x - vin3.x * exitDrop3,
-                y: p3InClamped.y - vin3.y * exitDrop3,
-            },
-            width,
-            height,
-            padding
-        );
-        for (let i = 0; i < 3; i += 1) {
-            const raw = {
-                x: p3InClamped.x - vin3.x * exitDrop3,
-                y: p3InClamped.y - vin3.y * exitDrop3,
-            };
-            const clamped = clampPoint(raw, width, height, padding);
-            if (distance(raw, clamped) < 0.5) {
-                p3Out = clamped;
-                break;
-            }
-            exitDrop3 *= 0.85;
-            p3Out = clamped;
+        const p0 = clampPoint(start, width, height, padding);
+        const p1 = clampPoint(end, width, height, padding);
+        const v = subVectors(p1, p0);
+        const len = Math.max(1e-6, Math.hypot(v.x, v.y));
+        let t = { x: v.x / len, y: v.y / len };
+        if (Math.hypot(t.x, t.y) < 1e-6) t = { x: 0, y: 1 };
+        let n = normalizeVector({ x: -t.y, y: t.x });
+        const wantRight = p1.x >= p0.x;
+        if ((wantRight && n.x < 0) || (!wantRight && n.x > 0)) n = scaleVector(n, -1);
+
+        const A = clampNumber(len * 0.16 * ampMultiplier, 45, 190);
+        const Ay = clampNumber(height * 0.05, 18, 120);
+        const rampAt = (u) => smoothstep(0, earlyRampEnd, clampNumber(u, 0, 1));
+        const addWaveOffset = (u, nScale, yScale) => {
+            const base = lerpPoint(p0, p1, u);
+            const normalOffset = scaleVector(n, A * nScale * rampAt(u));
+            return clampPoint(
+                addVectors(
+                    addVectors(base, normalOffset),
+                    { x: 0, y: Ay * yScale }
+                ),
+                width,
+                height,
+                padding
+            );
+        };
+
+        const points = [p0];
+        if (includeStartMicroArc) {
+            const startRadius = clampNumber(len * 0.085, 12, 46);
+            const startSide = clampNumber(A * 0.20, 10, 34);
+            const e1 = clampPoint(
+                addVectors(
+                    addVectors(p0, scaleVector(t, startRadius * 0.28)),
+                    scaleVector(n, startSide * 0.95)
+                ),
+                width,
+                height,
+                padding
+            );
+            const e2 = clampPoint(
+                addVectors(
+                    addVectors(p0, scaleVector(t, startRadius * 0.82)),
+                    scaleVector(n, startSide * 0.60)
+                ),
+                width,
+                height,
+                padding
+            );
+            const e3 = clampPoint(
+                addVectors(
+                    addVectors(p0, scaleVector(t, startRadius * 1.55)),
+                    scaleVector(n, startSide * 0.22)
+                ),
+                width,
+                height,
+                padding
+            );
+            points.push(e1, e2, e3);
         }
 
-        const dirToP4Raw = normalizeVector(subVectors(toPoint, p3Out));
-        const dirToP4 = Math.hypot(dirToP4Raw.x, dirToP4Raw.y) < 1e-6 ? { x: 1, y: 0 } : dirToP4Raw;
-        const tBase3 = dirToP4;
-        let nRight = normalizeVector({ x: -tBase3.y, y: tBase3.x });
-        if (nRight.x < 0) nRight = scaleVector(nRight, -1);
-
-        const p3Mid1 = clampPoint(
-            {
-                x: p3InClamped.x - vin3.x * (exitDrop3 * 0.35) + nRight.x * (exitDrop3 * 0.18),
-                y: p3InClamped.y - vin3.y * (exitDrop3 * 0.35) + nRight.y * (exitDrop3 * 0.18),
-            },
-            width,
-            height,
-            padding
-        );
-        const p3Mid2 = clampPoint(
-            {
-                x: p3InClamped.x - vin3.x * (exitDrop3 * 0.70) + nRight.x * (exitDrop3 * 0.10),
-                y: p3InClamped.y - vin3.y * (exitDrop3 * 0.70) + nRight.y * (exitDrop3 * 0.10),
-            },
-            width,
-            height,
-            padding
-        );
-
-        const R = clampNumber(Math.max(26, width * 0.040) * rScale, 26, 90);
-        const S = clampNumber(R * 1.20 * sScale, 24, 110);
-        const e1 = clampPoint(
-            {
-                x: p3Out.x + tBase3.x * (R * 0.35) + nRight.x * (S * 1.00),
-                y: p3Out.y + tBase3.y * (R * 0.35) + nRight.y * (S * 1.00),
-            },
-            width,
-            height,
-            padding
-        );
-        const e2 = clampPoint(
-            {
-                x: p3Out.x + tBase3.x * (R * 1.15) + nRight.x * (S * 0.92),
-                y: p3Out.y + tBase3.y * (R * 1.15) + nRight.y * (S * 0.92),
-            },
-            width,
-            height,
-            padding
-        );
-        const e3 = clampPoint(
-            {
-                x: p3Out.x + tBase3.x * (R * 2.35) + nRight.x * (S * 0.80),
-                y: p3Out.y + tBase3.y * (R * 2.35) + nRight.y * (S * 0.80),
-            },
-            width,
-            height,
-            padding
-        );
-        const e4 = clampPoint(
-            {
-                x: p3Out.x + tBase3.x * (R * 3.90) + nRight.x * (S * 0.65),
-                y: p3Out.y + tBase3.y * (R * 3.90) + nRight.y * (S * 0.65),
-            },
-            width,
-            height,
-            padding
-        );
-        const e5 = clampPoint(
-            {
-                x: p3Out.x + tBase3.x * (R * 5.60) + nRight.x * (S * 0.48),
-                y: p3Out.y + tBase3.y * (R * 5.60) + nRight.y * (S * 0.48),
-            },
-            width,
-            height,
-            padding
-        );
-
-        const oppositeVec = normalizeVector(subVectors(p3Out, p3InClamped));
-        const oppositeDot = oppositeVec.x * vin3.x + oppositeVec.y * vin3.y;
-
-        return {
-            transitionPoints: [p3InClamped, p3Mid1, p3Mid2, p3Out, e1, e2, e3, e4, e5],
-            startOut: e5,
-            p3In: p3InClamped,
-            p3Out,
-            e5,
-            vin3,
-            oppositeDot,
-            tBase3,
-            nRight,
-        };
+        const m1 = addWaveOffset(0.30, 1.00, 0.20);
+        const m2 = addWaveOffset(0.60, -0.75, 0.10);
+        const m3 = addWaveOffset(0.82, 0.35, 0.04);
+        points.push(m1, m2, m3, p1);
+        return clampPoints(points, width, height, padding);
     };
 
     const buildMacroWaypoints = (
@@ -2242,10 +2209,9 @@ const initWebsiteWegMiniHeadingConnectors = () => {
             let p2OutRScale = 1;
             let p2OutSScale = 1;
             let p2OutExit3BackScale = 1;
-            let p3OutRScale = 1;
-            let p3OutSScale = 1;
-            let p3OutAmpScale = 0.82;
-            let p3ExitRetryCount = 0;
+            let p3WaveAmpScale = 1;
+            let p3WaveExtraSmooth = 0;
+            let p3WaveRetryCount = 0;
             let p2GuardAdjustments = 0;
 
             for (let iteration = 0; iteration < 4; iteration += 1) {
@@ -2255,7 +2221,6 @@ const initWebsiteWegMiniHeadingConnectors = () => {
                 let transitionPoints = null;
                 let incomingPortMeta = null;
                 let outgoingPortMeta = null;
-                let point3OutgoingMeta = null;
 
                 if (isPoint2Incoming || isPoint2Outgoing) {
                     const prevFar = getAnchorSafe(0, fromAnchorPoint);
@@ -2290,22 +2255,6 @@ const initWebsiteWegMiniHeadingConnectors = () => {
                         transitionPoints = outgoingPortMeta.transitionPoints;
                     }
                 }
-                if (isPoint3Outgoing) {
-                    const prevFar3 = getAnchorSafe(1, fromAnchorPoint);
-                    point3OutgoingMeta = buildPoint3OutgoingOppositeTransition(
-                        fromAnchorPoint,
-                        prevFar3,
-                        toPoint,
-                        svgRect.width,
-                        svgRect.height,
-                        padding,
-                        p3OutRScale,
-                        p3OutSScale
-                    );
-                    fromPoint = point3OutgoingMeta.startOut;
-                    transitionPoints = point3OutgoingMeta.transitionPoints;
-                }
-
                 let rawMacro;
                 if (isPoint2Incoming && transitionMeta) {
                     incomingPortMeta = buildPoint2IncomingPortMatchedWaypoints(
@@ -2322,25 +2271,35 @@ const initWebsiteWegMiniHeadingConnectors = () => {
                     );
                     rawMacro = incomingPortMeta.points;
                 } else {
+                    const useWaveStyle = isPoint2Outgoing || isPoint3Outgoing;
                     const macroOptions = isPoint2Outgoing
-                        ? { earlyRampEnd: p2OutRampEnd, ampMultiplier: p2OutAmpScale }
+                        ? { earlyRampEnd: p2OutRampEnd, ampMultiplier: p2OutAmpScale, includeStartMicroArc: false }
                         : (
                             isPoint3Outgoing
-                                ? { earlyRampEnd: 0.70, ampMultiplier: p3OutAmpScale }
+                                ? { earlyRampEnd: 0.45, ampMultiplier: p3WaveAmpScale, includeStartMicroArc: true }
                                 : {}
                         );
-                    rawMacro = buildMacroWaypoints(
-                        fromPoint,
-                        toPoint,
-                        segmentIndex,
-                        holders.length,
-                        amplitudeScale,
-                        svgRect.width,
-                        svgRect.height,
-                        padding,
-                        macroOptions
-                    );
-                    if (transitionPoints && transitionPoints.length) {
+                    if (useWaveStyle) {
+                        rawMacro = makeWaveSegment(
+                            fromPoint,
+                            toPoint,
+                            { width: svgRect.width, height: svgRect.height, padding },
+                            macroOptions
+                        );
+                    } else {
+                        rawMacro = buildMacroWaypoints(
+                            fromPoint,
+                            toPoint,
+                            segmentIndex,
+                            holders.length,
+                            amplitudeScale,
+                            svgRect.width,
+                            svgRect.height,
+                            padding,
+                            macroOptions
+                        );
+                    }
+                    if (!isPoint3Outgoing && transitionPoints && transitionPoints.length) {
                         rawMacro = transitionPoints.concat(rawMacro.slice(1));
                     }
                 }
@@ -2348,6 +2307,11 @@ const initWebsiteWegMiniHeadingConnectors = () => {
                 let candidate = clampPoints(rawMacro, svgRect.width, svgRect.height, padding);
                 candidate = chaikinSmooth(candidate);
                 candidate = chaikinSmooth(candidate);
+                if (isPoint3Outgoing && p3WaveExtraSmooth > 0) {
+                    for (let s = 0; s < p3WaveExtraSmooth; s += 1) {
+                        candidate = chaikinSmooth(candidate);
+                    }
+                }
                 candidate = dedupeConsecutive(candidate, 0.8);
                 const segmentMinLen = isPoint2Outgoing
                     ? clampNumber(minLenBase * 0.7 + iteration * 1.1, 6, minLenBase + 2)
@@ -2368,10 +2332,6 @@ const initWebsiteWegMiniHeadingConnectors = () => {
                 candidate = enforceMinSegmentLength(candidate, segmentMinLen);
                 const pinnedPoints = [fromAnchorPoint, baseToPoint];
                 if (transitionMeta && transitionMeta.port) pinnedPoints.push(transitionMeta.port);
-                if (point3OutgoingMeta) {
-                    pinnedPoints.push(point3OutgoingMeta.p3In);
-                    pinnedPoints.push(point3OutgoingMeta.p3Out);
-                }
                 const uniformitySamples = holders.length <= 4 ? 300 : 240;
                 candidate = runCurvatureUniformityPass(
                     candidate,
@@ -2383,12 +2343,11 @@ const initWebsiteWegMiniHeadingConnectors = () => {
                     collinearAngleEps,
                     uniformitySamples
                 );
-
                 if (candidate.length < 2) {
                     candidate = [fromPoint, toPoint];
                 }
 
-                const sampleCount = isPoint2Incoming ? 160 : (isPoint3Outgoing ? 220 : (isPoint2Outgoing ? 200 : 80));
+                const sampleCount = isPoint2Incoming ? 160 : (isPoint3Outgoing ? 240 : (isPoint2Outgoing ? 200 : 80));
                 const samples = sampleSplinePoints(candidate, sampleCount, 0.5);
                 const localAnchorInvalid =
                     Boolean(transitionMeta && isPoint2Outgoing) &&
@@ -2443,36 +2402,14 @@ const initWebsiteWegMiniHeadingConnectors = () => {
                 const point2PostPortDirectionInvalid =
                     Boolean(transitionMeta && isPoint2Outgoing && outgoingPortMeta) &&
                     point2OutSideSign <= 0;
-                const point3OppositeExitInvalid =
-                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
-                    point3OutgoingMeta.oppositeDot > -0.85;
-                const point3PostOutNotCurvyInvalid =
-                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
-                    !hasImmediateCurvatureAfterNearest(samples, point3OutgoingMeta.p3Out, 2.5);
-                const point3PostOutStraightRunInvalid =
-                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
-                    hasStraightRunAfterNearest(samples, point3OutgoingMeta.p3Out, 10, 0.999, 3);
-                const point3OutNearestIndex = point3OutgoingMeta ? findNearestSampleIndex(samples, point3OutgoingMeta.p3Out) : 1;
-                const point3TanIn = getSampleTangent(samples, point3OutNearestIndex);
-                const point3TanOut = getSampleTangent(samples, Math.min(samples.length - 1, point3OutNearestIndex + 1));
-                const point3PortKinkInvalid =
-                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
-                    (point3TanIn.x * point3TanOut.x + point3TanIn.y * point3TanOut.y) < 0.95;
-                const point3ExitQuality = (isPoint3Outgoing && point3OutgoingMeta)
-                    ? evaluatePoint3ExitQuality(samples, point3OutgoingMeta.p3Out, point3OutgoingMeta.e5, svgRect.width)
-                    : { largeRadiusInvalid: false, handoffKinkInvalid: false, straightInvalid: false, rightCurveInvalid: false };
-                const point3LargeRadiusInvalid =
-                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
-                    point3ExitQuality.largeRadiusInvalid;
-                const point3HandoffKinkInvalid =
-                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
-                    point3ExitQuality.handoffKinkInvalid;
-                const point3ExitStraightInvalid =
-                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
-                    point3ExitQuality.straightInvalid;
-                const point3RightCurveInvalid =
-                    Boolean(isPoint3Outgoing && point3OutgoingMeta) &&
-                    point3ExitQuality.rightCurveInvalid;
+                const point3WaveQuality = isPoint3Outgoing
+                    ? analyzeWaveSegmentQuality(candidate, fromPoint, toPoint, `iter-${iteration}`)
+                    : {
+                        noStraightInvalid: false,
+                        zigZagInvalid: false,
+                        dentInvalid: false,
+                        pass: true,
+                    };
                 const invalid =
                     detectSelfIntersections(samples) ||
                     hasLocalReversal(samples, fromPoint, toPoint, segmentIndex) ||
@@ -2487,14 +2424,9 @@ const initWebsiteWegMiniHeadingConnectors = () => {
                     point2PostPortStraightInvalid ||
                     point2PostPortStraightRunInvalid ||
                     point2PostPortDirectionInvalid ||
-                    point3OppositeExitInvalid ||
-                    point3PortKinkInvalid ||
-                    point3LargeRadiusInvalid ||
-                    point3HandoffKinkInvalid ||
-                    point3ExitStraightInvalid ||
-                    point3PostOutNotCurvyInvalid ||
-                    point3PostOutStraightRunInvalid ||
-                    point3RightCurveInvalid ||
+                    point3WaveQuality.noStraightInvalid ||
+                    point3WaveQuality.zigZagInvalid ||
+                    point3WaveQuality.dentInvalid ||
                     point2IncomingFromAboveInvalid ||
                     localAnchorInvalid;
 
@@ -2548,37 +2480,14 @@ const initWebsiteWegMiniHeadingConnectors = () => {
                     p2GuardAdjustments += 1;
                     continue;
                 }
-                if ((point3PostOutNotCurvyInvalid || point3PostOutStraightRunInvalid) && p2GuardAdjustments < 3) {
-                    p3OutSScale *= 1.12;
-                    p3OutRScale *= 1.12;
-                    p3OutAmpScale = Math.max(0.65, p3OutAmpScale * 0.95);
-                    p2GuardAdjustments += 1;
-                    continue;
-                }
-                if ((point3LargeRadiusInvalid || point3HandoffKinkInvalid || point3ExitStraightInvalid || point3RightCurveInvalid) && p3ExitRetryCount < 3) {
-                    if (point3HandoffKinkInvalid) {
-                        p3OutRScale = Math.min(1.08 * 1.08 * 1.08, p3OutRScale * 1.08);
-                    } else if (point3RightCurveInvalid || point3ExitStraightInvalid || point3LargeRadiusInvalid) {
-                        p3OutSScale = Math.min(1.12 * 1.12 * 1.12, p3OutSScale * 1.12);
-                        if (point3LargeRadiusInvalid) {
-                            p3OutRScale = Math.min(1.08 * 1.08 * 1.08, p3OutRScale * 1.08);
-                        }
-                    } else {
-                        p3OutRScale = Math.min(1.08 * 1.08 * 1.08, p3OutRScale * 1.08);
+                if (isPoint3Outgoing && !point3WaveQuality.pass && p3WaveRetryCount < 3) {
+                    if (point3WaveQuality.zigZagInvalid || point3WaveQuality.dentInvalid || point3WaveQuality.noStraightInvalid) {
+                        p3WaveAmpScale *= 0.90;
                     }
-                    p3OutAmpScale = Math.max(0.62, p3OutAmpScale * 0.94);
-                    p3ExitRetryCount += 1;
-                    continue;
-                }
-                if (point3PortKinkInvalid && p2GuardAdjustments < 3) {
-                    p3OutRScale *= 1.08;
-                    p3OutSScale *= 1.08;
-                    p2GuardAdjustments += 1;
-                    continue;
-                }
-                if (point3OppositeExitInvalid && p2GuardAdjustments < 3) {
-                    p3OutRScale *= 1.08;
-                    p2GuardAdjustments += 1;
+                    if (point3WaveQuality.dentInvalid) {
+                        p3WaveExtraSmooth = 1;
+                    }
+                    p3WaveRetryCount += 1;
                     continue;
                 }
                 if ((point2IncomingFromAboveInvalid || point2TangentMismatchInvalid) && p2GuardAdjustments < 3) {
