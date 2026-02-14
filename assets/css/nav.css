@@ -298,6 +298,10 @@ body.is-nav-open .menu .burger .bar{
     height: 15px;
     width: auto;
 }
+.list-left-item.akt p{
+    color: var(--ac-clr);
+    text-shadow: 0 0 7px var(--ac-clr);
+}
 
 
 
