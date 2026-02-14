@@ -123,25 +123,24 @@ get_header();
         <div class="website-weg">
             <svg class="website-weg__connector" aria-hidden="true" focusable="false"></svg>
             <div class="website-weg__media">
-                <div class="img-transition-top"></div>
-                <div class="img-transition-bottom"></div>
+
             </div>
             <div class="website-weg__overlay">
                 <div class="txt-holder">
-                    <p class="light mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span>Kostenloses Erstgespräch</p>
-                    <p class="light">Alles beginnt mit einem entspannten Kennenlernen. Wir analysieren deine bestehende Website, sprechen über mögliche Probleme und zeigen ungenutzte Chancen auf. Gemeinsam definieren wir das Ziel deiner neuen Website und den Weg dorthin.</p>
+                    <p class="dark mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span>Kostenloses Erstgespräch</p>
+                    <p class="dark">Alles beginnt mit einem entspannten Kennenlernen. Wir analysieren deine bestehende Website, sprechen über mögliche Probleme und zeigen ungenutzte Chancen auf. Gemeinsam definieren wir das Ziel deiner neuen Website und den Weg dorthin.</p>
                 </div>
                 <div class="txt-holder">
-                    <p class="light mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span>Konzept & Design</p>
-                    <p class="light">Auf Basis dieser Ziele entwickeln wir ein durchdachtes Konzept und ein modernes Design. Struktur, Nutzerführung und Inhalte werden von Anfang an sauber geplant – damit alles logisch aufgebaut und zukunftssicher ist.</p>
+                    <p class="dark mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span>Konzept & Design</p>
+                    <p class="dark">Auf Basis dieser Ziele entwickeln wir ein durchdachtes Konzept und ein modernes Design. Struktur, Nutzerführung und Inhalte werden von Anfang an sauber geplant – damit alles logisch aufgebaut und zukunftssicher ist.</p>
                 </div>
                 <div class="txt-holder">
-                    <p class="light mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span>Custom Entwicklung mit Fokus auf Performance</p>
-                    <p class="light">Nach deiner Freigabe setzen wir das Design individuell und codebasiert um. Performance, Technik und Details stehen dabei im Fokus. Die Inhalte können später bei Bedarf über ein CMS selbst gepflegt werden, ohne die technische Basis anzutasten.</p>
+                    <p class="dark mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span>Custom Entwicklung mit Fokus auf Performance</p>
+                    <p class="dark">Nach deiner Freigabe setzen wir das Design individuell und codebasiert um. Performance, Technik und Details stehen dabei im Fokus. Die Inhalte können später bei Bedarf über ein CMS selbst gepflegt werden, ohne die technische Basis anzutasten.</p>
                 </div>
                 <div class="txt-holder">
-                    <p class="light mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span>Hosting & Launch</p>
-                    <p class="light">Nach der Fertigstellung übernehmen wir das Hosting und bringen deine Website online. Stabil, sicher und sauber aufgesetzt – damit deine Website nicht nur startet, sondern langfristig zuverlässig läuft.</p>
+                    <p class="dark mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span>Hosting & Launch</p>
+                    <p class="dark">Nach der Fertigstellung übernehmen wir das Hosting und bringen deine Website online. Stabil, sicher und sauber aufgesetzt – damit deine Website nicht nur startet, sondern langfristig zuverlässig läuft.</p>
                 </div>
             </div>
         </div>

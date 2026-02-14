@@ -365,7 +365,6 @@
     width: 100%;
     position: relative;
     isolation: isolate;
-    background-color: var(--card-clr);
 }
 .website-weg__media{
     position: sticky;

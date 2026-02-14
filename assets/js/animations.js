@@ -1711,6 +1711,34 @@ if (document.readyState === "loading") {
     initWebsiteWegInview();
 }
 
+const initWebsiteWegHeadingPastState = () => {
+    const section = document.querySelector(".website-weg");
+    if (!section || !("IntersectionObserver" in window)) return;
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    document.body.classList.add("website-weg-scrolled-past");
+                    return;
+                }
+                document.body.classList.remove("website-weg-scrolled-past");
+            });
+        },
+        {
+            threshold: 0,
+        }
+    );
+
+    observer.observe(section);
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initWebsiteWegHeadingPastState);
+} else {
+    initWebsiteWegHeadingPastState();
+}
+
 const initFaqLayoutAppear = () => {
     const faqLayout = document.getElementById("faq-layout") || document.querySelector(".faq-layout");
     if (!faqLayout) return;
