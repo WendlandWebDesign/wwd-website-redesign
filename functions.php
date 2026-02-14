@@ -28,8 +28,8 @@ function wwd_website_redesign_enqueue_assets() {
     $css_hero     = 'assets/css/hero.css';
     $css_referenzen     = 'assets/css/referenzen.css';
     $css_dienstleistungen     = 'assets/css/dienstleistungen.css';
-    $css_kontakt     = 'assets/css/kontakt.css';
-
+	$css_news     = 'assets/css/news.css';
+	$css_kontakt     = 'assets/css/kontakt.css';
 	// JS-Dateien
 	$js_base       = 'assets/js/base.js';
 	$js_animations = 'assets/js/animations.js';
@@ -96,14 +96,18 @@ function wwd_website_redesign_enqueue_assets() {
         array( 'wwd-website-redesign-base' ),
         file_exists( get_theme_file_path( $css_dienstleistungen ) ) ? filemtime( get_theme_file_path( $css_dienstleistungen ) ) : null
     );
-
-    wp_enqueue_style(
+	wp_enqueue_style(
+        'wwd-website-redesign-news',
+        get_theme_file_uri( $css_news ),
+        array( 'wwd-website-redesign-base' ),
+        file_exists( get_theme_file_path( $css_news ) ) ? filemtime( get_theme_file_path( $css_news ) ) : null
+    );
+	wp_enqueue_style(
         'wwd-website-redesign-kontakt',
         get_theme_file_uri( $css_kontakt ),
         array( 'wwd-website-redesign-base' ),
         file_exists( get_theme_file_path( $css_kontakt ) ) ? filemtime( get_theme_file_path( $css_kontakt) ) : null
     );
-
 	/**
 	 * JS einbinden
 	 * → falls base.js KEIN jQuery nutzt, einfach 'jquery' entfernen
@@ -2445,17 +2449,8 @@ function wwd_seitenbilder_callback() {
     $fields = [
         'home-img' => 'Homepage Hero',
 		'faecher-home' => 'F�cher Homepage',
-        'ansatz-1' => 'ansatz-1',
-        'ansatz-2' => 'ansatz-2',
-        'weg-zur-website-1' => 'weg-zur-website-1',
-        'weg-zur-website-2' => 'weg-zur-website-2',
-        'weg-zur-website-3' => 'weg-zur-website-3',
-        'weg-zur-website-4' => 'weg-zur-website-4',
+		'leistungen' => 'leistungen',
         'kunden' => 'Kunden Hero',
-        'das-machen-wir-moeglich-1' => 'das-machen-wir-moeglich-1',
-        'das-machen-wir-moeglich-2' => 'das-machen-wir-moeglich-2',
-        'das-machen-wir-moeglich-3' => 'das-machen-wir-moeglich-3',
-        'ki-home' => 'KI Homepage',
         'ki-integration' => 'KI Integration',
         'news' => 'News Hero',
         'ueber-uns' => 'Ueber uns Hero',

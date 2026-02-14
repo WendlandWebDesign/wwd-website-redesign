@@ -3,7 +3,7 @@ get_header();
 ?>
 
 <?php
-    $heroImgSrc = esc_url(get_option('home-img'));
+    $heroImgSrc = esc_url(get_option('kunden'));
     $heroTxt = "Unsere Kunden";
 ?>
 

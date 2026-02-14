@@ -1,0 +1,67 @@
+
+/* === News-Sammlung: max 2 nebeneinander + gleich große Cards === */
+.news-holder {
+    margin: 0 auto;
+    padding: var(--site-padding);
+}
+main .news-sammlung {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    align-items: stretch;
+}
+
+@media (max-width: 640px) {
+    main .news-sammlung {
+        grid-template-columns: 1fr;
+    }
+}
+
+main .news-sammlung .nav-card {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+main .news-sammlung .nav-card .card-img-holder {
+    aspect-ratio: 16 / 9;
+}
+
+main .news-sammlung .nav-card .card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+main .news-sammlung .nav-card .nav-card__text-row {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+main .news-sammlung .nav-card .news-card__excerpt {
+    margin: 0;
+    padding: 0 1em 12px;
+    color: var(--txt);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+}
+
+.single h1 {
+    font-family: var(--font-body);
+    font-size: clamp(1.2rem, 4vw, 3rem);
+}
+
+.single-content {
+    font-family: var(--font-body);
+    font-size: calc(.9rem + 0.2vw);
+    line-height: 1.7;
+    padding: var(--section-padding);
+}

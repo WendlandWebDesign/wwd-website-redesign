@@ -6,7 +6,7 @@ get_header();
 
 <main>
     <?php
-        $heroImgSrc = esc_url(get_option('home-img'));
+        $heroImgSrc = esc_url(get_option('leistungen'));
         $heroTxt = "Unsere Leistungen";
 
     ?>

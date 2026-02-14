@@ -4,14 +4,14 @@ get_header();
 
 <main>
     <?php
-        $heroImgSrc = esc_url(get_option('home-img'));
+        $heroImgSrc = esc_url(get_option('news'));
         $heroTxt = "News";
 
     ?>
 
     <?php include_once "assets/_snippets/hero.php" ?>
-
-    <div>
+<div class="news-holder mw">
+    <div class="news-sammlung">
     <?php
         $news_query = wwd_get_news_query();
         if ( $news_query->have_posts() ) :
@@ -31,13 +31,20 @@ get_header();
                         ?>
                     </div>
                     <p class="light nav-card__text-row"><?php echo esc_html( get_the_title() ); ?> <?php echo wwd_inline_svg( 'corner-arrow-light.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
+                    <?php $excerpt = get_the_excerpt(); ?>
+                    <?php if ( ! empty( $excerpt ) ) : ?>
+                        <?php $trimmed_excerpt = wp_trim_words( $excerpt, 30, '...' ); ?>
+                        <p class="news-card__excerpt"><?php echo esc_html( $trimmed_excerpt ); ?></p>
+                    <?php endif; ?>
                 </div>
                 <?php
             endwhile;
             wp_reset_postdata();
         endif;
     ?>
-
+</div>
 </main>
 <?php
 get_footer();
+
+
