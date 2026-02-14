@@ -1697,8 +1697,81 @@ if (document.readyState === "loading") {
     initWebsiteWegInview();
 }
 
+// FAQ reveal animation (staggered slide-in from left)
+document.addEventListener("DOMContentLoaded", () => {
+    const gsapBundle = getGsapScrollTrigger();
+    if (!gsapBundle) return;
+    const { gsapInstance } = gsapBundle;
 
+    const faqSections = Array.from(document.querySelectorAll(".faq"));
+    if (!faqSections.length) return;
 
+    faqSections.forEach((faqEl) => {
+        const items = Array.from(faqEl.querySelectorAll(".faq__item"));
+        if (!items.length) return;
+
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduceMotion) {
+            gsapInstance.set(items, { clearProps: "all", opacity: 1, xPercent: 0 });
+            return;
+        }
+
+        gsapInstance.set(items, {
+            xPercent: -10,
+            opacity: 0,
+            willChange: "transform, opacity",
+        });
+
+        gsapInstance.to(items, {
+            xPercent: 0,
+            opacity: 1,
+            duration: 0.7,
+            ease: "power2.out",
+            stagger: 0.12,
+            clearProps: "willChange",
+            scrollTrigger: {
+                trigger: faqEl,
+                start: "top 75%",
+                toggleActions: "play none none none",
+                once: true,
+            },
+        });
+    });
+});
+
+/**FAQ */
+
+(() => {
+	'use strict';
+
+	if (window.__wwdFaqInit) {
+		return;
+	}
+	window.__wwdFaqInit = true;
+
+	document.addEventListener('click', (event) => {
+		const trigger = event.target.closest('.faq__q');
+		if (!trigger) {
+			return;
+		}
+
+		const item = trigger.closest('.faq__item');
+		if (!item) {
+			return;
+		}
+
+		const controlsId = trigger.getAttribute('aria-controls');
+		const answer = controlsId ? document.getElementById(controlsId) : null;
+		const isOpen = item.classList.contains('is-open');
+
+		item.classList.toggle('is-open', !isOpen);
+		trigger.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+
+		if (answer) {
+			answer.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+		}
+	});
+})();
 
 
 

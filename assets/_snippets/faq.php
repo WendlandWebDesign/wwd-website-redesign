@@ -29,54 +29,27 @@ if ( empty( $faq_items ) ) {
 
 		<div class="faq-accordion" data-faq-accordion>
 			<?php foreach ( $faq_items as $index => $item ) : ?>
-				<?php $answer_id = 'faq-answer-' . (int) $post_id . '-' . (int) ( $index + 1 ); ?>
-				<div class="faq-item light">
+				<?php $answer_id = 'faq-a-' . (int) $post_id . '-' . (int) ( $index + 1 ); ?>
+				<div class="faq__item">
 					<button
 						type="button"
-						class="faq-item__trigger"
+						class="faq__q mini-heading"
 						aria-expanded="false"
 						aria-controls="<?php echo esc_attr( $answer_id ); ?>"
 					>
-						<span class="faq-item__question"><?php echo esc_html( $item['question'] ); ?></span>
-						<span class="faq-item__icon" aria-hidden="true">+</span>
+						<span class="faq__qtext"><?php echo esc_html( $item['question'] ); ?></span>
+						<span class="faq__icon" aria-hidden="true">
+							<span class="faq__icon-plus">+</span>
+							<span class="faq__icon-minus">−</span>
+						</span>
 					</button>
-					<div id="<?php echo esc_attr( $answer_id ); ?>" class="faq-item__answer" hidden>
-						<p><?php echo wp_kses_post( nl2br( esc_html( $item['answer'] ) ) ); ?></p>
+					<div id="<?php echo esc_attr( $answer_id ); ?>" class="faq__a" aria-hidden="true">
+						<div class="faq__acontent">
+							<p class="light"><?php echo nl2br( esc_html( $item['answer'] ) ); ?></p>
+						</div>
 					</div>
 				</div>
 			<?php endforeach; ?>
 		</div>
 	</div>
 </div>
-<script>
-	(function () {
-		if (window.__wwdFaqAccordionInit) {
-			return;
-		}
-		window.__wwdFaqAccordionInit = true;
-
-		document.addEventListener('click', function (event) {
-			var trigger = event.target.closest('.faq-item__trigger');
-			if (!trigger) {
-				return;
-			}
-
-			var item = trigger.closest('.faq-item');
-			if (!item) {
-				return;
-			}
-
-			var answer = item.querySelector('.faq-item__answer');
-			var icon = trigger.querySelector('.faq-item__icon');
-			var isExpanded = trigger.getAttribute('aria-expanded') === 'true';
-
-			trigger.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
-			if (answer) {
-				answer.hidden = isExpanded;
-			}
-			if (icon) {
-				icon.textContent = isExpanded ? '+' : '-';
-			}
-		});
-	})();
-</script>

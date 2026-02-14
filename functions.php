@@ -33,6 +33,7 @@ function wwd_website_redesign_enqueue_assets() {
 	$js_base       = 'assets/js/base.js';
 	$js_animations = 'assets/js/animations.js';
 	$js_btn_snake  = 'assets/js/btn-border-snake.js';
+	$js_faq        = 'assets/js/faq.js';
 	$js_gsap       = 'assets/js/node_modules/gsap/dist/gsap.min.js';
 	$js_scrolltrigger = 'assets/js/node_modules/gsap/dist/ScrollTrigger.min.js';
 
@@ -149,6 +150,16 @@ function wwd_website_redesign_enqueue_assets() {
 			get_theme_file_uri( $js_btn_snake ),
 			array( 'wwd-website-redesign-base' ),
 			filemtime( get_theme_file_path( $js_btn_snake ) ),
+			true
+		);
+	}
+
+	if ( file_exists( get_theme_file_path( $js_faq ) ) ) {
+		wp_enqueue_script(
+			'wwd-website-redesign-faq',
+			get_theme_file_uri( $js_faq ),
+			array(),
+			filemtime( get_theme_file_path( $js_faq ) ),
 			true
 		);
 	}
