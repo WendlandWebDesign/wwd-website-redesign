@@ -387,12 +387,28 @@ add_action( 'init', 'wwd_register_media_category_taxonomy', 11 );
 function wwd_get_allowed_layouts() {
 	return array(
 		'leistungen-cards' => 'assets/_snippets/leistungen-cards.php',
+		'faq'              => 'assets/_snippets/faq.php',
 		'three-img-layout' => 'assets/_snippets/three-img-layout.php',
 		'two-img-layout'   => 'assets/_snippets/two-img-layout.php',
 		'one-img-layout'   => 'assets/_snippets/one-img-layout.php',
 		'balken-layout'    => 'assets/_snippets/balken.php',
 		'slider-layout'    => 'assets/_snippets/slider.php',
 	);
+}
+
+function theme_get_selected_layout( $post_id ) {
+	$layout_key = '_layout_template';
+	$value      = get_post_meta( $post_id, $layout_key, true );
+
+	return is_string( $value ) ? $value : '';
+}
+
+function theme_is_balken_layout( $post_id ) {
+	return 'balken-layout' === theme_get_selected_layout( $post_id );
+}
+
+function theme_is_faq_layout( $post_id ) {
+	return 'faq' === theme_get_selected_layout( $post_id );
 }
 
 /**
@@ -496,6 +512,7 @@ function wwd_render_layout_template_metabox( $post ) {
 	</p>
 	<select name="wwd_layout_template" id="wwd-layout-template" class="widefat">
 		<option value="leistungen-cards" <?php selected( $current, 'leistungen-cards' ); ?>><?php echo esc_html( 'Leistungen Cards' ); ?></option>
+		<option value="faq" <?php selected( $current, 'faq' ); ?>><?php echo esc_html( 'FAQ' ); ?></option>
 		<option value="one-img-layout" <?php selected( $current, 'one-img-layout' ); ?>><?php echo esc_html( 'One-Image Layout' ); ?></option>
 		<option value="two-img-layout" <?php selected( $current, 'two-img-layout' ); ?>><?php echo esc_html( 'Two-Image Layout' ); ?></option>
 		<option value="three-img-layout" <?php selected( $current, 'three-img-layout' ); ?>><?php echo esc_html( 'Three-Image Layout' ); ?></option>
@@ -714,6 +731,35 @@ function wwd_save_unterseiten_meta( $post_id ) {
 			}
 		}
 	}
+
+	if ( isset( $_POST['theme_faq_nonce'] ) && wp_verify_nonce( $_POST['theme_faq_nonce'], 'theme_save_faq_meta' ) ) {
+		$faq_headline = isset( $_POST['faq_headline'] ) ? sanitize_text_field( wp_unslash( $_POST['faq_headline'] ) ) : '';
+		if ( '' === $faq_headline ) {
+			delete_post_meta( $post_id, 'faq_headline' );
+		} else {
+			update_post_meta( $post_id, 'faq_headline', $faq_headline );
+		}
+
+		for ( $i = 1; $i <= 10; $i++ ) {
+			$q_key = 'faq_q_' . $i;
+			$a_key = 'faq_a_' . $i;
+
+			$question = isset( $_POST[ $q_key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $q_key ] ) ) : '';
+			$answer   = isset( $_POST[ $a_key ] ) ? sanitize_textarea_field( wp_unslash( $_POST[ $a_key ] ) ) : '';
+
+			if ( '' === $question ) {
+				delete_post_meta( $post_id, $q_key );
+			} else {
+				update_post_meta( $post_id, $q_key, $question );
+			}
+
+			if ( '' === $answer ) {
+				delete_post_meta( $post_id, $a_key );
+			} else {
+				update_post_meta( $post_id, $a_key, $answer );
+			}
+		}
+	}
 }
 
 foreach ( wwd_get_unterseiten_post_types() as $post_type ) {
@@ -744,12 +790,7 @@ function wwd_add_balken_metaboxes( $post_type, $post ) {
 		return;
 	}
 
-	$allowed_layouts = wwd_get_allowed_layouts();
-	$layout          = get_post_meta( $post_id, '_layout_template', true );
-	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
-		$layout = 'two-img-layout';
-	}
-	if ( 'balken-layout' !== $layout ) {
+	if ( ! theme_is_balken_layout( $post_id ) ) {
 		return;
 	}
 
@@ -764,12 +805,50 @@ function wwd_add_balken_metaboxes( $post_type, $post ) {
 }
 add_action( 'add_meta_boxes', 'wwd_add_balken_metaboxes', 10, 2 );
 
+/**
+ * Hide other layout-specific metaboxes when Balken layout is active.
+ */
+function wwd_adjust_metaboxes_for_balken_layout( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
+	}
+	$allowed_post_types = wwd_get_unterseiten_post_types();
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	if ( ! theme_is_balken_layout( $post_id ) ) {
+		return;
+	}
+
+	remove_meta_box( 'wwd_unterseiten_content', $post_type, 'normal' );
+	remove_meta_box( 'wwd_three_img_texts', $post_type, 'normal' );
+	remove_meta_box( 'wwd_one_img_bottom_texts', $post_type, 'normal' );
+	remove_meta_box( 'wwd_leistungen_cards', $post_type, 'normal' );
+	remove_meta_box( 'wwd_slider_layout_slides', $post_type, 'normal' );
+	remove_meta_box( 'theme_faq_box', $post_type, 'normal' );
+}
+add_action( 'add_meta_boxes', 'wwd_adjust_metaboxes_for_balken_layout', 20, 2 );
+
 function wwd_render_balken_metabox( $post ) {
 	$balken_text       = get_post_meta( $post->ID, 'balken_text', true );
 	$balken_btn_text   = get_post_meta( $post->ID, 'balken_button_text', true );
 	$balken_button_url = get_post_meta( $post->ID, 'balken_button_url', true );
 
 	wp_nonce_field( 'theme_save_balken_meta', 'theme_balken_nonce' );
+	wp_nonce_field( 'wwd_unterseiten_content_save', 'wwd_unterseiten_content_nonce' );
 	?>
 	<p>
 		<label for="balken-text"><strong><?php echo esc_html( 'Balken Text' ); ?></strong></label>
@@ -805,6 +884,131 @@ function wwd_render_balken_metabox( $post ) {
 	/>
 	<?php
 }
+
+/**
+ * Meta box for FAQ layout.
+ */
+function wwd_add_faq_metaboxes( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
+	}
+	$allowed_post_types = wwd_get_unterseiten_post_types();
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	if ( ! theme_is_faq_layout( $post_id ) ) {
+		return;
+	}
+
+	add_meta_box(
+		'theme_faq_box',
+		'FAQ (Layout)',
+		'wwd_render_faq_metabox',
+		$post_type,
+		'normal',
+		'high'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_faq_metaboxes', 10, 2 );
+
+function wwd_render_faq_metabox( $post ) {
+	$faq_headline = get_post_meta( $post->ID, 'faq_headline', true );
+
+	wp_nonce_field( 'theme_save_faq_meta', 'theme_faq_nonce' );
+	wp_nonce_field( 'wwd_unterseiten_content_save', 'wwd_unterseiten_content_nonce' );
+	?>
+	<p>
+		<label for="faq-headline"><strong><?php echo esc_html( 'Headline (optional)' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="faq-headline"
+		name="faq_headline"
+		value="<?php echo esc_attr( $faq_headline ); ?>"
+		class="widefat"
+	/>
+
+	<?php for ( $i = 1; $i <= 10; $i++ ) : ?>
+		<?php
+		$q_key = 'faq_q_' . $i;
+		$a_key = 'faq_a_' . $i;
+		$q_val = get_post_meta( $post->ID, $q_key, true );
+		$a_val = get_post_meta( $post->ID, $a_key, true );
+		?>
+		<hr />
+		<p>
+			<label for="<?php echo esc_attr( 'faq-q-' . $i ); ?>"><strong><?php echo esc_html( 'Frage ' . $i ); ?></strong></label>
+		</p>
+		<input
+			type="text"
+			id="<?php echo esc_attr( 'faq-q-' . $i ); ?>"
+			name="<?php echo esc_attr( $q_key ); ?>"
+			value="<?php echo esc_attr( $q_val ); ?>"
+			class="widefat"
+		/>
+
+		<p>
+			<label for="<?php echo esc_attr( 'faq-a-' . $i ); ?>"><strong><?php echo esc_html( 'Antwort ' . $i ); ?></strong></label>
+		</p>
+		<textarea
+			id="<?php echo esc_attr( 'faq-a-' . $i ); ?>"
+			name="<?php echo esc_attr( $a_key ); ?>"
+			rows="3"
+			class="widefat"
+		><?php echo esc_textarea( $a_val ); ?></textarea>
+	<?php endfor; ?>
+	<?php
+}
+
+/**
+ * Hide other layout-specific metaboxes when FAQ layout is active.
+ */
+function wwd_adjust_metaboxes_for_faq_layout( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
+	}
+	$allowed_post_types = wwd_get_unterseiten_post_types();
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	if ( ! theme_is_faq_layout( $post_id ) ) {
+		return;
+	}
+
+	remove_meta_box( 'wwd_unterseiten_content', $post_type, 'normal' );
+	remove_meta_box( 'wwd_balken_meta', $post_type, 'normal' );
+	remove_meta_box( 'wwd_three_img_texts', $post_type, 'normal' );
+	remove_meta_box( 'wwd_one_img_bottom_texts', $post_type, 'normal' );
+	remove_meta_box( 'wwd_leistungen_cards', $post_type, 'normal' );
+	remove_meta_box( 'wwd_slider_layout_slides', $post_type, 'normal' );
+}
+add_action( 'add_meta_boxes', 'wwd_adjust_metaboxes_for_faq_layout', 20, 2 );
 
 /**
  * Meta box for three-img layout texts.
