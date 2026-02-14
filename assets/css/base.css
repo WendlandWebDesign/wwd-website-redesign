@@ -75,7 +75,13 @@ main{
 
 
 
-
+h1 {
+    font-family: var(--font-subheadline);
+    font-weight: 800;
+    color: var(--heading-clr);
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    text-align: center;
+}
 
 
 /* fonts */

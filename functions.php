@@ -390,6 +390,7 @@ function wwd_get_allowed_layouts() {
 		'three-img-layout' => 'assets/_snippets/three-img-layout.php',
 		'two-img-layout'   => 'assets/_snippets/two-img-layout.php',
 		'one-img-layout'   => 'assets/_snippets/one-img-layout.php',
+		'balken-layout'    => 'assets/_snippets/balken.php',
 		'slider-layout'    => 'assets/_snippets/slider.php',
 	);
 }
@@ -498,6 +499,7 @@ function wwd_render_layout_template_metabox( $post ) {
 		<option value="one-img-layout" <?php selected( $current, 'one-img-layout' ); ?>><?php echo esc_html( 'One-Image Layout' ); ?></option>
 		<option value="two-img-layout" <?php selected( $current, 'two-img-layout' ); ?>><?php echo esc_html( 'Two-Image Layout' ); ?></option>
 		<option value="three-img-layout" <?php selected( $current, 'three-img-layout' ); ?>><?php echo esc_html( 'Three-Image Layout' ); ?></option>
+		<option value="balken-layout" <?php selected( $current, 'balken-layout' ); ?>><?php echo esc_html( 'Balken' ); ?></option>
 		<option value="slider-layout" <?php selected( $current, 'slider-layout' ); ?>><?php echo esc_html( 'Slider' ); ?></option>
 	</select>
 	<?php
@@ -692,10 +694,116 @@ function wwd_save_unterseiten_meta( $post_id ) {
 			update_post_meta( $post_id, $meta_key, $value );
 		}
 	}
+
+	if ( isset( $_POST['theme_balken_nonce'] ) && wp_verify_nonce( $_POST['theme_balken_nonce'], 'theme_save_balken_meta' ) ) {
+		$balken_text = isset( $_POST['balken_text'] ) ? sanitize_textarea_field( wp_unslash( $_POST['balken_text'] ) ) : '';
+		$balken_btn  = isset( $_POST['balken_button_text'] ) ? sanitize_text_field( wp_unslash( $_POST['balken_button_text'] ) ) : '';
+		$balken_url  = isset( $_POST['balken_button_url'] ) ? esc_url_raw( wp_unslash( $_POST['balken_button_url'] ) ) : '';
+
+		$balken_meta = array(
+			'balken_text'        => $balken_text,
+			'balken_button_text' => $balken_btn,
+			'balken_button_url'  => $balken_url,
+		);
+
+		foreach ( $balken_meta as $meta_key => $value ) {
+			if ( '' === $value ) {
+				delete_post_meta( $post_id, $meta_key );
+			} else {
+				update_post_meta( $post_id, $meta_key, $value );
+			}
+		}
+	}
 }
 
 foreach ( wwd_get_unterseiten_post_types() as $post_type ) {
 	add_action( "save_post_{$post_type}", 'wwd_save_unterseiten_meta' );
+}
+
+/**
+ * Meta box for Balken layout.
+ */
+function wwd_add_balken_metaboxes( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
+	}
+	$allowed_post_types = wwd_get_unterseiten_post_types();
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = get_post_meta( $post_id, '_layout_template', true );
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'balken-layout' !== $layout ) {
+		return;
+	}
+
+	add_meta_box(
+		'wwd_balken_meta',
+		'Balken',
+		'wwd_render_balken_metabox',
+		$post_type,
+		'normal',
+		'high'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_balken_metaboxes', 10, 2 );
+
+function wwd_render_balken_metabox( $post ) {
+	$balken_text       = get_post_meta( $post->ID, 'balken_text', true );
+	$balken_btn_text   = get_post_meta( $post->ID, 'balken_button_text', true );
+	$balken_button_url = get_post_meta( $post->ID, 'balken_button_url', true );
+
+	wp_nonce_field( 'theme_save_balken_meta', 'theme_balken_nonce' );
+	?>
+	<p>
+		<label for="balken-text"><strong><?php echo esc_html( 'Balken Text' ); ?></strong></label>
+	</p>
+	<textarea
+		id="balken-text"
+		name="balken_text"
+		rows="4"
+		class="widefat"
+	><?php echo esc_textarea( $balken_text ); ?></textarea>
+
+	<p>
+		<label for="balken-button-text"><strong><?php echo esc_html( 'Button Text' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="balken-button-text"
+		name="balken_button_text"
+		value="<?php echo esc_attr( $balken_btn_text ); ?>"
+		class="widefat"
+	/>
+
+	<p>
+		<label for="balken-button-url"><strong><?php echo esc_html( 'Button URL' ); ?></strong></label>
+	</p>
+	<input
+		type="url"
+		id="balken-button-url"
+		name="balken_button_url"
+		value="<?php echo esc_attr( $balken_button_url ); ?>"
+		class="widefat"
+		placeholder="<?php echo esc_attr( home_url( '/kontakt/' ) ); ?>"
+	/>
+	<?php
 }
 
 /**
