@@ -551,3 +551,16 @@
     }
 }
 
+/* === Dienstleistungen cards stagger reveal === */
+.dienstleistungen-cards-holder .dienstleistung-card {
+    transition-delay: var(--reveal-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dienstleistungen-cards-holder .dienstleistung-card {
+        transition: none;
+        transform: none;
+        opacity: 1;
+    }
+}
+
