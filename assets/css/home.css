@@ -400,7 +400,7 @@
 }
 .website-weg__connector path{
     fill: none;
-    stroke: var(--acc-clr, var(--ac-clr));
+    stroke: var(--ac-clr, var(--ac-clr));
     stroke-width: 2;
     stroke-linecap: round;
 }
