@@ -9,17 +9,17 @@
         <div class="top">
             <ul>
                 <li><p class="default">Unternehmen</p></li>
-                <li><a class="light" href="">Home</a></li>
-                <li><a class="light" href="">News</a></li>
-                <li><a class="light" href="">Über uns</a></li>
-                <li><a class="ac" href="">Kontakt</a></li>
+                <li><a class="light" href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a></li>
+                <li><a class="light" href="<?php echo esc_url( home_url( '/news/' ) ); ?>">News</a></li>
+                <li><a class="light" href="<?php echo esc_url( home_url( '/ueber-uns/' ) ); ?>">Über uns</a></li>
+                <li><a class="ac" href="<?php echo esc_url( home_url( '/kontakt/' ) ); ?>">Kontakt</a></li>
             </ul>
             <ul>
                 <li><p class="default">Leistungen</p></li>
-                <li><a class="light" href="">Referenzen</a></li>
-                <li><a class="light" href="">Webentwicklung</a></li>
-                <li><a class="light" href="">KI-Integration</a></li>
-                <li><a class="ac" href="">kostenloser Websitecheck</a></li>
+                <li><a class="light" href="<?php echo esc_url( home_url( '/referenzen/' ) ); ?>">Referenzen</a></li>
+                <li><a class="light" href="<?php echo esc_url( home_url( '/dienstleistungen/' ) ); ?>">Webentwicklung</a></li>
+                <li><a class="light" href="<?php echo esc_url( home_url( '/ki-integration/' ) ); ?>">KI-Integration</a></li>
+                <li><a class="ac" href="<?php echo esc_url( home_url( '/dienstleistungen/' ) ); ?>">kostenloser Websitecheck</a></li>
             </ul>
             <div class="socials">
                 <?php echo wwd_inline_svg( 'facebook.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?>
@@ -30,8 +30,8 @@
         <div class="bottom">
             <ul>
                 <li><a class="default" href="">Cookies</a></li>
-                <li><a class="default" href="">Datenschutzerklärung</a></li>
-                <li><a class="default" href="">Impressum</a></li>
+                <li><a class="default" href="<?php echo esc_url( home_url( '/datenschutzerklaerung/' ) ); ?>">Datenschutzerklärung</a></li>
+                <li><a class="default" href="<?php echo esc_url( home_url( '/impressum/' ) ); ?>">Impressum</a></li>
             </ul>
         </div>
     </div>
