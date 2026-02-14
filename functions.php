@@ -328,6 +328,13 @@ function wwd_register_cpts() {
 			'menu_icon'  => 'dashicons-groups',
 			'menu_pos'   => 23,
 		),
+		'website_check' => array(
+			'singular'     => 'Website-Check Inhalt',
+			'plural'       => 'Website-Check Inhalte',
+			'menu_icon'    => 'dashicons-visibility',
+			'menu_pos'     => 24,
+			'rewrite_slug' => 'website-check',
+		),
 	);
 
 	foreach ( $unterseiten_cpts as $slug => $config ) {
@@ -355,7 +362,10 @@ function wwd_register_cpts() {
 				'menu_icon'    => $config['menu_icon'],
 				// Hinweis: Falls es bereits Pages mit denselben Slugs gibt, kann es Konflikte geben.
 				// In dem Fall muss entweder die Page umbenannt oder der CPT-Slug pr�fixiert werden.
-				'rewrite'      => array( 'slug' => $slug, 'with_front' => false ),
+				'rewrite'      => array(
+					'slug'       => isset( $config['rewrite_slug'] ) ? $config['rewrite_slug'] : $slug,
+					'with_front' => false,
+				),
 			)
 		);
 	}
@@ -438,7 +448,7 @@ function theme_is_faq_layout( $post_id ) {
  * Unterseiten Meta Boxes (Layout-Auswahl + Inhalte).
  */
 function wwd_get_unterseiten_post_types() {
-	return array( 'home', 'dienstleistungen', 'ki-integration', 'ueber-uns' );
+	return array( 'home', 'dienstleistungen', 'ki-integration', 'ueber-uns', 'website_check' );
 }
 
 function wwd_add_unterseiten_metaboxes() {

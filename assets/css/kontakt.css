@@ -1,4 +1,10 @@
-/* contact form */
+.web-check .contact{
+    width: 100%;
+    display: flex;
+    padding: var(--section-padding);
+    margin: 8em 0;
+    gap: 2em;
+}
 
 .contact-holder{
     width: 100%;
