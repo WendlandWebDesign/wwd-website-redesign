@@ -46,45 +46,70 @@ get_header();
 	$allowed_layouts = function_exists( 'wwd_get_allowed_layouts' ) ? wwd_get_allowed_layouts() : array();
 	$default_layout  = 'two-img-layout';
 
-	$home_query = new WP_Query(
-		array(
-			'post_type'      => 'home',
-			'posts_per_page' => -1,
-			'orderby'        => 'menu_order',
-			'order'          => 'ASC',
-		)
+	$home_query_args = array(
+		'post_type'      => 'home',
+		'posts_per_page' => -1,
+		'orderby'        => 'menu_order',
+		'order'          => 'ASC',
 	);
+
+	$render_home_box = static function( $post_id, $allowed_layouts, $default_layout ) {
+		$layout = get_post_meta( $post_id, '_layout_template', true );
+		if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+			$layout = $default_layout;
+		}
+
+		$meta = array(
+			'mini_heading' => get_post_meta( $post_id, '_section_mini_heading', true ),
+			'headline'     => get_post_meta( $post_id, '_section_headline', true ),
+			'text'         => get_post_meta( $post_id, '_section_text', true ),
+			'cta_label'    => get_post_meta( $post_id, '_cta_label', true ),
+			'cta_url'      => get_post_meta( $post_id, '_cta_url', true ),
+			'img_1_id'     => absint( get_post_meta( $post_id, '_img_1_id', true ) ),
+			'img_2_id'     => absint( get_post_meta( $post_id, '_img_2_id', true ) ),
+			'img_3_id'     => absint( get_post_meta( $post_id, '_img_3_id', true ) ),
+		);
+
+		$snippet_rel_path = isset( $allowed_layouts[ $layout ] ) ? $allowed_layouts[ $layout ] : $allowed_layouts[ $default_layout ];
+		include get_template_directory() . '/' . $snippet_rel_path;
+	};
+
+	$letzte_box_query_args                   = $home_query_args;
+	$letzte_box_query_args['posts_per_page'] = 1;
+	$letzte_box_query_args['meta_query']     = array(
+		array(
+			'key'     => 'letzte_box',
+			'value'   => '1',
+			'compare' => '=',
+		),
+	);
+	$letzte_box_query                        = new WP_Query( $letzte_box_query_args );
+	$has_letzte_box                          = $letzte_box_query->have_posts();
+
+	$home_query_args['meta_query'] = array(
+		'relation' => 'OR',
+		array(
+			'key'     => 'letzte_box',
+			'compare' => 'NOT EXISTS',
+		),
+		array(
+			'key'     => 'letzte_box',
+			'value'   => '1',
+			'compare' => '!=',
+		),
+	);
+	$home_query                  = new WP_Query( $home_query_args );
 
 	if ( $home_query->have_posts() ) :
 		while ( $home_query->have_posts() ) :
 			$home_query->the_post();
-			$post_id = get_the_ID();
-			$layout  = get_post_meta( $post_id, '_layout_template', true );
-			if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
-				$layout = $default_layout;
-			}
-
-			$meta = array(
-				'mini_heading' => get_post_meta( $post_id, '_section_mini_heading', true ),
-				'headline'  => get_post_meta( $post_id, '_section_headline', true ),
-				'text'      => get_post_meta( $post_id, '_section_text', true ),
-				'cta_label' => get_post_meta( $post_id, '_cta_label', true ),
-				'cta_url'   => get_post_meta( $post_id, '_cta_url', true ),
-				'img_1_id'  => absint( get_post_meta( $post_id, '_img_1_id', true ) ),
-				'img_2_id'  => absint( get_post_meta( $post_id, '_img_2_id', true ) ),
-				'img_3_id'  => absint( get_post_meta( $post_id, '_img_3_id', true ) ),
-			);
-
-			$snippet_rel_path = isset( $allowed_layouts[ $layout ] ) ? $allowed_layouts[ $layout ] : $allowed_layouts[ $default_layout ];
-			include get_template_directory() . '/' . $snippet_rel_path;
+			$render_home_box( get_the_ID(), $allowed_layouts, $default_layout );
 		endwhile;
 		wp_reset_postdata();
-	else :
-		if ( current_user_can( 'edit_posts' ) ) :
-			?>
-			<p class="mw-small"><?php echo esc_html( 'Seite nicht gefunden' ); ?></p>
-			<?php
-		endif;
+	elseif ( ! $has_letzte_box && current_user_can( 'edit_posts' ) ) :
+		?>
+		<p class="mw-small"><?php echo esc_html( 'Seite nicht gefunden' ); ?></p>
+		<?php
 	endif;
 	?>
 
@@ -126,7 +151,15 @@ get_header();
 
 
 <main>
-
+	<?php
+	if ( $has_letzte_box ) :
+		while ( $letzte_box_query->have_posts() ) :
+			$letzte_box_query->the_post();
+			$render_home_box( get_the_ID(), $allowed_layouts, $default_layout );
+		endwhile;
+		wp_reset_postdata();
+	endif;
+	?>
 </main>
 
 

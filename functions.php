@@ -424,6 +424,63 @@ function wwd_add_unterseiten_metaboxes() {
 }
 add_action( 'add_meta_boxes', 'wwd_add_unterseiten_metaboxes' );
 
+function wwd_add_letzte_box_metabox() {
+	add_meta_box(
+		'wwd_letzte_box',
+		'Letzte Box',
+		'wwd_render_letzte_box_metabox',
+		'home',
+		'side',
+		'default'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_letzte_box_metabox' );
+
+function wwd_render_letzte_box_metabox( $post ) {
+	$is_checked = '1' === get_post_meta( $post->ID, 'letzte_box', true );
+	wp_nonce_field( 'wwd_save_letzte_box', 'wwd_letzte_box_nonce' );
+	?>
+	<p>
+		<label for="wwd-letzte-box">
+			<input
+				type="checkbox"
+				id="wwd-letzte-box"
+				name="wwd_letzte_box"
+				value="1"
+				<?php checked( $is_checked ); ?>
+			/>
+			<?php echo esc_html( 'Als "Letzte Box" markieren' ); ?>
+		</label>
+	</p>
+	<?php
+}
+
+function wwd_save_letzte_box_meta( $post_id ) {
+	if ( ! isset( $_POST['wwd_letzte_box_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( wp_unslash( $_POST['wwd_letzte_box_nonce'] ), 'wwd_save_letzte_box' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	$is_letzte_box = isset( $_POST['wwd_letzte_box'] ) && '1' === wp_unslash( $_POST['wwd_letzte_box'] );
+	if ( $is_letzte_box ) {
+		update_post_meta( $post_id, 'letzte_box', '1' );
+	} else {
+		delete_post_meta( $post_id, 'letzte_box' );
+	}
+}
+add_action( 'save_post_home', 'wwd_save_letzte_box_meta' );
+
 function wwd_render_layout_template_metabox( $post ) {
 	$allowed_layouts = wwd_get_allowed_layouts();
 	$current         = get_post_meta( $post->ID, '_layout_template', true );
