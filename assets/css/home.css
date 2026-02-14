@@ -153,6 +153,7 @@
     height: max-content;
     align-self: flex-start;
     overflow-x: hidden;
+    touch-action: pan-y;
 }
 .slider-wrapper .img-transition-top,
 .slider-wrapper .img-transition-bottom{
