@@ -125,3 +125,28 @@
         align-self: center;
     }
 }
+
+
+/* website-check form */
+.wc-form{
+    gap: 4em;
+    align-items: center;
+}
+.wc-form .contact-info h4{
+    max-width: 500px;
+}
+@media (max-width: 800px) {
+    .wc-form{
+        flex-direction: column;
+        max-width: 500px;
+    }
+    .wc-form .contact-info,
+    .wc-form .contact-info h4,
+    .wc-form .contact-form{
+        width: 100%;
+        max-width: 500px;
+    }
+    .wc-form .contact-form button{
+        align-self: center;
+    }
+}
