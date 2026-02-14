@@ -51,6 +51,7 @@
     outline: 0;
     background: transparent;
     z-index: 2;
+    position: relative;
 }
 .contact-form .form-row::before{
     content: "";
@@ -78,20 +79,19 @@
 .contact-form .form-row label{
     position: absolute;
     font-size: 1.1rem;
-    top: 50%;
+    bottom: 8px;
     left: 10px;
-    transform: translateY(-50%);
     font-family: var(--font-body);
     transition: all .3s ease;
     z-index: 1;
+    padding-bottom: 3px;
 }
 
 .contact-form .form-row input:focus + label,
 .contact-form .form-row textarea:focus + label{
-    top: -16px;
+    bottom: 100%;
     font-size: .8rem;
     color: var(--ac-clr);
-    bottom: unset;
 }
 .contact-form .form-row:has(input:focus)::after,
 .contact-form .form-row:has(textarea:focus)::after{
@@ -104,12 +104,9 @@
 .contact-form .form-row textarea{
     min-height: 31px !important;
     min-width: 100%;
+    max-width: 100% !important;
 }
-.contact-form .form-row:last-of-type label{
-    bottom: 10px;
-    transform: translateY(0);
-    top: unset;
-}
+
 
 
 @media (max-width: 600px) {
@@ -125,6 +122,31 @@
         max-width: 500px;
     }
     .contact-form button{
+        align-self: center;
+    }
+}
+
+
+/* website-check form */
+.wc-form{
+    gap: 4em;
+    align-items: center;
+}
+.wc-form .contact-info h4{
+    max-width: 500px;
+}
+@media (max-width: 800px) {
+    .wc-form{
+        flex-direction: column;
+        max-width: 500px;
+    }
+    .wc-form .contact-info,
+    .wc-form .contact-info h4,
+    .wc-form .contact-form{
+        width: 100%;
+        max-width: 500px;
+    }
+    .wc-form .contact-form button{
         align-self: center;
     }
 }

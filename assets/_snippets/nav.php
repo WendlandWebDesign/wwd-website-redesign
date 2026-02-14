@@ -46,6 +46,7 @@
                         <?php echo wwd_inline_svg( 'mini-arrow.svg', array( 'class' => 'mini-arrow', 'aria_hidden' => true ) ); ?>
                     </li>
                     <li onclick="window.location.href='<?php echo esc_url( home_url( '/ki-integration/' ) ); ?>'" class="list-left-item"><p class="light" href="">KI Integration</p></li>
+                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/website-check/' ) ); ?>'" class="list-left-item"><p class="light" href="">kostenloser Websitecheck</p></li>
                     <li class="list-left-item expand-right" data-nav-target="news">
                         <p class="light"><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'arrow', 'aria_hidden' => true ) ); ?>News</p>
                         <?php echo wwd_inline_svg( 'mini-arrow.svg', array( 'class' => 'mini-arrow', 'aria_hidden' => true ) ); ?>

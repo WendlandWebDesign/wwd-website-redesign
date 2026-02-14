@@ -334,6 +334,11 @@
     margin-top: 20px;
 }
 
+
+
+
+
+
 /* FAQ layout */
 .faq-layout {
     width: 100%;
@@ -449,6 +454,9 @@
     opacity: 1;
     transform: translateY(0);
 }
+
+
+
 
 @media (max-width: 800px) {
     .one-img-layout{
