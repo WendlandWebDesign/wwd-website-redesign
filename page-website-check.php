@@ -8,7 +8,7 @@ $heroImgSrc = esc_url(get_option('home-img'));
 $heroTxt = "Website-Check";
 ?>
 
-<main class="web-check">
+<main>
     <?php include_once "assets/_snippets/hero.php"; ?>
 
     <?php

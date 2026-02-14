@@ -22,7 +22,7 @@ if ( empty( $faq_items ) ) {
 }
 ?>
 <div class="faq-layout">
-	<div class="faq-layout__inner mw">
+	<div class="faq-layout__inner mw-small">
 		<?php if ( '' !== $faq_headline ) : ?>
 			<h2 class="faq-layout__headline"><?php echo esc_html( $faq_headline ); ?></h2>
 		<?php endif; ?>
