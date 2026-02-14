@@ -19,7 +19,7 @@
                 <li><a class="light" href="<?php echo esc_url( home_url( '/referenzen/' ) ); ?>">Referenzen</a></li>
                 <li><a class="light" href="<?php echo esc_url( home_url( '/dienstleistungen/' ) ); ?>">Webentwicklung</a></li>
                 <li><a class="light" href="<?php echo esc_url( home_url( '/ki-integration/' ) ); ?>">KI-Integration</a></li>
-                <li><a class="ac" href="<?php echo esc_url( home_url( '/dienstleistungen/' ) ); ?>">kostenloser Websitecheck</a></li>
+                <li><a class="ac" href="<?php echo esc_url( home_url( '/website-check/' ) ); ?>">kostenloser Websitecheck</a></li>
             </ul>
             <div class="socials">
                 <?php echo wwd_inline_svg( 'facebook.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?>
