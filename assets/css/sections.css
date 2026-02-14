@@ -406,7 +406,9 @@
 
 .faq__qtext {
     color: var(--light);
-    flex: 1 1 auto;
+    font-family: var(--font-body);
+    font-size: calc(.9rem + 0.2vw);
+    line-height: 1.7;
 }
 
 .faq__icon {
@@ -470,6 +472,9 @@
     transform: translateY(-6px);
     transition: opacity 260ms ease, transform 260ms ease;
     padding: 0 0 1rem 0;
+    font-family: var(--font-body);
+    font-size: calc(.9rem + 0.2vw);
+    line-height: 1.7;
 }
 
 .faq__item.is-open .faq__acontent p {
