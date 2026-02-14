@@ -1,6 +1,8 @@
 <script>
   document.documentElement.classList.add('js');
 </script>
+
+
 <?php
 get_header();
 ?>

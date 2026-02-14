@@ -344,14 +344,14 @@
     width: 100%;
     background: none;
     padding: var(--section-padding);
+    display: flex;
+    justify-content: center;
 }
 
 .faq-layout__inner {
     width: 100%;
     display: flex;
     flex-direction: column;
-    max-width: 900px;
-    margin: 0 auto;
 }
 
 .faq-accordion {

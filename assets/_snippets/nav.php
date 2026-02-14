@@ -36,23 +36,23 @@
 
             <div class="nav-list">
                 <ul class="list-left">
-                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/' ) ); ?>'" class="list-left-item"><p class="light" href="">Home</p></li>
-                    <li class="list-left-item expand-right" data-nav-target="dienstleistungen">
+                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/' ) ); ?>'" class="list-left-item <?php echo ( is_front_page() ) ? 'akt' : ''; ?>"><p class="light" href="">Home</p></li>
+                    <li class="list-left-item expand-right <?php echo ( is_page('dienstleistungen') ) ? 'akt' : ''; ?>" data-nav-target="dienstleistungen">
                         <p class="light"><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'arrow', 'aria_hidden' => true ) ); ?>Dienstleistungen</p>
                         <?php echo wwd_inline_svg( 'mini-arrow.svg', array( 'class' => 'mini-arrow', 'aria_hidden' => true ) ); ?>
                     </li>
-                    <li class="list-left-item expand-right" data-nav-target="referenzen">
+                    <li class="list-left-item expand-right <?php echo ( is_page('referenzen') ) ? 'akt' : ''; ?>" data-nav-target="referenzen">
                         <p class="light"><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'arrow', 'aria_hidden' => true ) ); ?>Referenzen</p>
                         <?php echo wwd_inline_svg( 'mini-arrow.svg', array( 'class' => 'mini-arrow', 'aria_hidden' => true ) ); ?>
                     </li>
-                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/ki-integration/' ) ); ?>'" class="list-left-item"><p class="light" href="">KI Integration</p></li>
-                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/website-check/' ) ); ?>'" class="list-left-item"><p class="light" href="">kostenloser Websitecheck</p></li>
-                    <li class="list-left-item expand-right" data-nav-target="news">
+                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/ki-integration/' ) ); ?>'" class="list-left-item <?php echo ( is_page('ki-integration') ) ? 'akt' : ''; ?>"><p class="light" href="">KI Integration</p></li>
+                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/website-check/' ) ); ?>'" class="list-left-item <?php echo ( is_page('website-check') ) ? 'akt' : ''; ?>"><p class="light" href="">kostenloser Websitecheck</p></li>
+                    <li class="list-left-item expand-right <?php echo ( is_page('news') ) ? 'akt' : ''; ?>" data-nav-target="news">
                         <p class="light"><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'arrow', 'aria_hidden' => true ) ); ?>News</p>
                         <?php echo wwd_inline_svg( 'mini-arrow.svg', array( 'class' => 'mini-arrow', 'aria_hidden' => true ) ); ?>
                     </li>
-                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/ueber-uns/' ) ); ?>'" class="list-left-item"><p class="light" href="">Über uns</p></li>
-                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="list-left-item"><p class="light" href="">Kontakt</p></li>
+                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/ueber-uns/' ) ); ?>'" class="list-left-item <?php echo ( is_page('ueber-uns') ) ? 'akt' : ''; ?>"><p class="light" href="">Über uns</p></li>
+                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="list-left-item <?php echo ( is_page('kontakt') ) ? 'akt' : ''; ?>"><p class="light" href="">Kontakt</p></li>
                 </ul>
 
 
