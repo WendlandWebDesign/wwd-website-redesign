@@ -28,6 +28,7 @@ function wwd_website_redesign_enqueue_assets() {
     $css_hero     = 'assets/css/hero.css';
     $css_referenzen     = 'assets/css/referenzen.css';
     $css_dienstleistungen     = 'assets/css/dienstleistungen.css';
+    $css_kontakt     = 'assets/css/kontakt.css';
 
 	// JS-Dateien
 	$js_base       = 'assets/js/base.js';
@@ -94,6 +95,13 @@ function wwd_website_redesign_enqueue_assets() {
         get_theme_file_uri( $css_dienstleistungen ),
         array( 'wwd-website-redesign-base' ),
         file_exists( get_theme_file_path( $css_dienstleistungen ) ) ? filemtime( get_theme_file_path( $css_dienstleistungen ) ) : null
+    );
+
+    wp_enqueue_style(
+        'wwd-website-redesign-kontakt',
+        get_theme_file_uri( $css_kontakt ),
+        array( 'wwd-website-redesign-base' ),
+        file_exists( get_theme_file_path( $css_kontakt ) ) ? filemtime( get_theme_file_path( $css_kontakt) ) : null
     );
 
 	/**
