@@ -1697,6 +1697,41 @@ if (document.readyState === "loading") {
     initWebsiteWegInview();
 }
 
+const initFaqLayoutAppear = () => {
+    const faqLayout = document.getElementById("faq-layout") || document.querySelector(".faq-layout");
+    if (!faqLayout) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+        faqLayout.classList.add("is-visible");
+        return;
+    }
+
+    if (!("IntersectionObserver" in window)) {
+        faqLayout.classList.add("is-visible");
+        return;
+    }
+
+    const observer = new IntersectionObserver(
+        (entries, obs) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add("is-visible");
+                obs.unobserve(entry.target);
+            });
+        },
+        { threshold: 0.2 }
+    );
+
+    observer.observe(faqLayout);
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initFaqLayoutAppear);
+} else {
+    initFaqLayoutAppear();
+}
+
 // FAQ reveal animation (staggered slide-in from left)
 document.addEventListener("DOMContentLoaded", () => {
     const gsapBundle = getGsapScrollTrigger();
