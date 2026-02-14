@@ -22,9 +22,8 @@
                 <li><a class="ac" href="<?php echo esc_url( home_url( '/website-check/' ) ); ?>">kostenloser Websitecheck</a></li>
             </ul>
             <div class="socials">
-                <?php echo wwd_inline_svg( 'facebook.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?>
-                <?php echo wwd_inline_svg( 'x.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?>
-                <?php echo wwd_inline_svg( 'instagram.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?>
+                <div class="social-holder" onclick="window.open('https://x.com/design22702')"><?php echo wwd_inline_svg( 'x.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?></div>
+                <div class="social-holder" onclick="window.open('https://www.instagram.com/wendland_web_design/')"><?php echo wwd_inline_svg( 'instagram.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?></div>
             </div>
         </div>
         <div class="bottom">

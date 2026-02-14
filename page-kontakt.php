@@ -28,32 +28,32 @@ get_header();
 
                 <div class="form-row">
                     <input type="text" name="name" id="name" class="light" required>
-                    <label class="light" for="name">Name</label>
+                    <label class="default" for="name">Name</label>
                 </div>
 
                 <div class="form-row">
                     <input type="text" name="firma" id="firma" class="light">
-                    <label class="light" for="firma">Firma</label>
+                    <label class="default" for="firma">Firma</label>
                 </div>
 
                 <div class="form-row">
                     <input type="email" name="email" id="email" class="light" required>
-                    <label class="light" for="email">Email</label>
+                    <label class="default" for="email">Email</label>
                 </div>
 
                 <div class="form-row">
                     <input type="text" name="phone" id="phone" class="light" required>
-                    <label class="light" for="phone">Telefon</label>
+                    <label class="default" for="phone">Telefon</label>
                 </div>
 
                 <div class="form-row">
                     <input type="text" name="betreff" id="betreff" class="light" required>
-                    <label class="light" for="betreff">Betreff</label>
+                    <label class="default" for="betreff">Betreff</label>
                 </div>
 
                 <div class="form-row">
                     <textarea name="nachricht" id="nachricht" class="light" required></textarea>
-                    <label class="light" for="nachricht">Nachricht</label>
+                    <label class="default" for="nachricht">Nachricht</label>
                 </div>
 
                 <!-- WICHTIG: kein onclick-redirect, sondern submit -->

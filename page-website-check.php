@@ -73,11 +73,11 @@ $heroTxt = "Website-Check";
             <form action="" class="contact-form" method="post">
                 <div class="form-row">
                     <input class="light" type="text" id="domain" name="domain">
-                    <label class="light" for="domain">Ihre Domain</label>
+                    <label class="default" for="domain">Ihre Domain</label>
                 </div>
                 <div class="form-row">
                     <input class="light" type="email" id="wc-email" name="wc-email">
-                    <label class="light" for="wc-email">Email</label>
+                    <label class="default" for="wc-email">Email</label>
                 </div>
                 <button type="submit" class="btn light">
                     <span class="btn__border" aria-hidden="true">

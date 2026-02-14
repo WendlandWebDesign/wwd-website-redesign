@@ -51,6 +51,7 @@
     background: transparent;
     z-index: 2;
     position: relative;
+    font-family: var(--font-body);
 }
 .contact-form .form-row::before{
     content: "";
