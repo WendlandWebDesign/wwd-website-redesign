@@ -44,7 +44,6 @@ if ( 3 !== count( $slides ) ) {
 			</div>
 		</div>
 		<div class="slider-wrapper">
-			<div class="img-transition-top"></div>
 			<div class="slider">
 				<?php foreach ( $slides as $slide ) : ?>
 					<div class="slide">
@@ -71,7 +70,6 @@ if ( 3 !== count( $slides ) ) {
 								</button>
 							</div>
 						</div>
-                        <div class="img-transition-bottom"></div>
 					</div>
 				<?php endforeach; ?>
 			</div>

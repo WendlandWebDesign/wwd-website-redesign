@@ -9,8 +9,6 @@ get_header();
 
 
 <main>
-
-
     <div class="home-hero observe-nav">
         <img class="hero-img" src="<?php echo esc_url(get_option('home-img')); ?>" alt="hero image">
         <div class="home-hero-inner mw">

@@ -12,8 +12,8 @@
             <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/logo.svg' ); ?>" alt="Wendland Web Design">
         </a>
         <div class="nav-right">
-            <img class="icon icon--phone" onclick="" src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/anfrage-blue.svg' ); ?>" alt="" aria-hidden="true">
-            <button onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="btn light">
+            <img class="icon icon--phone nav-contact-btn-mobile" onclick="" src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/anfrage-blue.svg' ); ?>" alt="" aria-hidden="true">
+            <button class="btn light nav-contact-btn">
                 <span class="btn__border" aria-hidden="true">
                     <svg class="btn__svg" viewBox="0 0 100 40" preserveAspectRatio="none">
                         <path class="btn__path" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
@@ -26,6 +26,36 @@
                 <p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>Anfrage</p>
             </button>
         </div>
+
+        <div class="nav-contact-holder">
+            <div class="nav-contact">
+                <div class="nav-contact-close-wrapper">
+                    <div class="nav-contact-close">
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                <div class="img-holder">
+                    <img class="nav-contact-img" src="http://localhost/wwd-redesign/wp-content/uploads/2026/02/16-10-Waben.jpg" alt="">
+                    <div class="img-transition-bottom"></div>
+                </div>
+                <ul class="nav-contacts">
+                    <li onclick="window.location.href=''">
+                        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/form-blue.svg' ); ?>" alt="">
+                        <p class="light mini-heading" href="">Kontaktformular</p>
+                    </li>
+                    <li>
+                        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/mail-thick-blue.svg' ); ?>" alt="">
+                        <p class="light mini-heading" href="">office@wendlandwebdesign.de</p>
+                    </li>
+                    <li onclick="window.location.href=''">
+                        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/phone-thin-blue.svg' ); ?>" alt="">
+                        <p class="light mini-heading" href="">0162 6907548</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
         <div class="nav-list-wrapper">
             <div class="close-btn-wrapper">
                 <div class="close-btn">

@@ -5,9 +5,17 @@ const closeBtn = document.querySelector(".close-btn-wrapper");
 const navList = document.querySelector(".nav-list-wrapper");
 const siteOverlay = document.querySelector(".site-overlay");
 
+
+const navContactBtn = document.querySelector(".nav-contact-btn");
+const navContactBtnMobile = document.querySelector(".nav-contact-btn-mobile");
+const navContact = document.querySelector(".nav-contact-holder");
+const navContactCloseBtn = document.querySelector(".nav-contact-close-wrapper");
+
+
 menuBtn.addEventListener("click", (e) => {
     document.dispatchEvent(new CustomEvent("nav:open"));
     navList.classList.add('active');
+    navContact.classList.remove('active');
     document.body.classList.add('is-nav-open');
 })
 closeBtn.addEventListener("click", (e) => {
@@ -17,9 +25,30 @@ closeBtn.addEventListener("click", (e) => {
 if (siteOverlay) {
     siteOverlay.addEventListener("click", () => {
         navList.classList.remove('active');
+        navContact.classList.remove('active');
         document.body.classList.remove('is-nav-open');
     });
 }
+
+
+
+//nav contact
+navContactBtn.addEventListener("click", function() {
+    navContact.classList.add("active");
+    navList.classList.remove('active');
+    document.body.classList.add('is-nav-open');
+})
+navContactBtnMobile.addEventListener("click", function() {
+    navContact.classList.add("active");
+    document.body.classList.add('is-nav-open');
+})
+navContactCloseBtn.addEventListener("click", function() {
+    navContact.classList.remove("active");
+    document.body.classList.remove('is-nav-open');
+})
+
+
+
 
 // Menu hover: move burger ::before lines via CSS variable
 document.querySelectorAll(".menu").forEach(menu => {
