@@ -18,7 +18,7 @@ get_header();
 		array(
 			'post_type'      => 'ki-integration',
 			// Wenn mehrere Einträge genutzt werden sollen, posts_per_page erhöhen oder auf -1 setzen.
-			'posts_per_page' => 1,
+			'posts_per_page' => -1,
 			'orderby'        => 'menu_order',
 			'order'          => 'ASC',
 		)
