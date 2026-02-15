@@ -21,6 +21,9 @@ nav.active{
 nav.hide{
     transform: translateY(-100%);
 }
+body.is-nav-open nav{
+    transform: translateY(0);
+}
 
 .site-overlay{
     position: fixed;

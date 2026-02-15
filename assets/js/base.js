@@ -214,6 +214,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Scroll-Logik
     window.addEventListener("scroll", () => {
+        if (document.body.classList.contains("is-nav-open")) {
+            lastScrollY = window.scrollY;
+            return;
+        }
+
         if (!isActive) return;
 
         const currentScrollY = window.scrollY;
