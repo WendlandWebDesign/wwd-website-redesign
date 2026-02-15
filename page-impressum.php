@@ -18,9 +18,11 @@ get_header();
             $impressum_query->the_post();
             ?>
 
-            <div class="dsgvo-holder mw-small light">
-                <div class="impressum-content">
-                <?php the_content(); ?>
+            <div class="dsgvo-holder light">
+                <div class="impressum-content-holder mw">
+                    <div class="impressum-content">
+                        <?php the_content(); ?>
+                    </div>
                 </div>
             </div>
 
