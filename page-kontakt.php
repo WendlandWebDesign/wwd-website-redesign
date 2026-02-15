@@ -17,6 +17,14 @@ get_header();
         <div class="contact mw-small">
             <div class="contact-info">
                 <h4>Erzählen Sie uns<br>von Ihrem <span>Projekt.</span></h4>
+                <div class="phone" onclick="window.location.href='tel:+4915238976827'">
+                    <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/phone-thin-blue.svg' ); ?>" alt="">
+                    <p>0152 389 768 27</p>
+                </div>
+                <div class="phone">
+                    <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/mail-thick-blue.svg' ); ?>" alt="">
+                    <p>office@wenlandwebdesign.de</p>
+                </div>
             </div>
             <form action="<?php echo esc_url( get_stylesheet_directory_uri() . '/send-mail.php' ); ?>" class="contact-form" method="post">
                 <?php wp_nonce_field('wwd_contact_form', 'wwd_nonce'); ?>
@@ -54,6 +62,10 @@ get_header();
                 <div class="form-row">
                     <textarea name="nachricht" id="nachricht" class="light" required></textarea>
                     <label class="default" for="nachricht">Nachricht</label>
+                </div>
+                <div class="form-row">
+                    <input type="checkbox" class="light" required>
+                    <p class="light">Ich habe die <a href="<?php echo esc_url( home_url( '/datenschutzerklaerung/' ) ); ?>">Datenschutzerklärung</a> gelesen und erkläre mich einverstanden.</p>
                 </div>
 
                 <!-- WICHTIG: kein onclick-redirect, sondern submit -->

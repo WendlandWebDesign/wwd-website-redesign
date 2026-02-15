@@ -68,7 +68,7 @@ $heroTxt = "Website-Check";
     <div class="contact-holder">
         <div class="contact mw-small wc-form">
             <div class="contact-info">
-                <h4>Jetzt kostenlosen <br><span>Websitecheck</span><br>anfordern!</h4>
+                <h4>Jetzt<br>kostenlosen <br><span>Websitecheck</span><br>anfordern!</h4>
             </div>
             <form action="" class="contact-form" method="post">
                 <div class="form-row">
@@ -78,6 +78,10 @@ $heroTxt = "Website-Check";
                 <div class="form-row">
                     <input class="light" type="email" id="wc-email" name="wc-email">
                     <label class="default" for="wc-email">Email</label>
+                </div>
+                <div class="form-row">
+                    <input type="checkbox" class="light" required>
+                    <p class="light">Ich habe die <a href="<?php echo esc_url( home_url( '/datenschutzerklaerung/' ) ); ?>">Datenschutzerklärung</a> gelesen und erkläre mich einverstanden.</p>
                 </div>
                 <button type="submit" class="btn light">
                     <span class="btn__border" aria-hidden="true">
