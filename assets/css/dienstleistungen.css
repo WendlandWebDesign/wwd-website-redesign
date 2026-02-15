@@ -108,6 +108,9 @@
 .dienstleistung-card.offer-card .offer-card__cta p{
     color: var(--light);
 }
+.dienstleistung-card.offer-card .offer-card__cta{
+    margin-top: auto;
+}
 
 @supports not ((backdrop-filter: blur(1px))) {
     .dienstleistung-card.offer-card{
