@@ -11,7 +11,7 @@
                 <li><p class="default">Unternehmen</p></li>
                 <li><a class="light" href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a></li>
                 <li><a class="light" href="<?php echo esc_url( home_url( '/news/' ) ); ?>">News</a></li>
-                <li><a class="light" href="<?php echo esc_url( home_url( '/ueber-uns/' ) ); ?>">Über uns</a></li>
+        <!--    <li><a class="light" href="<?php echo esc_url( home_url( '/ueber-uns/' ) ); ?>">Über uns</a></li>    -->
                 <li><a class="ac" href="<?php echo esc_url( home_url( '/kontakt/' ) ); ?>">Kontakt</a></li>
             </ul>
             <ul>
