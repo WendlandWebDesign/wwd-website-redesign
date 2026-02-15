@@ -30,7 +30,7 @@ jQuery(function ($) {
 			.removeAttr('style')
 			.attr('data-offer-card-index', String(nextIndex));
 
-		$newRow.find('input[type="text"], textarea').val('');
+		$newRow.find('input[type="text"], input[type="url"], textarea').val('');
 		$repeater.append($newRow);
 		$repeater.attr('data-next-index', String(nextIndex + 1));
 		updateRemoveButtons();
@@ -40,7 +40,7 @@ jQuery(function ($) {
 		e.preventDefault();
 		var $rows = $repeater.find('.wwd-offer-card-row').not('.wwd-offer-card-template');
 		if ($rows.length <= 1) {
-			$rows.find('input[type="text"], textarea').val('');
+			$rows.find('input[type="text"], input[type="url"], textarea').val('');
 			return;
 		}
 		$(this).closest('.wwd-offer-card-row').remove();

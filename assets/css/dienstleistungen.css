@@ -59,39 +59,62 @@
 /* Offer-card specific footer pinning */
 .dienstleistung-card.offer-card{
     height: 100%;
+    display: flex;
+    flex-direction: column;
     background: var(--light);
-    border: 3px solid var(--ac-clr);
-    box-shadow: 0 0 5px var(--ac-clr);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--ac-clr);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     border-radius: var(--big-radius);
-
+    gap: 0 !important;
 }
-.dienstleistung-card.offer-card .offer-card__body{
+.dienstleistung-card.offer-card .offer-card__title{
+    font-size: calc(1.05rem + 0.2vw);
+    margin: 0;
+    font-family: var(--font-body);
+    color: var(--dark);
+}
+.dienstleistung-card.offer-card .offer-card__price{
+    color: var(--acc-clr, var(--ac-clr));
+    font-size: calc(2rem + 0.2vw);
+    font-weight: 600;
+    margin: 8px 0 0;
+}
+.dienstleistung-card.offer-card .offer-card__price-note{
+    font-size: 0.9em;
+    opacity: 0.85;
+    color: var(--dark);
+    margin-bottom: 1em;
+}
+.dienstleistung-card.offer-card ul{
     display: flex;
     flex-direction: column;
     gap: 1em;
+    margin-bottom: 1em;
 }
-.dienstleistung-card.offer-card .offer-card__body ul{
-    display: flex;
-    flex-direction: column;
-    gap: 1em;
-}
-.dienstleistung-card.offer-card .offer-card__body ul li{
+.dienstleistung-card.offer-card ul li{
     display: flex;
     align-items: center;
     gap: 10px;
 }
-.dienstleistung-card.offer-card .offer-card__body ul li img{
-    min-width: 40px;
-    min-height: 40px;
-    width: 40px;
-    height: 40px;
+.dienstleistung-card.offer-card ul li img{
+    min-width: 20px;
+    min-height: 20px;
+    width: 20px;
+    height: 20px;
 }
-.dienstleistung-card.offer-card .offer-card__price{
+.dienstleistung-card.offer-card ul li p{
+    color: var(--dark);
+}
+.dienstleistung-card.offer-card .offer-card__cta{
     margin-top: auto;
 }
 
-.offer-card p:last-of-type{
-    color: var(--dark);
+@supports not ((backdrop-filter: blur(1px))) {
+    .dienstleistung-card.offer-card{
+        background: rgba(255, 255, 255, 0.85);
+    }
 }
 
 @media (max-width: 750px) {

@@ -1681,6 +1681,9 @@ function wwd_render_offer_card_metabox_row( $index, $card = array(), $is_templat
 	$title = isset( $card['title'] ) ? (string) $card['title'] : '';
 	$text  = isset( $card['text'] ) ? (string) $card['text'] : '';
 	$price = isset( $card['price'] ) ? (string) $card['price'] : '';
+	$price_note = isset( $card['price_note'] ) ? (string) $card['price_note'] : '';
+	$cta_url = isset( $card['cta_url'] ) ? (string) $card['cta_url'] : '';
+	$cta_label = isset( $card['cta_label'] ) ? (string) $card['cta_label'] : '';
 
 	$bullets = array();
 	if ( isset( $card['bullets'] ) && is_array( $card['bullets'] ) ) {
@@ -1745,6 +1748,39 @@ function wwd_render_offer_card_metabox_row( $index, $card = array(), $is_templat
 		/>
 
 		<p>
+			<label for="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-price-note' ); ?>"><strong><?php echo esc_html( 'Preis-Zusatztext' ); ?></strong></label>
+		</p>
+		<input
+			type="text"
+			id="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-price-note' ); ?>"
+			name="<?php echo esc_attr( 'offer_cards[' . $index . '][price_note]' ); ?>"
+			value="<?php echo esc_attr( $price_note ); ?>"
+			class="widefat"
+		/>
+
+		<p>
+			<label for="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-cta-label' ); ?>"><strong><?php echo esc_html( 'CTA Label' ); ?></strong></label>
+		</p>
+		<input
+			type="text"
+			id="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-cta-label' ); ?>"
+			name="<?php echo esc_attr( 'offer_cards[' . $index . '][cta_label]' ); ?>"
+			value="<?php echo esc_attr( $cta_label ); ?>"
+			class="widefat"
+		/>
+
+		<p>
+			<label for="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-cta-url' ); ?>"><strong><?php echo esc_html( 'CTA URL' ); ?></strong></label>
+		</p>
+		<input
+			type="url"
+			id="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-cta-url' ); ?>"
+			name="<?php echo esc_attr( 'offer_cards[' . $index . '][cta_url]' ); ?>"
+			value="<?php echo esc_attr( $cta_url ); ?>"
+			class="widefat"
+		/>
+
+		<p>
 			<button type="button" class="button button-secondary wwd-offer-card-remove"><?php echo esc_html( 'Card entfernen' ); ?></button>
 		</p>
 	</div>
@@ -1765,6 +1801,9 @@ function wwd_render_offer_card_metabox( $post ) {
 				'text'    => '',
 				'bullets' => array(),
 				'price'   => '',
+				'price_note' => '',
+				'cta_url' => '',
+				'cta_label' => '',
 			),
 		);
 	}
@@ -1839,6 +1878,9 @@ function wwd_save_offer_card_meta( $post_id ) {
 		$title = isset( $raw_card['title'] ) ? sanitize_text_field( $raw_card['title'] ) : '';
 		$text  = isset( $raw_card['text'] ) ? wp_kses_post( $raw_card['text'] ) : '';
 		$price = isset( $raw_card['price'] ) ? sanitize_text_field( $raw_card['price'] ) : '';
+		$price_note = isset( $raw_card['price_note'] ) ? sanitize_text_field( $raw_card['price_note'] ) : '';
+		$cta_url = isset( $raw_card['cta_url'] ) ? esc_url_raw( $raw_card['cta_url'] ) : '';
+		$cta_label = isset( $raw_card['cta_label'] ) ? sanitize_text_field( $raw_card['cta_label'] ) : '';
 
 		$bullets_in = array();
 		if ( isset( $raw_card['bullets'] ) && is_array( $raw_card['bullets'] ) ) {
@@ -1853,7 +1895,7 @@ function wwd_save_offer_card_meta( $post_id ) {
 			}
 		}
 
-		if ( '' === $title && '' === wp_strip_all_tags( $text ) && empty( $bullets ) && '' === $price ) {
+		if ( '' === $title && '' === wp_strip_all_tags( $text ) && empty( $bullets ) && '' === $price && '' === $price_note && '' === $cta_url && '' === $cta_label ) {
 			continue;
 		}
 
@@ -1862,6 +1904,9 @@ function wwd_save_offer_card_meta( $post_id ) {
 			'text'    => $text,
 			'bullets' => $bullets,
 			'price'   => $price,
+			'price_note' => $price_note,
+			'cta_url' => $cta_url,
+			'cta_label' => $cta_label,
 		);
 	}
 
