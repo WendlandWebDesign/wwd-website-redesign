@@ -1,0 +1,26 @@
+.dsgvo-holder {
+    margin: var(--section-padding) auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.impressum-content {
+    text-align: left;
+    max-width: 800px;
+}
+
+.impressum-content h2 {
+    margin-top: 2.5em;
+}
+
+.datenschutz-content {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+}
+
+.datenschutz-content h2 {
+    margin-top: 2.5em;
+}

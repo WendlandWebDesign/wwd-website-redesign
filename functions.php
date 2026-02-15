@@ -30,6 +30,7 @@ function wwd_website_redesign_enqueue_assets() {
     $css_dienstleistungen     = 'assets/css/dienstleistungen.css';
 	$css_news     = 'assets/css/news.css';
 	$css_kontakt     = 'assets/css/kontakt.css';
+	$css_dsgvo     = 'assets/css/dsgvo.css';
 	// JS-Dateien
 	$js_base       = 'assets/js/base.js';
 	$js_animations = 'assets/js/animations.js';
@@ -107,6 +108,12 @@ function wwd_website_redesign_enqueue_assets() {
         get_theme_file_uri( $css_kontakt ),
         array( 'wwd-website-redesign-base' ),
         file_exists( get_theme_file_path( $css_kontakt ) ) ? filemtime( get_theme_file_path( $css_kontakt) ) : null
+    );
+	wp_enqueue_style(
+        'wwd-website-redesign-dsgvo',
+        get_theme_file_uri( $css_dsgvo ),
+        array( 'wwd-website-redesign-base' ),
+        file_exists( get_theme_file_path( $css_dsgvo ) ) ? filemtime( get_theme_file_path( $css_dsgvo) ) : null
     );
 	/**
 	 * JS einbinden
@@ -398,8 +405,66 @@ function wwd_register_cpts() {
 			),
 		)
 	);
+
+	register_post_type(
+		'dsgvo',
+		array(
+			'labels' => array(
+				'name'          => 'DSGVO',
+				'singular_name' => 'DSGVO Eintrag',
+				'menu_name'     => 'DSGVO',
+				'add_new_item'  => 'Neuen DSGVO Eintrag hinzufuegen',
+				'edit_item'     => 'DSGVO Eintrag bearbeiten',
+				'view_item'     => 'DSGVO Eintrag ansehen',
+				'search_items'  => 'DSGVO Eintraege durchsuchen',
+				'all_items'     => 'Alle DSGVO Eintraege',
+			),
+			'public'       => false,
+			'show_ui'      => true,
+			'show_in_menu' => true,
+			'show_in_rest' => true,
+			'has_archive'  => false,
+			'hierarchical' => false,
+			'supports'     => array( 'title', 'editor', 'page-attributes' ),
+			'menu_position'=> 26,
+			'menu_icon'    => 'dashicons-shield',
+			'rewrite'      => false,
+		)
+	);
 }
 add_action( 'init', 'wwd_register_cpts' );
+
+function wwd_ensure_dsgvo_posts_exist() {
+	$needed_posts = array(
+		'impressum' => 'Impressum',
+		'datenschutzerklaerung' => 'Datenschutzerklärung',
+	);
+
+	foreach ( $needed_posts as $post_name => $post_title ) {
+		$existing = get_posts(
+			array(
+				'post_type'      => 'dsgvo',
+				'post_status'    => 'any',
+				'name'           => $post_name,
+				'posts_per_page' => 1,
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+			)
+		);
+
+		if ( empty( $existing ) ) {
+			wp_insert_post(
+				array(
+					'post_type'   => 'dsgvo',
+					'post_status' => 'publish',
+					'post_title'  => $post_title,
+					'post_name'   => $post_name,
+				)
+			);
+		}
+	}
+}
+add_action( 'init', 'wwd_ensure_dsgvo_posts_exist', 12 );
 
 /**
  * Media taxonomy for attachments.
