@@ -1713,24 +1713,47 @@ if (document.readyState === "loading") {
 
 const initWebsiteWegHeadingPastState = () => {
     const section = document.querySelector(".website-weg");
-    if (!section || !("IntersectionObserver" in window)) return;
+    if (!section) return;
+    if (!("IntersectionObserver" in window)) {
+        document.body.classList.remove("website-weg-scrolled-past");
+        return;
+    }
 
-    const observer = new IntersectionObserver(
+    let coversTop = false;
+    let coversBottom = false;
+    const syncClass = () => {
+        document.body.classList.toggle("website-weg-scrolled-past", coversTop && coversBottom);
+    };
+    syncClass();
+
+    const topBandObserver = new IntersectionObserver(
         (entries) => {
             entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    document.body.classList.add("website-weg-scrolled-past");
-                    return;
-                }
-                document.body.classList.remove("website-weg-scrolled-past");
+                coversTop = entry.isIntersecting;
+                syncClass();
             });
         },
         {
             threshold: 0,
+            rootMargin: "0px 0px -99% 0px",
         }
     );
 
-    observer.observe(section);
+    const bottomBandObserver = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                coversBottom = entry.isIntersecting;
+                syncClass();
+            });
+        },
+        {
+            threshold: 0,
+            rootMargin: "-99% 0px 0px 0px",
+        }
+    );
+
+    topBandObserver.observe(section);
+    bottomBandObserver.observe(section);
 };
 
 if (document.readyState === "loading") {
