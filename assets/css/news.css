@@ -64,4 +64,10 @@ main .news-sammlung .nav-card .news-card__excerpt {
     font-size: calc(.9rem + 0.2vw);
     line-height: 1.7;
     padding: var(--section-padding);
+    display: flex;
+    justify-content: center;
+}
+
+.single-content p {
+    max-width: 700px;
 }
