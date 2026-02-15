@@ -81,7 +81,7 @@
                         <p class="light"><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'arrow', 'aria_hidden' => true ) ); ?>News</p>
                         <?php echo wwd_inline_svg( 'mini-arrow.svg', array( 'class' => 'mini-arrow', 'aria_hidden' => true ) ); ?>
                     </li>
-                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/ueber-uns/' ) ); ?>'" class="list-left-item <?php echo ( is_page('ueber-uns') ) ? 'akt' : ''; ?>"><p class="light" href="">Über uns</p></li>
+                <!--    <li onclick="window.location.href='<?php echo esc_url( home_url( '/ueber-uns/' ) ); ?>'" class="list-left-item <?php echo ( is_page('ueber-uns') ) ? 'akt' : ''; ?>"><p class="light" href="">Über uns</p></li>    -->
                     <li onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="list-left-item <?php echo ( is_page('kontakt') ) ? 'akt' : ''; ?>"><p class="light" href="">Kontakt</p></li>
                 </ul>
 
