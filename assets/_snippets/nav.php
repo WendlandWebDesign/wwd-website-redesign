@@ -36,7 +36,7 @@
                     </div>
                 </div>
                 <div class="img-holder">
-                    <img class="nav-contact-img" src="http://localhost/wwd-redesign/wp-content/uploads/2026/02/16-10-Waben.jpg" alt="">
+                    <img class="nav-contact-img" src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/16-10-waben.svg' ); ?>" alt="">
                     <div class="img-transition-bottom"></div>
                 </div>
                 <ul class="nav-contacts">
