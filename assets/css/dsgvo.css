@@ -9,23 +9,17 @@
 .impressum-content-holder {
     padding: var(--site-padding);
     text-align: left;
-<<<<<<< Updated upstream
-    max-width: 800px;
-    padding: var(--site-padding);
+    width: 100%;
 }
 
 .impressum-content h2 {
     margin-top: 2.5em;
     font-family: var(--font-body);
-
-=======
-    width: 100%;
 }
 
 .impressum-content{
     max-width: 800px;
     padding: 0 3em;
->>>>>>> Stashed changes
 }
 
 .datenschutz-content {
@@ -35,10 +29,7 @@
 }
 
 .datenschutz-content h2 {
-    margin-top: 2.5em;
-<<<<<<< Updated upstream
     font-family: var(--font-body);
-=======
 }
 
 
@@ -46,5 +37,4 @@
     .impressum-content {
         padding: 0;
     }
->>>>>>> Stashed changes
 }
