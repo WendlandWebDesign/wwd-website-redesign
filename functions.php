@@ -514,6 +514,7 @@ add_action( 'init', 'wwd_register_media_category_taxonomy', 11 );
 function wwd_get_allowed_layouts() {
 	return array(
 		'leistungen-cards' => 'assets/_snippets/leistungen-cards.php',
+		'offer-card'       => 'assets/_snippets/offer-card.php',
 		'faq'              => 'assets/_snippets/faq.php',
 		'three-img-layout' => 'assets/_snippets/three-img-layout.php',
 		'two-img-layout'   => 'assets/_snippets/two-img-layout.php',
@@ -536,6 +537,10 @@ function theme_is_balken_layout( $post_id ) {
 
 function theme_is_faq_layout( $post_id ) {
 	return 'faq' === theme_get_selected_layout( $post_id );
+}
+
+function theme_is_offer_card_layout( $post_id ) {
+	return 'offer-card' === theme_get_selected_layout( $post_id );
 }
 
 /**
@@ -639,6 +644,7 @@ function wwd_render_layout_template_metabox( $post ) {
 	</p>
 	<select name="wwd_layout_template" id="wwd-layout-template" class="widefat">
 		<option value="leistungen-cards" <?php selected( $current, 'leistungen-cards' ); ?>><?php echo esc_html( 'Leistungen Cards' ); ?></option>
+		<option value="offer-card" <?php selected( $current, 'offer-card' ); ?>><?php echo esc_html( 'Offer Card' ); ?></option>
 		<option value="faq" <?php selected( $current, 'faq' ); ?>><?php echo esc_html( 'FAQ' ); ?></option>
 		<option value="one-img-layout" <?php selected( $current, 'one-img-layout' ); ?>><?php echo esc_html( 'One-Image Layout' ); ?></option>
 		<option value="two-img-layout" <?php selected( $current, 'two-img-layout' ); ?>><?php echo esc_html( 'Two-Image Layout' ); ?></option>
@@ -1628,6 +1634,291 @@ function wwd_save_leistungen_cards_meta( $post_id ) {
 add_action( 'save_post', 'wwd_save_leistungen_cards_meta' );
 
 /**
+ * Meta box for Offer Cards layout.
+ */
+function wwd_add_offer_card_metaboxes( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
+	}
+	$allowed_post_types = wwd_get_unterseiten_post_types();
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = get_post_meta( $post_id, '_layout_template', true );
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'offer-card' !== $layout ) {
+		return;
+	}
+
+	add_meta_box(
+		'wwd_offer_card_fields',
+		'Offer Card Felder',
+		'wwd_render_offer_card_metabox',
+		$post_type,
+		'normal',
+		'high'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_offer_card_metaboxes', 10, 2 );
+
+function wwd_render_offer_card_metabox_row( $index, $card = array(), $is_template = false ) {
+	$title = isset( $card['title'] ) ? (string) $card['title'] : '';
+	$text  = isset( $card['text'] ) ? (string) $card['text'] : '';
+	$price = isset( $card['price'] ) ? (string) $card['price'] : '';
+	$price_note = isset( $card['price_note'] ) ? (string) $card['price_note'] : '';
+	$cta_url = isset( $card['cta_url'] ) ? (string) $card['cta_url'] : '';
+	$cta_label = isset( $card['cta_label'] ) ? (string) $card['cta_label'] : '';
+
+	$bullets = array();
+	if ( isset( $card['bullets'] ) && is_array( $card['bullets'] ) ) {
+		$bullets = array_values( $card['bullets'] );
+	}
+	$bullets = array_pad( array_slice( $bullets, 0, 6 ), 6, '' );
+
+	$row_class = 'wwd-offer-card-row';
+	$style     = '';
+	if ( $is_template ) {
+		$row_class .= ' wwd-offer-card-template';
+		$style     = 'display:none;';
+	}
+	?>
+	<div class="<?php echo esc_attr( $row_class ); ?>" data-offer-card-index="<?php echo esc_attr( $index ); ?>"<?php echo $style ? ' style="' . esc_attr( $style ) . '"' : ''; ?>>
+		<hr />
+		<p><strong><?php echo esc_html( 'Card' ); ?></strong></p>
+
+		<p>
+			<label for="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-title' ); ?>"><strong><?php echo esc_html( 'Titel' ); ?></strong></label>
+		</p>
+		<input
+			type="text"
+			id="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-title' ); ?>"
+			name="<?php echo esc_attr( 'offer_cards[' . $index . '][title]' ); ?>"
+			value="<?php echo esc_attr( $title ); ?>"
+			class="widefat"
+		/>
+
+		<p>
+			<label for="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-text' ); ?>"><strong><?php echo esc_html( 'Text' ); ?></strong></label>
+		</p>
+		<textarea
+			id="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-text' ); ?>"
+			name="<?php echo esc_attr( 'offer_cards[' . $index . '][text]' ); ?>"
+			rows="5"
+			class="widefat"
+		><?php echo esc_textarea( $text ); ?></textarea>
+
+		<?php for ( $b = 0; $b < 6; $b++ ) : ?>
+			<p>
+				<label for="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-bullet-' . $b ); ?>"><strong><?php echo esc_html( 'Bullet ' . ( $b + 1 ) ); ?></strong></label>
+			</p>
+			<input
+				type="text"
+				id="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-bullet-' . $b ); ?>"
+				name="<?php echo esc_attr( 'offer_cards[' . $index . '][bullets][' . $b . ']' ); ?>"
+				value="<?php echo esc_attr( $bullets[ $b ] ); ?>"
+				class="widefat"
+			/>
+		<?php endfor; ?>
+
+		<p>
+			<label for="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-price' ); ?>"><strong><?php echo esc_html( 'Preis' ); ?></strong></label>
+		</p>
+		<input
+			type="text"
+			id="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-price' ); ?>"
+			name="<?php echo esc_attr( 'offer_cards[' . $index . '][price]' ); ?>"
+			value="<?php echo esc_attr( $price ); ?>"
+			class="widefat"
+		/>
+
+		<p>
+			<label for="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-price-note' ); ?>"><strong><?php echo esc_html( 'Preis-Zusatztext' ); ?></strong></label>
+		</p>
+		<input
+			type="text"
+			id="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-price-note' ); ?>"
+			name="<?php echo esc_attr( 'offer_cards[' . $index . '][price_note]' ); ?>"
+			value="<?php echo esc_attr( $price_note ); ?>"
+			class="widefat"
+		/>
+
+		<p>
+			<label for="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-cta-label' ); ?>"><strong><?php echo esc_html( 'CTA Label' ); ?></strong></label>
+		</p>
+		<input
+			type="text"
+			id="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-cta-label' ); ?>"
+			name="<?php echo esc_attr( 'offer_cards[' . $index . '][cta_label]' ); ?>"
+			value="<?php echo esc_attr( $cta_label ); ?>"
+			class="widefat"
+		/>
+
+		<p>
+			<label for="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-cta-url' ); ?>"><strong><?php echo esc_html( 'CTA URL' ); ?></strong></label>
+		</p>
+		<input
+			type="url"
+			id="<?php echo esc_attr( 'wwd-offer-card-' . $index . '-cta-url' ); ?>"
+			name="<?php echo esc_attr( 'offer_cards[' . $index . '][cta_url]' ); ?>"
+			value="<?php echo esc_attr( $cta_url ); ?>"
+			class="widefat"
+		/>
+
+		<p>
+			<button type="button" class="button button-secondary wwd-offer-card-remove"><?php echo esc_html( 'Card entfernen' ); ?></button>
+		</p>
+	</div>
+	<?php
+}
+
+function wwd_render_offer_card_metabox( $post ) {
+	wp_nonce_field( 'wwd_offer_card_save', 'wwd_offer_card_nonce' );
+
+	$cards = get_post_meta( $post->ID, 'offer_cards', true );
+	if ( ! is_array( $cards ) ) {
+		$cards = array();
+	}
+	if ( empty( $cards ) ) {
+		$cards = array(
+			array(
+				'title'   => '',
+				'text'    => '',
+				'bullets' => array(),
+				'price'   => '',
+				'price_note' => '',
+				'cta_url' => '',
+				'cta_label' => '',
+			),
+		);
+	}
+
+	$next_index = 0;
+	foreach ( array_keys( $cards ) as $card_index ) {
+		if ( is_numeric( $card_index ) ) {
+			$card_index = (int) $card_index;
+			if ( $card_index >= $next_index ) {
+				$next_index = $card_index + 1;
+			}
+		}
+	}
+	?>
+	<div id="wwd-offer-card-repeater" data-next-index="<?php echo esc_attr( $next_index ); ?>">
+		<?php foreach ( $cards as $index => $card ) : ?>
+			<?php wwd_render_offer_card_metabox_row( (string) $index, is_array( $card ) ? $card : array(), false ); ?>
+		<?php endforeach; ?>
+		<?php wwd_render_offer_card_metabox_row( '__INDEX__', array(), true ); ?>
+	</div>
+	<p>
+		<button type="button" class="button button-primary" id="wwd-offer-card-add"><?php echo esc_html( 'Card hinzufuegen' ); ?></button>
+	</p>
+	<?php
+}
+
+function wwd_save_offer_card_meta( $post_id ) {
+	if ( ! isset( $_POST['wwd_offer_card_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( wp_unslash( $_POST['wwd_offer_card_nonce'] ), 'wwd_offer_card_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	$allowed_post_types = wwd_get_unterseiten_post_types();
+	if ( ! in_array( get_post_type( $post_id ), $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = isset( $_POST['wwd_layout_template'] ) ? sanitize_key( wp_unslash( $_POST['wwd_layout_template'] ) ) : '';
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = get_post_meta( $post_id, '_layout_template', true );
+	}
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'offer-card' !== $layout ) {
+		return;
+	}
+
+	$raw_cards = array();
+	if ( isset( $_POST['offer_cards'] ) && is_array( $_POST['offer_cards'] ) ) {
+		$raw_cards = wp_unslash( $_POST['offer_cards'] );
+	}
+
+	$clean_cards = array();
+	foreach ( $raw_cards as $raw_card ) {
+		if ( ! is_array( $raw_card ) ) {
+			continue;
+		}
+
+		$title = isset( $raw_card['title'] ) ? sanitize_text_field( $raw_card['title'] ) : '';
+		$text  = isset( $raw_card['text'] ) ? wp_kses_post( $raw_card['text'] ) : '';
+		$price = isset( $raw_card['price'] ) ? sanitize_text_field( $raw_card['price'] ) : '';
+		$price_note = isset( $raw_card['price_note'] ) ? sanitize_text_field( $raw_card['price_note'] ) : '';
+		$cta_url = isset( $raw_card['cta_url'] ) ? esc_url_raw( $raw_card['cta_url'] ) : '';
+		$cta_label = isset( $raw_card['cta_label'] ) ? sanitize_text_field( $raw_card['cta_label'] ) : '';
+
+		$bullets_in = array();
+		if ( isset( $raw_card['bullets'] ) && is_array( $raw_card['bullets'] ) ) {
+			$bullets_in = array_slice( array_values( $raw_card['bullets'] ), 0, 6 );
+		}
+
+		$bullets = array();
+		foreach ( $bullets_in as $bullet ) {
+			$bullet = sanitize_text_field( $bullet );
+			if ( '' !== $bullet ) {
+				$bullets[] = $bullet;
+			}
+		}
+
+		if ( '' === $title && '' === wp_strip_all_tags( $text ) && empty( $bullets ) && '' === $price && '' === $price_note && '' === $cta_url && '' === $cta_label ) {
+			continue;
+		}
+
+		$clean_cards[] = array(
+			'title'   => $title,
+			'text'    => $text,
+			'bullets' => $bullets,
+			'price'   => $price,
+			'price_note' => $price_note,
+			'cta_url' => $cta_url,
+			'cta_label' => $cta_label,
+		);
+	}
+
+	if ( empty( $clean_cards ) ) {
+		delete_post_meta( $post_id, 'offer_cards' );
+	} else {
+		update_post_meta( $post_id, 'offer_cards', $clean_cards );
+	}
+}
+add_action( 'save_post', 'wwd_save_offer_card_meta' );
+
+/**
  * Meta box for slider layout (3 fixed slides).
  */
 function wwd_add_slider_layout_metaboxes( $post_type, $post ) {
@@ -1894,6 +2185,47 @@ function wwd_adjust_metaboxes_for_leistungen_cards_layout( $post_type, $post ) {
 add_action( 'add_meta_boxes', 'wwd_adjust_metaboxes_for_leistungen_cards_layout', 20, 2 );
 
 /**
+ * Hide other layout metaboxes when Offer Card layout is active.
+ */
+function wwd_adjust_metaboxes_for_offer_card_layout( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
+	}
+	$allowed_post_types = wwd_get_unterseiten_post_types();
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = get_post_meta( $post_id, '_layout_template', true );
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'offer-card' !== $layout ) {
+		return;
+	}
+
+	remove_meta_box( 'wwd_unterseiten_content', $post_type, 'normal' );
+	remove_meta_box( 'wwd_three_img_texts', $post_type, 'normal' );
+	remove_meta_box( 'wwd_one_img_bottom_texts', $post_type, 'normal' );
+	remove_meta_box( 'wwd_leistungen_cards', $post_type, 'normal' );
+	remove_meta_box( 'wwd_slider_layout_slides', $post_type, 'normal' );
+}
+add_action( 'add_meta_boxes', 'wwd_adjust_metaboxes_for_offer_card_layout', 20, 2 );
+
+/**
  * Hide other layout metaboxes when slider layout is active.
  */
 function wwd_adjust_metaboxes_for_slider_layout( $post_type, $post ) {
@@ -2017,6 +2349,49 @@ function wwd_enqueue_leistungen_cards_admin_media( $hook ) {
 	}
 }
 add_action( 'admin_enqueue_scripts', 'wwd_enqueue_leistungen_cards_admin_media' );
+
+function wwd_enqueue_offer_card_admin_media( $hook ) {
+	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+		return;
+	}
+	$screen = get_current_screen();
+	if ( ! $screen || ! in_array( $screen->post_type, wwd_get_unterseiten_post_types(), true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$layout = get_post_meta( $post_id, '_layout_template', true );
+	if ( 'offer-card' !== $layout ) {
+		return;
+	}
+
+	wp_enqueue_script(
+		'wwd-admin-offer-card-metabox',
+		get_theme_file_uri( 'assets/js/admin-offer-card-metabox.js' ),
+		array( 'jquery' ),
+		file_exists( get_theme_file_path( 'assets/js/admin-offer-card-metabox.js' ) ) ? filemtime( get_theme_file_path( 'assets/js/admin-offer-card-metabox.js' ) ) : null,
+		true
+	);
+
+	if ( file_exists( get_theme_file_path( 'assets/css/admin.css' ) ) ) {
+		wp_enqueue_style(
+			'wwd-admin-offer-card-metabox',
+			get_theme_file_uri( 'assets/css/admin.css' ),
+			array(),
+			filemtime( get_theme_file_path( 'assets/css/admin.css' ) )
+		);
+	}
+}
+add_action( 'admin_enqueue_scripts', 'wwd_enqueue_offer_card_admin_media' );
 
 function wwd_enqueue_slider_layout_admin_media( $hook ) {
 	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {

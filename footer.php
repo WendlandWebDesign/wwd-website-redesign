@@ -22,7 +22,7 @@
                 <li><a class="ac" href="<?php echo esc_url( home_url( '/website-check/' ) ); ?>">kostenloser Websitecheck</a></li>
             </ul>
             <div class="socials">
-                <div class="social-holder" onclick="window.open('https://x.com/design22702')"><?php echo wwd_inline_svg( 'x.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?></div>
+                <div class="social-holder" onclick="window.open('https://x.com/Wendland_Design')"><?php echo wwd_inline_svg( 'x.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?></div>
                 <div class="social-holder" onclick="window.open('https://www.instagram.com/wendland_web_design/')"><?php echo wwd_inline_svg( 'instagram.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?></div>
             </div>
         </div>
