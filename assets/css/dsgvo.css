@@ -1,5 +1,4 @@
 .dsgvo-holder {
-    margin: var(--section-padding) auto;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -9,10 +8,13 @@
 .impressum-content {
     text-align: left;
     max-width: 800px;
+    padding: var(--site-padding);
 }
 
 .impressum-content h2 {
     margin-top: 2.5em;
+    font-family: var(--font-body);
+
 }
 
 .datenschutz-content {
@@ -23,4 +25,5 @@
 
 .datenschutz-content h2 {
     margin-top: 2.5em;
+    font-family: var(--font-body);
 }
