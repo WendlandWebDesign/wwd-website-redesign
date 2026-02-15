@@ -177,6 +177,9 @@
         background: none;
         padding: 0;
     }
+    .wc-form .contact-info{
+        width: 100% !important;
+    }
     .contact-form button{
         align-self: center;
     }
@@ -198,6 +201,9 @@
     gap: 4em;
     align-items: center;
     margin: 8em 0;
+}
+.wc-form .contact-info{
+    width: 50%;
 }
 .wc-form .contact-info h4{
     max-width: 500px;
