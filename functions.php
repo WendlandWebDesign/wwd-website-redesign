@@ -369,6 +369,35 @@ function wwd_register_cpts() {
 			)
 		);
 	}
+
+	register_post_type(
+		'website_weg',
+		array(
+			'labels' => array(
+				'name'          => 'Website Weg',
+				'singular_name' => 'Website Weg Eintrag',
+				'menu_name'     => 'Website Weg',
+				'add_new_item'  => 'Neuen Eintrag hinzufuegen',
+				'edit_item'     => 'Eintrag bearbeiten',
+				'view_item'     => 'Eintrag ansehen',
+				'search_items'  => 'Website Weg durchsuchen',
+				'all_items'     => 'Alle Eintraege',
+			),
+			'public'       => true,
+			'show_ui'      => true,
+			'show_in_menu' => true,
+			'show_in_rest' => true,
+			'has_archive'  => false,
+			'hierarchical' => false,
+			'supports'     => array( 'title', 'editor', 'page-attributes' ),
+			'menu_position'=> 25,
+			'menu_icon'    => 'dashicons-editor-ol',
+			'rewrite'      => array(
+				'slug'       => 'website-weg',
+				'with_front' => false,
+			),
+		)
+	);
 }
 add_action( 'init', 'wwd_register_cpts' );
 
@@ -2057,7 +2086,7 @@ function wwd_apply_menu_order_sorting( $query ) {
 
 $menu_order_post_types = array_unique(
 	array_merge(
-		array( 'nav_dienstleistungen', 'referenzen' ),
+		array( 'nav_dienstleistungen', 'referenzen', 'website_weg' ),
 		wwd_get_unterseiten_post_types()
 	)
 );
