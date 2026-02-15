@@ -19,8 +19,10 @@ get_header();
             ?>
 
             <div class="dsgvo-holder light">
-                <div class="datenschutz-content mw">
-                <?php the_content(); ?>
+                <div class="impressum-content-holder mw">
+                    <div class="impressum-content">
+                        <?php the_content(); ?>
+                    </div>
                 </div>
             </div>
 
