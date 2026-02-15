@@ -40,7 +40,7 @@
                     <div class="img-transition-bottom"></div>
                 </div>
                 <ul class="nav-contacts">
-                    <li onclick="window.location.href=''">
+                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'">
                         <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/form-blue.svg' ); ?>" alt="">
                         <p class="light mini-heading" href="">Kontaktformular</p>
                     </li>
@@ -48,9 +48,9 @@
                         <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/mail-thick-blue.svg' ); ?>" alt="">
                         <p class="light mini-heading" href="">office@wendlandwebdesign.de</p>
                     </li>
-                    <li onclick="window.location.href=''">
+                    <li onclick="window.location.href='tel:+4915238976827'">
                         <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/phone-thin-blue.svg' ); ?>" alt="">
-                        <p class="light mini-heading" href="">0162 6907548</p>
+                        <p class="light mini-heading" href="">0152 389 768 27</p>
                     </li>
                 </ul>
             </div>
