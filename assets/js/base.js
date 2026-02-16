@@ -491,6 +491,9 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const syncInvalidLabel = (field) => {
+        if (field instanceof HTMLInputElement && field.type === "checkbox") {
+            return;
+        }
         const label = getFieldLabel(field);
         if (!label) return;
         if (field.checkValidity()) {
@@ -498,6 +501,14 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             label.classList.add("is-invalid");
         }
+    };
+
+    const syncCheckboxInvalidState = (field) => {
+        if (!(field instanceof HTMLInputElement) || field.type !== "checkbox") {
+            return;
+        }
+        const isInvalid = field.required && !field.checked;
+        field.classList.toggle("is-invalid", isInvalid);
     };
 
     const requiredFields = Array.from(form.querySelectorAll("input[required], textarea[required], select[required]"));
@@ -521,6 +532,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     submitBtn.addEventListener("click", () => {
         requiredFields.forEach((field) => {
+            syncCheckboxInvalidState(field);
             syncInvalidLabel(field);
         });
         if (!form.checkValidity()) {
@@ -554,12 +566,17 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement)) {
             return;
         }
+        if (field instanceof HTMLInputElement && field.type === "checkbox") {
+            if (field.checked) {
+                field.classList.remove("is-invalid");
+            }
+            return;
+        }
         if (!field.matches('input:not([type="checkbox"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="file"]), textarea')) {
             return;
         }
         syncHasValueClass(field);
     });
-
     syncAllHasValueClasses();
     setTimeout(syncAllHasValueClasses, 250);
 

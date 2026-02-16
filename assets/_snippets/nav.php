@@ -52,6 +52,10 @@
                         <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/phone-thin-blue.svg' ); ?>" alt="">
                         <p class="light mini-heading" href="">0152 389 768 27</p>
                     </li>
+                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/website-check/' ) ); ?>'">
+                        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/checkmark.svg' ); ?>" alt="">
+                        <p class="light mini-heading" href="">kostenloser Website Check</p>
+                    </li>
                 </ul>
             </div>
         </div>

@@ -13,7 +13,7 @@ get_header();
     $lockedUntil = (int) get_transient($lockKey);
     $lockRemaining = max(0, $lockedUntil - time());
     $mailSent = false;
-    $requiredFieldKeys = ['name', 'email', 'phone', 'betreff', 'nachricht'];
+    $requiredFieldKeys = ['name', 'email', 'phone', 'betreff', 'nachricht', 'privacy'];
     $invalidFields = [];
     $sentParam = isset($_GET['sent']) ? sanitize_text_field(wp_unslash((string)$_GET['sent'])) : '';
     $successToken = isset($_GET['success_token']) ? sanitize_text_field(wp_unslash((string)$_GET['success_token'])) : '';
@@ -98,8 +98,15 @@ get_header();
                         <label class="default<?php echo esc_attr($invalidClass('nachricht')); ?>" for="nachricht">Nachricht</label>
                     </div>
                     <div class="form-row checkbox-row">
-                        <input type="checkbox" class="light" required>
-                        <p class="light">Ich bin mit den <a href="<?php echo esc_url( home_url( '/datenschutzerklaerung/' ) ); ?>">Datenschutzbestimmungen</a> , der Verwendung meiner Daten zur Verarbeitung meiner Anfrage und der Zusendung weiterer Informationen per E-Mail einverstanden.</p>
+                        <input
+                            type="checkbox"
+                            name="privacy"
+                            id="privacy"
+                            value="1"
+                            class="light<?php echo esc_attr($invalidClass('privacy')); ?>"
+                            required
+                        >
+                        <label class="light" for="privacy">Ich bin mit den <a href="<?php echo esc_url( home_url( '/datenschutzerklaerung/' ) ); ?>">Datenschutzbestimmungen</a> , der Verwendung meiner Daten zur Verarbeitung meiner Anfrage und der Zusendung weiterer Informationen per E-Mail einverstanden.</label>
                     </div>
 
                     <!-- WICHTIG: kein onclick-redirect, sondern submit -->

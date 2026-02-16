@@ -72,6 +72,7 @@ $email     = filter_var($emailRaw, FILTER_VALIDATE_EMAIL);
 $phone     = trim((string)($_POST['phone'] ?? ''));
 $betreff   = trim((string)($_POST['betreff'] ?? ''));
 $nachricht = trim((string)($_POST['nachricht'] ?? ''));
+$privacy   = (string)($_POST['privacy'] ?? '');
 
 $invalidFields = [];
 if ($name === '') {
@@ -88,6 +89,9 @@ if ($betreff === '') {
 }
 if ($nachricht === '') {
     $invalidFields[] = 'nachricht';
+}
+if (empty($privacy)) {
+    $invalidFields[] = 'privacy';
 }
 
 if (!empty($invalidFields)) {

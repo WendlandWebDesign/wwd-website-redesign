@@ -168,6 +168,17 @@
     max-width: 20px;
     max-height: 20px;
 }
+.contact-form .checkbox-row label{
+    position: static;
+    font-size: .8rem;
+    z-index: auto;
+    padding: 0;
+    color: var(--light) !important;
+}
+.contact-form .checkbox-row input[type="checkbox"].is-invalid{
+    outline: 2px solid #c40000;
+    outline-offset: 2px;
+}
 .contact-form .checkbox-row::before,
 .contact-form .checkbox-row::after{
     display: none;
