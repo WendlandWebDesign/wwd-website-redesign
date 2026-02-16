@@ -26,7 +26,8 @@ get_header();
                     <p>office@wenlandwebdesign.de</p>
                 </div>
             </div>
-            <form action="<?php echo esc_url( get_stylesheet_directory_uri() . '/send-mail.php' ); ?>" class="contact-form" method="post">
+            <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="contact-form" method="post">
+                <input type="hidden" name="action" value="wwd_send_mail_contact">
                 <?php wp_nonce_field('wwd_contact_form', 'wwd_nonce'); ?>
                 <input type="hidden" name="form_ts" value="<?php echo time(); ?>">
                 <div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">

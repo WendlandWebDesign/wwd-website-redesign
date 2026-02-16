@@ -2963,4 +2963,503 @@ function wwd_seitenbilder_callback() {
     echo '</form></div>';
 }
 
+/**
+ * Central registry for dynamic Gutenberg layout block.
+ */
+function theme_layout_registry() {
+	return array(
+		'one-img-layout' => array(
+			'label'    => 'One Image Layout',
+			'template' => 'assets/_snippets/layouts/one-img-layout.php',
+			'meta'     => array(
+				'_section_headline'    => array(
+					'label' => 'Headline',
+					'type'  => 'text',
+				),
+				'_section_mini_heading' => array(
+					'label' => 'Mini Heading',
+					'type'  => 'text',
+				),
+				'_section_text'        => array(
+					'label' => 'Text',
+					'type'  => 'textarea',
+				),
+				'_img_1_id'            => array(
+					'label' => 'Bild 1',
+					'type'  => 'image_id',
+				),
+				'one_img_bottom_p_1'   => array(
+					'label' => 'Bottom Text 1',
+					'type'  => 'text',
+				),
+				'one_img_bottom_p_2'   => array(
+					'label' => 'Bottom Text 2',
+					'type'  => 'text',
+				),
+				'one_img_bottom_p_3'   => array(
+					'label' => 'Bottom Text 3',
+					'type'  => 'text',
+				),
+				'one_img_bottom_p_4'   => array(
+					'label' => 'Bottom Text 4',
+					'type'  => 'text',
+				),
+				'one_img_bottom_p_5'   => array(
+					'label' => 'Bottom Text 5',
+					'type'  => 'text',
+				),
+				'one_img_bottom_p_6'   => array(
+					'label' => 'Bottom Text 6',
+					'type'  => 'text',
+				),
+				'_cta_label'           => array(
+					'label' => 'CTA Label',
+					'type'  => 'text',
+				),
+				'_cta_url'             => array(
+					'label' => 'CTA URL',
+					'type'  => 'url',
+				),
+			),
+		),
+		'two-img-layout' => array(
+			'label'    => 'Two Image Layout',
+			'template' => 'assets/_snippets/layouts/two-img-layout.php',
+			'meta'     => array(
+				'_section_headline'    => array(
+					'label' => 'Headline',
+					'type'  => 'text',
+				),
+				'_section_mini_heading' => array(
+					'label' => 'Mini Heading',
+					'type'  => 'text',
+				),
+				'_section_text'        => array(
+					'label' => 'Text',
+					'type'  => 'textarea',
+				),
+				'_img_1_id'            => array(
+					'label' => 'Bild 1',
+					'type'  => 'image_id',
+				),
+				'_img_2_id'            => array(
+					'label' => 'Bild 2',
+					'type'  => 'image_id',
+				),
+				'_cta_label'           => array(
+					'label' => 'CTA Label',
+					'type'  => 'text',
+				),
+				'_cta_url'             => array(
+					'label' => 'CTA URL',
+					'type'  => 'url',
+				),
+			),
+		),
+	);
+}
 
+/**
+ * Build unique meta schema from layout registry.
+ */
+function theme_layout_meta_schema() {
+	$registry = theme_layout_registry();
+	$schema   = array();
+
+	foreach ( $registry as $layout ) {
+		if ( empty( $layout['meta'] ) || ! is_array( $layout['meta'] ) ) {
+			continue;
+		}
+
+		foreach ( $layout['meta'] as $meta_key => $field ) {
+			if ( ! is_string( $meta_key ) || '' === $meta_key ) {
+				continue;
+			}
+
+			$schema[ $meta_key ] = array(
+				'type' => isset( $field['type'] ) ? (string) $field['type'] : 'text',
+			);
+		}
+	}
+
+	return $schema;
+}
+
+/**
+ * Return sanitize callback for registry field type.
+ */
+function theme_layout_meta_sanitize_callback( $field_type ) {
+	switch ( $field_type ) {
+		case 'textarea':
+			return 'sanitize_textarea_field';
+		case 'url':
+		case 'image_url':
+			return 'esc_url_raw';
+		case 'image_id':
+			return 'absint';
+		case 'text':
+		default:
+			return 'sanitize_text_field';
+	}
+}
+
+/**
+ * Return register_post_meta type for registry field type.
+ */
+function theme_layout_meta_register_type( $field_type ) {
+	if ( 'image_id' === $field_type ) {
+		return 'integer';
+	}
+
+	return 'string';
+}
+
+/**
+ * Auth callback for protected layout meta over REST.
+ */
+function theme_layout_meta_auth_callback( $allowed, $meta_key, $post_id, $user_id ) {
+	return user_can( $user_id, 'edit_post', $post_id );
+}
+
+/**
+ * Register REST-enabled post meta used by Gutenberg layout block.
+ */
+function theme_register_layout_block_meta() {
+	global $wp_meta_keys;
+
+	$post_types = array( 'post', 'page' );
+	$schema     = theme_layout_meta_schema();
+
+	foreach ( $post_types as $post_type ) {
+		foreach ( $schema as $meta_key => $field ) {
+			$field_type      = isset( $field['type'] ) ? $field['type'] : 'text';
+			$sanitize_cb     = theme_layout_meta_sanitize_callback( $field_type );
+			$meta_value_type = theme_layout_meta_register_type( $field_type );
+
+			$needs_register = true;
+			if ( isset( $wp_meta_keys['post'][ $post_type ][ $meta_key ] ) ) {
+				$registered = $wp_meta_keys['post'][ $post_type ][ $meta_key ];
+				if ( ! empty( $registered['show_in_rest'] ) ) {
+					$needs_register = false;
+				}
+			}
+
+			if ( ! $needs_register ) {
+				continue;
+			}
+
+			register_post_meta(
+				$post_type,
+				$meta_key,
+				array(
+					'single'            => true,
+					'type'              => $meta_value_type,
+					'show_in_rest'      => true,
+					'sanitize_callback' => $sanitize_cb,
+					'auth_callback'     => 'theme_layout_meta_auth_callback',
+				)
+			);
+		}
+	}
+}
+add_action( 'init', 'theme_register_layout_block_meta', 15 );
+
+/**
+ * Build lightweight layout config for editor script.
+ */
+function theme_layout_registry_for_editor() {
+	$registry = theme_layout_registry();
+	$result   = array();
+
+	foreach ( $registry as $layout_slug => $layout ) {
+		if ( empty( $layout['label'] ) || empty( $layout['meta'] ) || ! is_array( $layout['meta'] ) ) {
+			continue;
+		}
+
+		$meta_fields = array();
+		foreach ( $layout['meta'] as $meta_key => $field ) {
+			$meta_fields[ $meta_key ] = array(
+				'label' => isset( $field['label'] ) ? (string) $field['label'] : (string) $meta_key,
+				'type'  => isset( $field['type'] ) ? (string) $field['type'] : 'text',
+			);
+		}
+
+		$result[ $layout_slug ] = array(
+			'label' => (string) $layout['label'],
+			'meta'  => $meta_fields,
+		);
+	}
+
+	return $result;
+}
+
+/**
+ * Register editor script for layout block.
+ */
+function theme_register_layout_block_editor_script() {
+	$script_rel = 'assets/js/layout-block.js';
+	$script_abs = get_template_directory() . '/' . $script_rel;
+
+	if ( ! file_exists( $script_abs ) ) {
+		return;
+	}
+
+	wp_register_script(
+		'theme-layout-block',
+		get_template_directory_uri() . '/' . $script_rel,
+		array( 'wp-blocks', 'wp-element', 'wp-editor', 'wp-block-editor', 'wp-components', 'wp-data', 'wp-i18n' ),
+		filemtime( $script_abs ),
+		true
+	);
+}
+add_action( 'init', 'theme_register_layout_block_editor_script', 16 );
+
+/**
+ * Enqueue editor assets and expose layout registry to JS.
+ */
+function theme_enqueue_layout_block_editor_assets() {
+	if ( ! wp_script_is( 'theme-layout-block', 'registered' ) ) {
+		return;
+	}
+
+	wp_localize_script( 'theme-layout-block', 'THEME_LAYOUTS', theme_layout_registry_for_editor() );
+	wp_enqueue_script( 'theme-layout-block' );
+}
+add_action( 'enqueue_block_editor_assets', 'theme_enqueue_layout_block_editor_assets' );
+
+/**
+ * Render callback for dynamic layout block.
+ */
+function theme_render_layout_block( $attributes, $content, $block ) {
+	$registry = theme_layout_registry();
+	$layout   = isset( $attributes['layout'] ) ? sanitize_key( (string) $attributes['layout'] ) : '';
+	if ( '' === $layout || ! isset( $registry[ $layout ] ) ) {
+		$layout = 'one-img-layout';
+	}
+
+	if ( '' === $layout || ! isset( $registry[ $layout ] ) ) {
+		return '';
+	}
+
+	$post_id = 0;
+	if ( isset( $block->context['postId'] ) ) {
+		$post_id = absint( $block->context['postId'] );
+	}
+	if ( $post_id <= 0 ) {
+		$post_id = get_the_ID();
+	}
+	if ( $post_id <= 0 ) {
+		return '';
+	}
+
+	$config = $registry[ $layout ];
+	$data   = array();
+
+	if ( ! empty( $config['meta'] ) && is_array( $config['meta'] ) ) {
+		foreach ( $config['meta'] as $meta_key => $field ) {
+			$data[ $meta_key ] = get_post_meta( $post_id, $meta_key, true );
+		}
+	}
+
+	if ( ! empty( $data['_cta_label'] ) && empty( $data['_cta_url'] ) ) {
+		$data['_cta_url'] = home_url( '/kontakt/' );
+	}
+
+	$template_rel = isset( $config['template'] ) ? (string) $config['template'] : 'assets/_snippets/layouts/' . $layout . '.php';
+	$template_abs = get_template_directory() . '/' . ltrim( $template_rel, '/' );
+
+	if ( ! file_exists( $template_abs ) ) {
+		return '';
+	}
+
+	ob_start();
+	include $template_abs;
+	return (string) ob_get_clean();
+}
+
+/**
+ * Register dynamic Gutenberg block.
+ */
+function theme_register_layout_block() {
+	if ( ! function_exists( 'register_block_type' ) ) {
+		return;
+	}
+
+	register_block_type(
+		'theme/layout',
+		array(
+			'api_version'     => 2,
+			'editor_script'   => 'theme-layout-block',
+			'render_callback' => 'theme_render_layout_block',
+			'attributes'      => array(
+				'layout' => array(
+					'type'    => 'string',
+					'default' => 'one-img-layout',
+				),
+			),
+		)
+	);
+}
+add_action( 'init', 'theme_register_layout_block', 20 );
+
+
+/**
+ * Contact form mail logging helper (WP_DEBUG-gated).
+ */
+function wwd_contact_form_log( $message, $context = array() ) {
+	if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+		return;
+	}
+
+	$line = '[wwd-contact] ' . (string) $message;
+	if ( ! empty( $context ) ) {
+		$encoded = wp_json_encode( $context );
+		if ( false !== $encoded ) {
+			$line .= ' ' . $encoded;
+		}
+	}
+
+	error_log( $line );
+}
+
+/**
+ * Contact form handler for admin-post.php.
+ */
+function wwd_handle_send_mail_contact() {
+	$request_id = wp_generate_uuid4();
+
+	$contact_url = home_url( '/kontakt/' );
+	$redirect_ok = add_query_arg( 'sent', '1', $contact_url );
+	$redirect_ng = add_query_arg( 'sent', '0', $contact_url );
+
+	register_shutdown_function(
+		static function () use ( $request_id ) {
+			$error = error_get_last();
+			if ( empty( $error ) ) {
+				return;
+			}
+
+			$fatal_types = array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR );
+			if ( in_array( (int) $error['type'], $fatal_types, true ) ) {
+				wwd_contact_form_log(
+					'shutdown fatal',
+					array(
+						'request_id' => $request_id,
+						'type'       => (int) $error['type'],
+						'file'       => (string) $error['file'],
+						'line'       => (int) $error['line'],
+						'message'    => (string) $error['message'],
+					)
+				);
+			}
+		}
+	);
+
+	wwd_contact_form_log(
+		'handler reached',
+		array(
+			'request_id' => $request_id,
+			'method'     => $_SERVER['REQUEST_METHOD'] ?? '',
+		)
+	);
+
+	if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) {
+		wwd_contact_form_log( 'invalid request method', array( 'request_id' => $request_id ) );
+		wp_safe_redirect( $redirect_ng );
+		exit;
+	}
+
+	$nonce = isset( $_POST['wwd_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wwd_nonce'] ) ) : '';
+	if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'wwd_contact_form' ) ) {
+		wwd_contact_form_log( 'nonce check failed', array( 'request_id' => $request_id ) );
+		wp_safe_redirect( $redirect_ng );
+		exit;
+	}
+
+	$honeypot = isset( $_POST['website'] ) ? sanitize_text_field( wp_unslash( $_POST['website'] ) ) : '';
+	if ( '' !== $honeypot ) {
+		wwd_contact_form_log( 'honeypot triggered', array( 'request_id' => $request_id ) );
+		wp_safe_redirect( $redirect_ok );
+		exit;
+	}
+
+	$form_ts     = isset( $_POST['form_ts'] ) ? absint( $_POST['form_ts'] ) : 0;
+	$min_seconds = 3;
+	if ( $form_ts <= 0 || ( time() - $form_ts ) < $min_seconds ) {
+		wwd_contact_form_log( 'time trap failed', array( 'request_id' => $request_id, 'form_ts' => $form_ts ) );
+		wp_safe_redirect( $redirect_ng );
+		exit;
+	}
+
+	$name      = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+	$firma     = isset( $_POST['firma'] ) ? sanitize_text_field( wp_unslash( $_POST['firma'] ) ) : '';
+	$email     = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+	$phone     = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
+	$betreff   = isset( $_POST['betreff'] ) ? sanitize_text_field( wp_unslash( $_POST['betreff'] ) ) : '';
+	$nachricht = isset( $_POST['nachricht'] ) ? sanitize_textarea_field( wp_unslash( $_POST['nachricht'] ) ) : '';
+
+	if ( '' === $name || '' === $email || ! is_email( $email ) || '' === $phone || '' === $betreff || '' === $nachricht ) {
+		wwd_contact_form_log( 'validation failed', array( 'request_id' => $request_id ) );
+		wp_safe_redirect( $redirect_ng );
+		exit;
+	}
+
+	$subject = 'Neue Kontaktanfrage: ' . $betreff;
+	$subject = str_replace( array( "\r", "\n" ), '', $subject );
+	$reply_to_name = str_replace( array( "\r", "\n" ), '', $name );
+
+	$message_html  = '<h2>Neue Kontaktanfrage</h2>';
+	$message_html .= '<p><strong>Name:</strong> ' . esc_html( $name ) . '</p>';
+	$message_html .= '<p><strong>Firma:</strong> ' . esc_html( $firma ) . '</p>';
+	$message_html .= '<p><strong>E-Mail:</strong> ' . esc_html( $email ) . '</p>';
+	$message_html .= '<p><strong>Telefon:</strong> ' . esc_html( $phone ) . '</p>';
+	$message_html .= '<p><strong>Betreff:</strong> ' . esc_html( $betreff ) . '</p>';
+	$message_html .= '<p><strong>Nachricht:</strong><br>' . nl2br( esc_html( $nachricht ) ) . '</p>';
+
+	$to = 'office@wendlandwebdesign.de';
+	if ( ! is_email( $to ) ) {
+		wwd_contact_form_log( 'invalid recipient', array( 'request_id' => $request_id ) );
+		wp_safe_redirect( $redirect_ng );
+		exit;
+	}
+
+	$headers = array(
+		'Content-Type: text/html; charset=UTF-8',
+		'From: Wendland Webdesign <office@wendlandwebdesign.de>',
+		'Reply-To: ' . $reply_to_name . ' <' . $email . '>',
+	);
+
+	$mail_failed_cb = static function ( $wp_error ) use ( $request_id ) {
+		wwd_contact_form_log(
+			'wp_mail_failed',
+			array(
+				'request_id' => $request_id,
+				'error'      => $wp_error instanceof WP_Error ? $wp_error->get_error_message() : 'unknown',
+			)
+		);
+	};
+	$smtp_init_cb   = static function ( $phpmailer ) {
+		$phpmailer->isSMTP();
+		$phpmailer->Host       = 'smtp.hostinger.com';
+		$phpmailer->SMTPAuth   = true;
+		$phpmailer->Username   = 'office@wendlandwebdesign.de';
+		$phpmailer->Password   = 'MGP^Ge@23aZnwHuJH6qB6$Ul';
+		$phpmailer->SMTPSecure = 'ssl';
+		$phpmailer->Port       = 465;
+		$phpmailer->CharSet    = 'UTF-8';
+	};
+
+	add_action( 'wp_mail_failed', $mail_failed_cb, 10, 1 );
+	add_action( 'phpmailer_init', $smtp_init_cb );
+
+	$sent = wp_mail( $to, $subject, $message_html, $headers );
+
+	remove_action( 'phpmailer_init', $smtp_init_cb );
+	remove_action( 'wp_mail_failed', $mail_failed_cb, 10 );
+	wwd_contact_form_log( 'mail result', array( 'request_id' => $request_id, 'sent' => (bool) $sent ) );
+
+	wp_safe_redirect( $sent ? $redirect_ok : $redirect_ng );
+	exit;
+}
+add_action( 'admin_post_nopriv_wwd_send_mail_contact', 'wwd_handle_send_mail_contact' );
+add_action( 'admin_post_wwd_send_mail_contact', 'wwd_handle_send_mail_contact' );
