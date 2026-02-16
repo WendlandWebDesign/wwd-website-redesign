@@ -422,7 +422,118 @@ document.addEventListener('DOMContentLoaded', () => {
         togglePause();
     });
 
-    window.addEventListener('resize', () => {
+window.addEventListener('resize', () => {
         setActive(currentIndex);
     });
+});
+
+// contact form: client-side 30s lock UX + required-field hint
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector(".contact-form");
+    if (!form) return;
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const messageEl = document.getElementById("contact-form-message");
+    if (!submitBtn || !messageEl) return;
+
+    const lockDurationMs = 30000;
+    const storageKey = "mail_last_sent_ts";
+    let timerId = null;
+
+    const setMessage = (text, source) => {
+        messageEl.textContent = text;
+        messageEl.dataset.messageSource = source;
+    };
+
+    const clearMessageBySource = (source) => {
+        if (messageEl.dataset.messageSource === source) {
+            messageEl.textContent = "";
+            delete messageEl.dataset.messageSource;
+        }
+    };
+
+    const getStoredTimestamp = () => {
+        try {
+            const raw = sessionStorage.getItem(storageKey);
+            if (!raw) return 0;
+            const ts = Number(raw);
+            return Number.isFinite(ts) ? ts : 0;
+        } catch (error) {
+            return 0;
+        }
+    };
+
+    const storeTimestamp = (ts) => {
+        try {
+            sessionStorage.setItem(storageKey, String(ts));
+        } catch (error) {
+            // ignore storage access errors
+        }
+    };
+
+    const clearTimestamp = () => {
+        try {
+            sessionStorage.removeItem(storageKey);
+        } catch (error) {
+            // ignore storage access errors
+        }
+    };
+
+    const stopTimer = () => {
+        if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+        }
+    };
+
+    const applyLockState = () => {
+        const lastSentTs = getStoredTimestamp();
+        if (!lastSentTs) {
+            submitBtn.disabled = false;
+            clearMessageBySource("timer");
+            stopTimer();
+            return;
+        }
+
+        const elapsed = Date.now() - lastSentTs;
+        const remainingMs = lockDurationMs - elapsed;
+        if (remainingMs <= 0) {
+            clearTimestamp();
+            submitBtn.disabled = false;
+            clearMessageBySource("timer");
+            stopTimer();
+            return;
+        }
+
+        submitBtn.disabled = true;
+        const remainingSeconds = Math.ceil(remainingMs / 1000);
+        setMessage(`Bitte warten Sie ${remainingSeconds} Sekunden, bevor Sie erneut senden.`, "timer");
+
+        if (!timerId) {
+            timerId = setInterval(applyLockState, 1000);
+        }
+    };
+
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get("sent") === "1") {
+        const existingTs = getStoredTimestamp();
+        const hasActiveLock = existingTs > 0 && (Date.now() - existingTs) < lockDurationMs;
+        if (!hasActiveLock) {
+            storeTimestamp(Date.now());
+        }
+    }
+
+    submitBtn.addEventListener("click", () => {
+        if (!form.checkValidity()) {
+            setMessage("Bitte alle Pflichtfelder ausf\u00fcllen", "required");
+        }
+    });
+
+    form.addEventListener("input", () => {
+        if (messageEl.dataset.messageSource === "required" && form.checkValidity()) {
+            clearMessageBySource("required");
+        }
+    });
+
+    applyLockState();
 });

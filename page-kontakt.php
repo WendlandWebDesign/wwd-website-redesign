@@ -6,6 +6,14 @@ get_header();
 <?php
     $heroImgSrc = esc_url(get_option('kontakt'));
     $heroTxt = "Kontakt";
+    $formError = '';
+    $errorParam = isset($_GET['error']) ? sanitize_text_field(wp_unslash((string)$_GET['error'])) : '';
+
+    if ($errorParam === 'required') {
+        $formError = 'Bitte alle Pflichtfelder ausfüllen';
+    } elseif ($errorParam === 'rate_limit') {
+        $formError = 'Bitte warten Sie 30 Sekunden, bevor Sie erneut senden.';
+    }
 ?>
 
 <main>
@@ -81,6 +89,7 @@ get_header();
                     </span>
                     <p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>Absenden</p>
                 </button>
+                <p id="contact-form-message" class="contact-form-message light" aria-live="polite"><?php echo $formError !== '' ? esc_html($formError) : ''; ?></p>
             </form>
         </div>
     </div>

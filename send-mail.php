@@ -10,6 +10,8 @@ require_once dirname(__FILE__, 4) . '/wp-load.php';
 $contactUrl = 'http://localhost/wwd-redesign/kontakt/';
 $redirectSuccess = $contactUrl . '?sent=1';
 $redirectError   = $contactUrl . '?sent=0';
+$redirectErrorRequired = $contactUrl . '?sent=0&error=required';
+$redirectErrorRateLimit = $contactUrl . '?sent=0&error=rate_limit';
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     header('Location: ' . $redirectError, true, 302);
@@ -48,6 +50,19 @@ if ($formTs <= 0 || (time() - $formTs) < $minSeconds) {
 }
 
 // -------------------------
+// RATE-LIMIT (30s)
+// -------------------------
+$ip = (string)($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+$ua = (string)($_SERVER['HTTP_USER_AGENT'] ?? 'unknown');
+$lockKey = 'mail_lock_' . md5($ip . '|' . $ua);
+$lockedUntil = get_transient($lockKey);
+
+if (!empty($lockedUntil) && (int)$lockedUntil > time()) {
+    header('Location: ' . $redirectErrorRateLimit, true, 302);
+    exit;
+}
+
+// -------------------------
 // Eingaben
 // -------------------------
 $name      = trim((string)($_POST['name'] ?? ''));
@@ -58,7 +73,7 @@ $betreff   = trim((string)($_POST['betreff'] ?? ''));
 $nachricht = trim((string)($_POST['nachricht'] ?? ''));
 
 if ($name === '' || !$email || $phone === '' || $betreff === '' || $nachricht === '') {
-    header('Location: ' . $redirectError, true, 302);
+    header('Location: ' . $redirectErrorRequired, true, 302);
     exit;
 }
 
@@ -70,7 +85,7 @@ add_action('phpmailer_init', function ($phpmailer) {
     $phpmailer->Host       = 'smtp.hostinger.com';
     $phpmailer->SMTPAuth   = true;
     $phpmailer->Username   = 'office@wendlandwebdesign.de';
-    $phpmailer->Password   = 'HIER_DEIN_EMAIL_PASSWORT'; // <-- EINTRAGEN
+    $phpmailer->Password   = 'MGP^Ge@23aZnwHuJH6qB6$Ul'; // <-- EINTRAGEN
     $phpmailer->SMTPSecure = 'ssl';
     $phpmailer->Port       = 465;
     $phpmailer->CharSet    = 'UTF-8';
@@ -101,6 +116,10 @@ $headers = [
 ];
 
 $sent = wp_mail($to, $subject, $messageHtml, $headers);
+
+if ($sent) {
+    set_transient($lockKey, time() + 30, 30);
+}
 
 // Redirect
 header('Location: ' . ($sent ? $redirectSuccess : $redirectError), true, 302);
