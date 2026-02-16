@@ -9,6 +9,14 @@ function auto_theme_support() {
     add_theme_support('post-thumbnails');
 }add_action('after_setup_theme','auto_theme_support');
 
+/**
+ * Registers image sizes used by theme components.
+ */
+function wwd_register_image_sizes() {
+	add_image_size( 'news_card', 1536, 864, true );
+}
+add_action( 'after_setup_theme', 'wwd_register_image_sizes' );
+
 function allow_svg($mimes) {
     $mimes['svg'] = 'image/svg+xml';
     return $mimes;
@@ -2101,6 +2109,131 @@ function wwd_save_one_img_bottom_texts_meta( $post_id ) {
 	}
 }
 add_action( 'save_post', 'wwd_save_one_img_bottom_texts_meta' );
+
+/**
+ * Meta box for one-img layout CTA.
+ */
+function wwd_add_one_img_cta_metaboxes( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
+	}
+	$allowed_post_types = array_merge( array( 'page' ), wwd_get_unterseiten_post_types() );
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = get_post_meta( $post_id, '_layout_template', true );
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'one-img-layout' !== $layout ) {
+		return;
+	}
+
+	add_meta_box(
+		'wwd_one_img_cta_fields',
+		'One Img Layout CTA',
+		'wwd_render_one_img_cta_metabox',
+		$post_type,
+		'normal',
+		'high'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_one_img_cta_metaboxes', 10, 2 );
+
+function wwd_render_one_img_cta_metabox( $post ) {
+	$cta_url   = get_post_meta( $post->ID, '_one_img_cta_url', true );
+	$cta_label = get_post_meta( $post->ID, '_one_img_cta_label', true );
+
+	wp_nonce_field( 'one_img_cta_save', 'one_img_cta_nonce' );
+	?>
+	<p>
+		<label for="one-img-cta-label"><strong><?php echo esc_html( 'CTA Label' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="one-img-cta-label"
+		name="one_img_cta_label"
+		value="<?php echo esc_attr( $cta_label ); ?>"
+		class="widefat"
+	/>
+
+	<p>
+		<label for="one-img-cta-url"><strong><?php echo esc_html( 'CTA URL' ); ?></strong></label>
+	</p>
+	<input
+		type="url"
+		id="one-img-cta-url"
+		name="one_img_cta_url"
+		value="<?php echo esc_attr( $cta_url ); ?>"
+		class="widefat"
+	/>
+	<?php
+}
+
+function wwd_save_one_img_cta_meta( $post_id ) {
+	if ( ! isset( $_POST['one_img_cta_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( wp_unslash( $_POST['one_img_cta_nonce'] ), 'one_img_cta_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	$allowed_post_types = array_merge( array( 'page' ), wwd_get_unterseiten_post_types() );
+	if ( ! in_array( get_post_type( $post_id ), $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = isset( $_POST['wwd_layout_template'] ) ? sanitize_key( wp_unslash( $_POST['wwd_layout_template'] ) ) : '';
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = get_post_meta( $post_id, '_layout_template', true );
+	}
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'one-img-layout' !== $layout ) {
+		return;
+	}
+
+	$cta_url   = isset( $_POST['one_img_cta_url'] ) ? esc_url_raw( wp_unslash( $_POST['one_img_cta_url'] ) ) : '';
+	$cta_label = isset( $_POST['one_img_cta_label'] ) ? sanitize_text_field( wp_unslash( $_POST['one_img_cta_label'] ) ) : '';
+
+	if ( '' === $cta_url ) {
+		delete_post_meta( $post_id, '_one_img_cta_url' );
+	} else {
+		update_post_meta( $post_id, '_one_img_cta_url', $cta_url );
+	}
+
+	if ( '' === $cta_label ) {
+		delete_post_meta( $post_id, '_one_img_cta_label' );
+	} else {
+		update_post_meta( $post_id, '_one_img_cta_label', $cta_label );
+	}
+}
+add_action( 'save_post', 'wwd_save_one_img_cta_meta' );
 
 /**
  * Meta box for Leistungen Cards layout (up to 3 cards).

@@ -4,8 +4,15 @@ $post_id = isset( $post_id ) ? (int) $post_id : get_the_ID();
 $headline  = isset( $meta['headline'] ) ? $meta['headline'] : '';
 $mini_head = isset( $meta['mini_heading'] ) ? $meta['mini_heading'] : '';
 $text      = isset( $meta['text'] ) ? $meta['text'] : '';
-$cta_label = isset( $meta['cta_label'] ) ? $meta['cta_label'] : '';
-$cta_url   = isset( $meta['cta_url'] ) ? $meta['cta_url'] : '';
+$cta_url   = get_post_meta( $post_id, '_one_img_cta_url', true );
+$cta_label = get_post_meta( $post_id, '_one_img_cta_label', true );
+
+if ( '' === $cta_url && isset( $meta['cta_url'] ) ) {
+	$cta_url = (string) $meta['cta_url'];
+}
+if ( '' === $cta_label && isset( $meta['cta_label'] ) ) {
+	$cta_label = (string) $meta['cta_label'];
+}
 
 $img_1_id  = isset( $meta['img_1_id'] ) ? (int) $meta['img_1_id'] : 0;
 $img_1_url = $img_1_id ? wp_get_attachment_image_url( $img_1_id, 'large' ) : '';
@@ -75,24 +82,23 @@ if ( ! $img_1_alt ) {
 					<?php endforeach; ?>
 				</ul>
 			<?php endif; ?>
-				<?php if ( $cta_label && $cta_url ) : ?>
-					<button onclick="window.location.href='<?php echo esc_url( $cta_url ); ?>'" class="btn light">
-						<span class="btn__border" aria-hidden="true">
-							<svg class="btn__svg" viewBox="0 0 100 40" preserveAspectRatio="none">
-								<path class="btn__path" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-								<path class="btn__seg btn__seg--1" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-								<path class="btn__seg btn__seg--2" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-								<path class="btn__seg btn__seg--3" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-								<path class="btn__seg btn__seg--4" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-							</svg>
-						</span>
-						<p>
-							<?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>
-							<?php echo esc_html( $cta_label ); ?>
-						</p>
-					</button>
-				<?php endif; ?>
-			</ul>
+			<?php if ( $cta_label && $cta_url ) : ?>
+				<button onclick="window.location.href='<?php echo esc_url( $cta_url ); ?>'" class="btn light">
+					<span class="btn__border" aria-hidden="true">
+						<svg class="btn__svg" viewBox="0 0 100 40" preserveAspectRatio="none">
+							<path class="btn__path" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
+							<path class="btn__seg btn__seg--1" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
+							<path class="btn__seg btn__seg--2" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
+							<path class="btn__seg btn__seg--3" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
+							<path class="btn__seg btn__seg--4" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
+						</svg>
+					</span>
+					<p>
+						<?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>
+						<?php echo esc_html( $cta_label ); ?>
+					</p>
+				</button>
+			<?php endif; ?>
 		</div>
 	</div>
 </div>

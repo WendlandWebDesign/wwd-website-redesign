@@ -290,6 +290,9 @@
     opacity: 0;
     transition: all .8s ease;
 }
+.one-img-layout .txt-holder button {
+    margin-top: 20px;
+}
 .one-img-layout .txt-holder.revealed{
     transform: translateY(0);
     opacity: 1;

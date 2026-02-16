@@ -22,7 +22,15 @@ get_header();
                     <div class="card-img-holder">
                         <?php
                         if ( has_post_thumbnail() ) {
-                            echo wp_get_attachment_image( get_post_thumbnail_id(), 'medium', false, array( 'class' => 'card-img' ) );
+                            echo wp_get_attachment_image(
+                                get_post_thumbnail_id(),
+                                'news_card',
+                                false,
+                                array(
+                                    'class' => 'card-img',
+                                    'sizes' => '(max-width: 640px) 100vw, (max-width: 1532px) calc((100vw - 24px) / 2), 738px',
+                                )
+                            );
                         } else {
                             ?>
                             <div class="nav-card__placeholder"></div>

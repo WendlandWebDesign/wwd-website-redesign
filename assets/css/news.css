@@ -75,14 +75,13 @@ main .news-sammlung .nav-card .news-read-more {
     font-family: var(--font-body);
     font-size: calc(.9rem + 0.2vw);
     line-height: 1.7;
-    padding: var(--section-padding);
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-.single-content p {
-    
+.single-text {
+    padding: 50px 3em;
 }
 
 .news-read-more {
@@ -116,15 +115,9 @@ main .news-sammlung .nav-card .news-read-more {
     height: 20px;
 }
 
-.single .one-img-layout-holder {
-    padding: 0 !important;
+@media  (max-width: 800px) {
+    .single-text {
+        max-width: 532px;
+        padding: var(--section-padding);
+    }
 }
-
-.single .two-img-layout-holder {
-    padding: 0 !important;
-}
-
-.single .three-img-layout-holder {
-    padding: 0 !important;
-}
-
