@@ -93,18 +93,19 @@ body.is-nav-open .site-overlay{
     position: fixed;
     top: 0;
     right: 0;
-    transform: translateX(100%);
-    transition: transform .5s ease;
+    opacity: 0;
+    transition: all .5s ease;
     width: 400px;
     max-width: 100%;
     height: 100svh;
     background-color: var(--dark);
-    z-index: 100;
+    z-index: -1;
     overflow-y: auto;
     overflow-x: hidden;
 }
 .nav-contact-holder.active{
-    transform: translateX(0);
+    opacity: 1;
+    z-index: 110;
 }
 .nav-contact{
     width: 100%;

@@ -257,3 +257,6 @@ a{
     height: auto;
 }
 
+.rcb-content p {
+	font-family: var(--font-body);
+}
