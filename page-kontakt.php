@@ -65,7 +65,7 @@ get_header();
                 </div>
                 <div class="form-row">
                     <input type="checkbox" class="light" required>
-                    <p class="light">Ich habe die <a href="<?php echo esc_url( home_url( '/datenschutzerklaerung/' ) ); ?>">Datenschutzerklärung</a> gelesen und erkläre mich einverstanden.</p>
+                    <p class="light">Ich bin mit den <a href="<?php echo esc_url( home_url( '/datenschutzerklaerung/' ) ); ?>">Datenschutzbestimmungen</a> , der Verwendung meiner Daten zur Verarbeitung meiner Anfrage und der Zusendung weiterer Informationen per E-Mail einverstanden.</p>
                 </div>
 
                 <!-- WICHTIG: kein onclick-redirect, sondern submit -->
