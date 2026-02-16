@@ -65,7 +65,8 @@ main .news-sammlung .nav-card .news-card__excerpt {
     line-height: 1.7;
     padding: var(--section-padding);
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
 }
 
 .single-content p {

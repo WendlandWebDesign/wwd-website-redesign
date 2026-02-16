@@ -1,7 +1,5 @@
 <?php
-if ( ! isset( $post_id, $meta ) ) {
-	return;
-}
+$post_id = isset( $post_id ) ? (int) $post_id : get_the_ID();
 
 $headline  = isset( $meta['headline'] ) ? $meta['headline'] : '';
 $mini_head = isset( $meta['mini_heading'] ) ? $meta['mini_heading'] : '';
@@ -9,15 +7,40 @@ $text      = isset( $meta['text'] ) ? $meta['text'] : '';
 $cta_label = isset( $meta['cta_label'] ) ? $meta['cta_label'] : '';
 $cta_url   = isset( $meta['cta_url'] ) ? $meta['cta_url'] : '';
 
-$img_1_id  = ! empty( $meta['img_1_id'] ) ? (int) $meta['img_1_id'] : 0;
+$img_1_id  = isset( $meta['img_1_id'] ) ? (int) $meta['img_1_id'] : 0;
 $img_1_url = $img_1_id ? wp_get_attachment_image_url( $img_1_id, 'large' ) : '';
+$img_1_alt = $img_1_id ? get_post_meta( $img_1_id, '_wp_attachment_image_alt', true ) : '';
 
 $bottom_items = array();
-for ( $i = 1; $i <= 6; $i++ ) {
-	$value = get_post_meta( $post_id, "one_img_bottom_p_{$i}", true );
-	if ( '' !== $value ) {
-		$bottom_items[] = $value;
+if ( isset( $layout_data ) && is_array( $layout_data ) && ! empty( $layout_data ) ) {
+	$headline  = isset( $layout_data['headline'] ) ? (string) $layout_data['headline'] : $headline;
+	$mini_head = isset( $layout_data['mini_heading'] ) ? (string) $layout_data['mini_heading'] : $mini_head;
+	$text      = isset( $layout_data['text'] ) ? (string) $layout_data['text'] : $text;
+	$cta_label = isset( $layout_data['cta_label'] ) ? (string) $layout_data['cta_label'] : $cta_label;
+	$cta_url   = isset( $layout_data['cta_url'] ) ? (string) $layout_data['cta_url'] : $cta_url;
+	$img_1_url = isset( $layout_data['img_1_url'] ) ? (string) $layout_data['img_1_url'] : $img_1_url;
+	$img_1_alt = isset( $layout_data['img_1_alt'] ) ? (string) $layout_data['img_1_alt'] : $img_1_alt;
+
+	if ( isset( $layout_data['bottom_items'] ) && is_array( $layout_data['bottom_items'] ) ) {
+		foreach ( array_slice( $layout_data['bottom_items'], 0, 6 ) as $item ) {
+			$item_text = is_array( $item ) ? ( isset( $item['text'] ) ? (string) $item['text'] : '' ) : (string) $item;
+			$item_text = trim( $item_text );
+			if ( '' !== $item_text ) {
+				$bottom_items[] = $item_text;
+			}
+		}
 	}
+} else {
+	for ( $i = 1; $i <= 6; $i++ ) {
+		$value = get_post_meta( $post_id, "one_img_bottom_p_{$i}", true );
+		if ( '' !== $value ) {
+			$bottom_items[] = $value;
+		}
+	}
+}
+
+if ( ! $img_1_alt ) {
+	$img_1_alt = get_the_title( $post_id );
 }
 ?>
 
@@ -38,7 +61,7 @@ for ( $i = 1; $i <= 6; $i++ ) {
 		<?php endif; ?>
 		<?php if ( $img_1_url ) : ?>
 			<div class="img-holder">
-				<img src="<?php echo esc_url( $img_1_url ); ?>" alt="<?php echo esc_attr( get_post_meta( $img_1_id, '_wp_attachment_image_alt', true ) ?: get_the_title( $post_id ) ); ?>">
+				<img src="<?php echo esc_url( $img_1_url ); ?>" alt="<?php echo esc_attr( $img_1_alt ); ?>">
 			</div>
 		<?php endif; ?>
 		<div class="bottom-holder">

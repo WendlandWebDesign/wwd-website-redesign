@@ -524,6 +524,361 @@ function wwd_get_allowed_layouts() {
 	);
 }
 
+/**
+ * Shortcode [layout name="offer-card"] for snippet output in editor content.
+ * Gutenberg usage: add a "Shortcode" block and insert e.g. [layout name="offer-card"].
+ */
+function wwd_layout_shortcode( $atts ) {
+	$atts = shortcode_atts(
+		array(
+			'name' => '',
+		),
+		$atts,
+		'layout'
+	);
+
+	$name = sanitize_key( $atts['name'] );
+	if ( '' === $name ) {
+		return '';
+	}
+
+	// Whitelist only: never allow arbitrary include paths from user input.
+	$allowed = array(
+		'offer-card',
+		'leistungen-cards',
+		'one-img-layout',
+		'two-img-layout',
+		'three-img-layout',
+		'faq',
+		'balken',
+		'slider',
+	);
+
+	if ( ! in_array( $name, $allowed, true ) ) {
+		return '';
+	}
+
+	$file = get_template_directory() . '/assets/_snippets/' . $name . '.php';
+	if ( ! file_exists( $file ) ) {
+		return '';
+	}
+
+	ob_start();
+	include $file;
+
+	return (string) ob_get_clean();
+}
+add_shortcode( 'layout', 'wwd_layout_shortcode' );
+
+/**
+ * Layout block definitions (allowlist + field schema).
+ * Source of truth for allowed snippets inside the dynamic Gutenberg block.
+ */
+function wwd_layout_block_definitions() {
+	return array(
+		'offer-card'       => array(
+			'label'   => 'Offer Card',
+			'snippet' => 'assets/_snippets/offer-card.php',
+			'fields'  => array(
+				array( 'key' => 'title', 'label' => 'Titel', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'price', 'label' => 'Preis', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'price_note', 'label' => 'Preis-Hinweis', 'type' => 'text', 'default' => '' ),
+				array(
+					'key'    => 'bullets',
+					'label'  => 'Bullet Points',
+					'type'   => 'repeater',
+					'max'    => 6,
+					'fields' => array(
+						array( 'key' => 'text', 'label' => 'Punkt', 'type' => 'text', 'default' => '' ),
+					),
+				),
+				array( 'key' => 'cta_label', 'label' => 'CTA Label', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'default' => '' ),
+			),
+		),
+		'leistungen-cards' => array(
+			'label'   => 'Leistungen Cards',
+			'snippet' => 'assets/_snippets/leistungen-cards.php',
+			'fields'  => array(
+				array(
+					'key'    => 'cards',
+					'label'  => 'Cards',
+					'type'   => 'repeater',
+					'max'    => 3,
+					'fields' => array(
+						array( 'key' => 'icon_url', 'label' => 'Icon URL', 'type' => 'url', 'default' => '' ),
+						array( 'key' => 'icon_alt', 'label' => 'Icon Alt', 'type' => 'text', 'default' => '' ),
+						array( 'key' => 'heading', 'label' => 'Heading', 'type' => 'text', 'default' => '' ),
+						array( 'key' => 'text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+					),
+				),
+			),
+		),
+		'one-img-layout'   => array(
+			'label'   => 'One Image Layout',
+			'snippet' => 'assets/_snippets/one-img-layout.php',
+			'fields'  => array(
+				array( 'key' => 'headline', 'label' => 'Headline', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'mini_heading', 'label' => 'Mini Heading', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+				array( 'key' => 'img_1_url', 'label' => 'Bild URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'img_1_alt', 'label' => 'Bild Alt', 'type' => 'text', 'default' => '' ),
+				array(
+					'key'    => 'bottom_items',
+					'label'  => 'Bottom Liste',
+					'type'   => 'repeater',
+					'max'    => 6,
+					'fields' => array(
+						array( 'key' => 'text', 'label' => 'Punkt', 'type' => 'text', 'default' => '' ),
+					),
+				),
+				array( 'key' => 'cta_label', 'label' => 'CTA Label', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'default' => '' ),
+			),
+		),
+		'two-img-layout'   => array(
+			'label'   => 'Two Image Layout',
+			'snippet' => 'assets/_snippets/two-img-layout.php',
+			'fields'  => array(
+				array( 'key' => 'headline', 'label' => 'Headline', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'mini_heading', 'label' => 'Mini Heading', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+				array( 'key' => 'img_1_url', 'label' => 'Bild 1 URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'img_1_alt', 'label' => 'Bild 1 Alt', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'img_2_url', 'label' => 'Bild 2 URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'img_2_alt', 'label' => 'Bild 2 Alt', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'cta_label', 'label' => 'CTA Label', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'default' => '' ),
+			),
+		),
+		'three-img-layout' => array(
+			'label'   => 'Three Image Layout',
+			'snippet' => 'assets/_snippets/three-img-layout.php',
+			'fields'  => array(
+				array( 'key' => 'headline', 'label' => 'Headline', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'mini_heading', 'label' => 'Mini Heading', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+				array( 'key' => 'img_1_url', 'label' => 'Bild 1 URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'img_1_alt', 'label' => 'Bild 1 Alt', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'img_1_text', 'label' => 'Bild 1 Text', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'img_2_url', 'label' => 'Bild 2 URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'img_2_alt', 'label' => 'Bild 2 Alt', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'img_2_text', 'label' => 'Bild 2 Text', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'img_3_url', 'label' => 'Bild 3 URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'img_3_alt', 'label' => 'Bild 3 Alt', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'img_3_text', 'label' => 'Bild 3 Text', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'cta_label', 'label' => 'CTA Label', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'default' => '' ),
+			),
+		),
+		'faq'              => array(
+			'label'   => 'FAQ',
+			'snippet' => 'assets/_snippets/faq.php',
+			'fields'  => array(
+				array( 'key' => 'headline', 'label' => 'Headline', 'type' => 'text', 'default' => '' ),
+				array(
+					'key'    => 'items',
+					'label'  => 'FAQ Items',
+					'type'   => 'repeater',
+					'max'    => 10,
+					'fields' => array(
+						array( 'key' => 'question', 'label' => 'Frage', 'type' => 'text', 'default' => '' ),
+						array( 'key' => 'answer', 'label' => 'Antwort', 'type' => 'textarea', 'default' => '' ),
+					),
+				),
+			),
+		),
+		'balken-layout'    => array(
+			'label'   => 'Balken',
+			'snippet' => 'assets/_snippets/balken.php',
+			'fields'  => array(
+				array( 'key' => 'text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+				array( 'key' => 'button_text', 'label' => 'Button Text', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'button_url', 'label' => 'Button URL', 'type' => 'url', 'default' => '' ),
+			),
+		),
+		'slider-layout'    => array(
+			'label'   => 'Slider',
+			'snippet' => 'assets/_snippets/slider.php',
+			'fields'  => array(
+				array(
+					'key'    => 'slides',
+					'label'  => 'Slides',
+					'type'   => 'repeater',
+					'max'    => 3,
+					'fields' => array(
+						array( 'key' => 'image_url', 'label' => 'Bild URL', 'type' => 'url', 'default' => '' ),
+						array( 'key' => 'image_alt', 'label' => 'Bild Alt', 'type' => 'text', 'default' => '' ),
+						array( 'key' => 'heading', 'label' => 'Heading', 'type' => 'text', 'default' => '' ),
+						array( 'key' => 'text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+						array( 'key' => 'cta_label', 'label' => 'CTA Label', 'type' => 'text', 'default' => 'Zum Projekt' ),
+						array( 'key' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'default' => '' ),
+					),
+				),
+			),
+		),
+	);
+}
+
+function wwd_sanitize_layout_block_field_value( $field, $value ) {
+	$type = isset( $field['type'] ) ? $field['type'] : 'text';
+
+	if ( 'repeater' === $type ) {
+		$items = is_array( $value ) ? $value : array();
+		$max   = isset( $field['max'] ) ? (int) $field['max'] : 10;
+		if ( $max < 1 ) {
+			$max = 1;
+		}
+		$items  = array_slice( $items, 0, $max );
+		$fields = isset( $field['fields'] ) && is_array( $field['fields'] ) ? $field['fields'] : array();
+		$out    = array();
+
+		foreach ( $items as $item ) {
+			$item = is_array( $item ) ? $item : array();
+			$row  = array();
+
+			foreach ( $fields as $subfield ) {
+				if ( empty( $subfield['key'] ) ) {
+					continue;
+				}
+
+				$sub_key       = $subfield['key'];
+				$sub_value_raw = isset( $item[ $sub_key ] ) ? $item[ $sub_key ] : '';
+				$row[ $sub_key ] = wwd_sanitize_layout_block_field_value( $subfield, $sub_value_raw );
+			}
+
+			$out[] = $row;
+		}
+
+		return $out;
+	}
+
+	if ( 'url' === $type ) {
+		return esc_url_raw( (string) $value );
+	}
+
+	if ( 'textarea' === $type ) {
+		return wp_kses_post( (string) $value );
+	}
+
+	return sanitize_text_field( (string) $value );
+}
+
+function wwd_sanitize_layout_block_data( $layout, $raw_data ) {
+	$definitions = wwd_layout_block_definitions();
+	if ( ! isset( $definitions[ $layout ] ) ) {
+		return array();
+	}
+
+	$raw_data = is_array( $raw_data ) ? $raw_data : array();
+	$fields   = isset( $definitions[ $layout ]['fields'] ) ? $definitions[ $layout ]['fields'] : array();
+	$data     = array();
+
+	foreach ( $fields as $field ) {
+		if ( empty( $field['key'] ) ) {
+			continue;
+		}
+
+		$key       = $field['key'];
+		$default   = isset( $field['default'] ) ? $field['default'] : ( 'repeater' === $field['type'] ? array() : '' );
+		$value_raw = isset( $raw_data[ $key ] ) ? $raw_data[ $key ] : $default;
+		$data[ $key ] = wwd_sanitize_layout_block_field_value( $field, $value_raw );
+	}
+
+	return $data;
+}
+
+function wwd_render_layout_block( $attributes ) {
+	$definitions = wwd_layout_block_definitions();
+	$layout      = isset( $attributes['layout'] ) ? sanitize_key( $attributes['layout'] ) : '';
+
+	if ( '' === $layout || ! isset( $definitions[ $layout ] ) ) {
+		return '';
+	}
+
+	$snippet_rel_path = isset( $definitions[ $layout ]['snippet'] ) ? (string) $definitions[ $layout ]['snippet'] : '';
+	if ( '' === $snippet_rel_path ) {
+		return '';
+	}
+
+	$file = get_template_directory() . '/' . ltrim( $snippet_rel_path, '/' );
+	if ( ! file_exists( $file ) ) {
+		return '';
+	}
+
+	$raw_data    = isset( $attributes['data'] ) ? $attributes['data'] : array();
+	$layout_data = wwd_sanitize_layout_block_data( $layout, $raw_data );
+
+	// Legacy snippet compatibility variables.
+	$post_id = get_the_ID();
+	$meta    = array(
+		'mini_heading' => isset( $layout_data['mini_heading'] ) ? $layout_data['mini_heading'] : '',
+		'headline'     => isset( $layout_data['headline'] ) ? $layout_data['headline'] : '',
+		'text'         => isset( $layout_data['text'] ) ? $layout_data['text'] : '',
+		'cta_label'    => isset( $layout_data['cta_label'] ) ? $layout_data['cta_label'] : '',
+		'cta_url'      => isset( $layout_data['cta_url'] ) ? $layout_data['cta_url'] : '',
+		'img_1_id'     => 0,
+		'img_2_id'     => 0,
+		'img_3_id'     => 0,
+	);
+
+	ob_start();
+	include $file;
+
+	return (string) ob_get_clean();
+}
+
+function wwd_register_layout_block() {
+	if ( ! function_exists( 'register_block_type' ) ) {
+		return;
+	}
+
+	register_block_type(
+		'theme/layout',
+		array(
+			'api_version'     => 2,
+			'render_callback' => 'wwd_render_layout_block',
+			'attributes'      => array(
+				'layout' => array(
+					'type'    => 'string',
+					'default' => '',
+				),
+				'data'   => array(
+					'type'    => 'object',
+					'default' => array(),
+				),
+			),
+		)
+	);
+}
+add_action( 'init', 'wwd_register_layout_block' );
+
+function wwd_enqueue_layout_block_editor_assets() {
+	$script_rel_path = 'assets/js/blocks/layout-block.js';
+	$script_path     = get_theme_file_path( $script_rel_path );
+
+	if ( ! file_exists( $script_path ) ) {
+		return;
+	}
+
+	wp_enqueue_script(
+		'wwd-layout-block',
+		get_theme_file_uri( $script_rel_path ),
+		array( 'wp-blocks', 'wp-element', 'wp-components', 'wp-block-editor', 'wp-editor' ),
+		filemtime( $script_path ),
+		true
+	);
+
+	wp_localize_script(
+		'wwd-layout-block',
+		'wwdLayoutBlockData',
+		array(
+			'definitions' => wwd_layout_block_definitions(),
+		)
+	);
+}
+add_action( 'enqueue_block_editor_assets', 'wwd_enqueue_layout_block_editor_assets' );
+
 function theme_get_selected_layout( $post_id ) {
 	$layout_key = '_layout_template';
 	$value      = get_post_meta( $post_id, $layout_key, true );
