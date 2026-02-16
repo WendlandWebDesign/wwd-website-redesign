@@ -79,7 +79,7 @@ $heroTxt = "Website-Check";
                     <input class="light" type="email" id="wc-email" name="wc-email">
                     <label class="default" for="wc-email">Email</label>
                 </div>
-                <div class="form-row">
+                <div class="form-row checkbox-row">
                     <input type="checkbox" class="light" required>
                     <p class="light">Ich bin mit den <a href="<?php echo esc_url( home_url( '/datenschutzerklaerung/' ) ); ?>">Datenschutzbestimmungen</a> , der Verwendung meiner Daten zur Verarbeitung meiner Anfrage und der Zusendung weiterer Informationen per E-Mail einverstanden.</p>
                 </div>
