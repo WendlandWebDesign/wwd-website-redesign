@@ -211,7 +211,17 @@
                                                 <div class="card-img-holder">
                                                     <?php
                                                     if ( has_post_thumbnail() ) {
-                                                        echo wp_get_attachment_image( get_post_thumbnail_id(), 'medium', false, array( 'class' => 'card-img' ) );
+                                                        echo wp_get_attachment_image(
+                                                            get_post_thumbnail_id(),
+                                                            'news_nav_card',
+                                                            false,
+                                                            array(
+                                                                'class'    => 'card-img',
+                                                                'sizes'    => '(max-width: 640px) 80vw, 400px',
+                                                                'loading'  => 'lazy',
+                                                                'decoding' => 'async',
+                                                            )
+                                                        );
                                                     } else {
                                                         ?>
                                                         <div class="nav-card__placeholder"></div>

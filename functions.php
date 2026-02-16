@@ -14,6 +14,7 @@ function auto_theme_support() {
  */
 function wwd_register_image_sizes() {
 	add_image_size( 'news_card', 1536, 864, true );
+	add_image_size( 'news_nav_card', 800, 450, true );
 }
 add_action( 'after_setup_theme', 'wwd_register_image_sizes' );
 
@@ -2155,30 +2156,71 @@ function wwd_add_one_img_cta_metaboxes( $post_type, $post ) {
 add_action( 'add_meta_boxes', 'wwd_add_one_img_cta_metaboxes', 10, 2 );
 
 function wwd_render_one_img_cta_metabox( $post ) {
-	$cta_url   = get_post_meta( $post->ID, '_one_img_cta_url', true );
-	$cta_label = get_post_meta( $post->ID, '_one_img_cta_label', true );
+	$cta_text_url   = get_post_meta( $post->ID, '_one_img_cta_text_url', true );
+	$cta_text_label = get_post_meta( $post->ID, '_one_img_cta_text_label', true );
+	$cta_list_url   = get_post_meta( $post->ID, '_one_img_cta_list_url', true );
+	$cta_list_label = get_post_meta( $post->ID, '_one_img_cta_list_label', true );
+	$legacy_url     = get_post_meta( $post->ID, '_one_img_cta_url', true );
+	$legacy_label   = get_post_meta( $post->ID, '_one_img_cta_label', true );
+
+	if ( '' === $cta_list_url && '' !== $legacy_url ) {
+		$cta_list_url = $legacy_url;
+	}
+	if ( '' === $cta_list_label && '' !== $legacy_label ) {
+		$cta_list_label = $legacy_label;
+	}
 
 	wp_nonce_field( 'one_img_cta_save', 'one_img_cta_nonce' );
 	?>
 	<p>
-		<label for="one-img-cta-label"><strong><?php echo esc_html( 'CTA Label' ); ?></strong></label>
+		<strong><?php echo esc_html( 'CTA unter Text' ); ?></strong>
+	</p>
+	<p>
+		<label for="one-img-cta-text-label"><strong><?php echo esc_html( 'CTA Label' ); ?></strong></label>
 	</p>
 	<input
 		type="text"
-		id="one-img-cta-label"
-		name="one_img_cta_label"
-		value="<?php echo esc_attr( $cta_label ); ?>"
+		id="one-img-cta-text-label"
+		name="one_img_cta_text_label"
+		value="<?php echo esc_attr( $cta_text_label ); ?>"
 		class="widefat"
 	/>
 
 	<p>
-		<label for="one-img-cta-url"><strong><?php echo esc_html( 'CTA URL' ); ?></strong></label>
+		<label for="one-img-cta-text-url"><strong><?php echo esc_html( 'CTA URL' ); ?></strong></label>
 	</p>
 	<input
 		type="url"
-		id="one-img-cta-url"
-		name="one_img_cta_url"
-		value="<?php echo esc_attr( $cta_url ); ?>"
+		id="one-img-cta-text-url"
+		name="one_img_cta_text_url"
+		value="<?php echo esc_attr( $cta_text_url ); ?>"
+		class="widefat"
+	/>
+
+	<hr />
+
+	<p>
+		<strong><?php echo esc_html( 'CTA unter Liste' ); ?></strong>
+	</p>
+	<p>
+		<label for="one-img-cta-list-label"><strong><?php echo esc_html( 'CTA Label' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="one-img-cta-list-label"
+		name="one_img_cta_list_label"
+		value="<?php echo esc_attr( $cta_list_label ); ?>"
+		class="widefat"
+	/>
+
+	<p>
+		<label for="one-img-cta-list-url"><strong><?php echo esc_html( 'CTA URL' ); ?></strong></label>
+	</p>
+	<input
+		type="url"
+		id="one-img-cta-list-url"
+		name="one_img_cta_list_url"
+		value="<?php echo esc_attr( $cta_list_url ); ?>"
 		class="widefat"
 	/>
 	<?php
@@ -2218,20 +2260,47 @@ function wwd_save_one_img_cta_meta( $post_id ) {
 		return;
 	}
 
-	$cta_url   = isset( $_POST['one_img_cta_url'] ) ? esc_url_raw( wp_unslash( $_POST['one_img_cta_url'] ) ) : '';
-	$cta_label = isset( $_POST['one_img_cta_label'] ) ? sanitize_text_field( wp_unslash( $_POST['one_img_cta_label'] ) ) : '';
+	$cta_text_url   = isset( $_POST['one_img_cta_text_url'] ) ? esc_url_raw( wp_unslash( $_POST['one_img_cta_text_url'] ) ) : '';
+	$cta_text_label = isset( $_POST['one_img_cta_text_label'] ) ? sanitize_text_field( wp_unslash( $_POST['one_img_cta_text_label'] ) ) : '';
+	$cta_list_url   = isset( $_POST['one_img_cta_list_url'] ) ? esc_url_raw( wp_unslash( $_POST['one_img_cta_list_url'] ) ) : '';
+	$cta_list_label = isset( $_POST['one_img_cta_list_label'] ) ? sanitize_text_field( wp_unslash( $_POST['one_img_cta_list_label'] ) ) : '';
 
-	if ( '' === $cta_url ) {
-		delete_post_meta( $post_id, '_one_img_cta_url' );
-	} else {
-		update_post_meta( $post_id, '_one_img_cta_url', $cta_url );
+	$legacy_url   = get_post_meta( $post_id, '_one_img_cta_url', true );
+	$legacy_label = get_post_meta( $post_id, '_one_img_cta_label', true );
+	if ( '' === $cta_list_url && '' !== $legacy_url ) {
+		$cta_list_url = $legacy_url;
+	}
+	if ( '' === $cta_list_label && '' !== $legacy_label ) {
+		$cta_list_label = $legacy_label;
 	}
 
-	if ( '' === $cta_label ) {
-		delete_post_meta( $post_id, '_one_img_cta_label' );
+	if ( '' === $cta_text_url ) {
+		delete_post_meta( $post_id, '_one_img_cta_text_url' );
 	} else {
-		update_post_meta( $post_id, '_one_img_cta_label', $cta_label );
+		update_post_meta( $post_id, '_one_img_cta_text_url', $cta_text_url );
 	}
+
+	if ( '' === $cta_text_label ) {
+		delete_post_meta( $post_id, '_one_img_cta_text_label' );
+	} else {
+		update_post_meta( $post_id, '_one_img_cta_text_label', $cta_text_label );
+	}
+
+	if ( '' === $cta_list_url ) {
+		delete_post_meta( $post_id, '_one_img_cta_list_url' );
+	} else {
+		update_post_meta( $post_id, '_one_img_cta_list_url', $cta_list_url );
+	}
+
+	if ( '' === $cta_list_label ) {
+		delete_post_meta( $post_id, '_one_img_cta_list_label' );
+	} else {
+		update_post_meta( $post_id, '_one_img_cta_list_label', $cta_list_label );
+	}
+
+	// Legacy cleanup after migration to dedicated list CTA keys.
+	delete_post_meta( $post_id, '_one_img_cta_url' );
+	delete_post_meta( $post_id, '_one_img_cta_label' );
 }
 add_action( 'save_post', 'wwd_save_one_img_cta_meta' );
 

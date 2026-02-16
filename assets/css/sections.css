@@ -290,7 +290,7 @@
     opacity: 0;
     transition: all .8s ease;
 }
-.one-img-layout .txt-holder button {
+.one-img-layout .txt-holder .btn {
     margin-top: 20px;
 }
 .one-img-layout .txt-holder.revealed{
@@ -333,7 +333,7 @@
     height: 40px;
     width: 40px;
 }
-.one-img-layout .bottom-holder button{
+.one-img-layout .bottom-holder .btn{
     margin-top: 20px;
 }
 
