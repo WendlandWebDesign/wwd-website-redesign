@@ -118,7 +118,17 @@
                                                 <div class="card-img-holder">
                                                     <?php
                                                     if ( has_post_thumbnail() ) {
-                                                        echo wp_get_attachment_image( get_post_thumbnail_id(), 'medium', false, array( 'class' => 'card-img' ) );
+                                                        echo wp_get_attachment_image(
+                                                            get_post_thumbnail_id(),
+                                                            'news_nav_card',
+                                                            false,
+                                                            array(
+                                                                'class'    => 'card-img',
+                                                                'sizes'    => '(max-width: 640px) 80vw, 400px',
+                                                                'loading'  => 'lazy',
+                                                                'decoding' => 'async',
+                                                            )
+                                                        );
                                                     } else {
                                                         ?>
                                                         <div class="nav-card__placeholder"></div>
@@ -171,7 +181,17 @@
                                                 <div class="card-img-holder">
                                                     <?php
                                                     if ( has_post_thumbnail() ) {
-                                                        echo wp_get_attachment_image( get_post_thumbnail_id(), 'medium', false, array( 'class' => 'card-img' ) );
+                                                        echo wp_get_attachment_image(
+                                                            get_post_thumbnail_id(),
+                                                            'news_nav_card',
+                                                            false,
+                                                            array(
+                                                                'class'    => 'card-img',
+                                                                'sizes'    => '(max-width: 640px) 80vw, 400px',
+                                                                'loading'  => 'lazy',
+                                                                'decoding' => 'async',
+                                                            )
+                                                        );
                                                     } else {
                                                         ?>
                                                         <div class="nav-card__placeholder nav-card__placeholder--light"></div>
@@ -179,7 +199,7 @@
                                                     }
                                                     ?>
                                                 </div>
-                                                <p class="light nav-card__text-row"><?php echo esc_html( get_the_title() ); ?> <?php echo wwd_inline_svg( 'corner-arrow-light.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
+                                                <p class="light nav-card__text-row"><?php echo esc_html( get_the_title() ); ?> </p>
                                             </a>
                                             <?php
                                         endwhile;
@@ -229,7 +249,7 @@
                                                     }
                                                     ?>
                                                 </div>
-                                                <p class="light nav-card__text-row"><?php echo esc_html( get_the_title() ); ?> <?php echo wwd_inline_svg( 'corner-arrow-light.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
+                                                <p class="light nav-card__text-row"><?php echo esc_html( get_the_title() ); ?></p>
                                             </div>
                                             <?php
                                         endwhile;

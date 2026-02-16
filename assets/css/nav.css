@@ -478,6 +478,10 @@ body.is-nav-open .menu .burger .bar{
     position: relative;
     cursor: pointer;
 }
+/* Referenzen cards are anchors; make width behave like block-based news cards. */
+.list-right-content[data-nav-panel="referenzen"] .nav-card{
+    display: block;
+}
 .nav-card .card-img-holder{
     width: 100%;
     height: auto;
