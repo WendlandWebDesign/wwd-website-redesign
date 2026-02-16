@@ -3,6 +3,13 @@ get_header();
 ?>
 
 <main>
+
+<?php
+    $heroImgSrc = esc_url(get_option('ki-integration'));
+    $heroTxt = "KI Integration";
+?>
+
+<?php include_once "assets/_snippets/hero.php" ?>
 	<?php
 	$allowed_layouts = function_exists( 'wwd_get_allowed_layouts' ) ? wwd_get_allowed_layouts() : array();
 	$default_layout  = 'two-img-layout';
@@ -11,7 +18,7 @@ get_header();
 		array(
 			'post_type'      => 'ki-integration',
 			// Wenn mehrere Einträge genutzt werden sollen, posts_per_page erhöhen oder auf -1 setzen.
-			'posts_per_page' => 1,
+			'posts_per_page' => -1,
 			'orderby'        => 'menu_order',
 			'order'          => 'ASC',
 		)

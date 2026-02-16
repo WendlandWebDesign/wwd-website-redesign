@@ -41,6 +41,9 @@ body{
     padding: 0;
     background-color: var(--bg-clr);
 }
+body{
+    overflow-x: clip;
+}
 html.js #page-fade-overlay{
     position: fixed;
     inset: 0;

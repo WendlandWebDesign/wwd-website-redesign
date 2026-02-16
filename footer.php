@@ -11,7 +11,7 @@
                 <li><p class="default">Unternehmen</p></li>
                 <li><a class="light" href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a></li>
                 <li><a class="light" href="<?php echo esc_url( home_url( '/news/' ) ); ?>">News</a></li>
-                <li><a class="light" href="<?php echo esc_url( home_url( '/ueber-uns/' ) ); ?>">Über uns</a></li>
+        <!--    <li><a class="light" href="<?php echo esc_url( home_url( '/ueber-uns/' ) ); ?>">Über uns</a></li>    -->
                 <li><a class="ac" href="<?php echo esc_url( home_url( '/kontakt/' ) ); ?>">Kontakt</a></li>
             </ul>
             <ul>
@@ -22,9 +22,8 @@
                 <li><a class="ac" href="<?php echo esc_url( home_url( '/website-check/' ) ); ?>">kostenloser Websitecheck</a></li>
             </ul>
             <div class="socials">
-                <?php echo wwd_inline_svg( 'facebook.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?>
-                <?php echo wwd_inline_svg( 'x.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?>
-                <?php echo wwd_inline_svg( 'instagram.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?>
+                <div class="social-holder" onclick="window.open('https://x.com/Wendland_Design')"><?php echo wwd_inline_svg( 'x.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?></div>
+                <div class="social-holder" onclick="window.open('https://www.instagram.com/wendland_web_design/')"><?php echo wwd_inline_svg( 'instagram.svg', array( 'class' => 'social', 'aria_hidden' => true ) ); ?></div>
             </div>
         </div>
         <div class="bottom">

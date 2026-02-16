@@ -13,12 +13,19 @@
 
 .contact-info{
     width: 40%;
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+    background-color: var(--card-clr);
+    padding: 1em;
+    height: max-content;
+    border-radius: var(--radius);
 }
 .contact-info h4{
     font-family: var(--font-headline);
     text-align: start;
     color: var(--light);
-    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
     max-width: 300px;
     line-height: 1.6;
 }
@@ -26,6 +33,26 @@
     color: var(--ac-clr);
     text-shadow: 0 0 3px var(--ac-clr);
 }
+
+.contact-info .phone{
+    display: flex;
+    gap: 10px;
+    cursor: pointer;
+}
+.contact-info .phone:hover p{
+    color: var(--light);
+}
+.contact-info .phone img{
+    min-width: 30px;
+    width: 30px;
+    height: auto;
+}
+.contact-info .phone p{
+    color: var(--ac-clr);
+    font-size: 1.3rem;
+    transition: all .4s ease;
+}
+
 
 
 .contact-form{
@@ -51,6 +78,7 @@
     background: transparent;
     z-index: 2;
     position: relative;
+    font-family: var(--font-body);
 }
 .contact-form .form-row::before{
     content: "";
@@ -107,8 +135,35 @@
 }
 
 
+.contact-form .form-row p,
+.contact-form .form-row a{
+    font-size: .8rem;
+}
+.contact-form .form-row a{
+    color: var(--ac-clr);
+    text-replace: all .2s;
+}
+.contact-form .form-row a:hover{
+    text-decoration: underline;
+}
+.contact-form .form-row:last-of-type{
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 0 10px;
+}
+.contact-form .form-row:last-of-type input{
+    min-width: 20px;
+    min-height: 20px;
+    max-width: 20px;
+    max-height: 20px;
+}
+.contact-form .form-row:last-of-type::before,
+.contact-form .form-row:last-of-type::after{
+    display: none;
+}
 
-@media (max-width: 600px) {
+@media (max-width: 1000px) {
     .contact{
         flex-direction: column;
         max-width: 500px;
@@ -119,6 +174,11 @@
     .contact-form{
         width: 100%;
         max-width: 500px;
+        background: none;
+        padding: 0;
+    }
+    .wc-form .contact-info{
+        width: 100% !important;
     }
     .contact-form button{
         align-self: center;
@@ -126,27 +186,25 @@
 }
 
 
+@media (max-width: 385px) {
+    .contact-info .phone img{
+        width: 20px;
+        min-width: 20px;
+    }
+    .contact-info .phone p{
+        font-size: 1rem !important;
+    }
+}
+
 /* website-check form */
 .wc-form{
     gap: 4em;
     align-items: center;
     margin: 8em 0;
 }
+.wc-form .contact-info{
+    width: 50%;
+}
 .wc-form .contact-info h4{
     max-width: 500px;
-}
-@media (max-width: 800px) {
-    .wc-form{
-        flex-direction: column;
-        max-width: 500px;
-    }
-    .wc-form .contact-info,
-    .wc-form .contact-info h4,
-    .wc-form .contact-form{
-        width: 100%;
-        max-width: 500px;
-    }
-    .wc-form .contact-form button{
-        align-self: center;
-    }
 }

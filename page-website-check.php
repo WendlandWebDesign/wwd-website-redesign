@@ -68,16 +68,20 @@ $heroTxt = "Website-Check";
     <div class="contact-holder">
         <div class="contact mw-small wc-form">
             <div class="contact-info">
-                <h4>Jetzt kostenlosen <br><span>Websitecheck</span><br>anfordern!</h4>
+                <h4>Jetzt<br>kostenlosen <br><span>Websitecheck</span><br>anfordern!</h4>
             </div>
             <form action="" class="contact-form" method="post">
                 <div class="form-row">
                     <input class="light" type="text" id="domain" name="domain">
-                    <label class="light" for="domain">Ihre Domain</label>
+                    <label class="default" for="domain">Ihre Domain</label>
                 </div>
                 <div class="form-row">
                     <input class="light" type="email" id="wc-email" name="wc-email">
-                    <label class="light" for="wc-email">Email</label>
+                    <label class="default" for="wc-email">Email</label>
+                </div>
+                <div class="form-row">
+                    <input type="checkbox" class="light" required>
+                    <p class="light">Ich bin mit den <a href="<?php echo esc_url( home_url( '/datenschutzerklaerung/' ) ); ?>">Datenschutzbestimmungen</a> , der Verwendung meiner Daten zur Verarbeitung meiner Anfrage und der Zusendung weiterer Informationen per E-Mail einverstanden.</p>
                 </div>
                 <button type="submit" class="btn light">
                     <span class="btn__border" aria-hidden="true">

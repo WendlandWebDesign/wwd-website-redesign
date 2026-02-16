@@ -1,0 +1,41 @@
+.dsgvo-holder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 5em;
+}
+
+.impressum-content-holder {
+    padding: var(--section-padding);
+    text-align: left;
+    width: 100%;
+}
+
+.impressum-content h2 {
+    margin-top: 2.5em;
+    font-family: var(--font-body);
+    font-size: clamp(1.2rem, 2.5vw, 2.5rem);
+}
+
+.impressum-content{
+    max-width: 800px;
+    padding: 0 3em;
+}
+
+.datenschutz-content {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+}
+
+.datenschutz-content h2 {
+    font-family: var(--font-body);
+}
+
+
+@media(max-width: 600px) {
+    .impressum-content {
+        padding: 0;
+    }
+}

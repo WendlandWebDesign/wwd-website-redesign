@@ -1711,6 +1711,57 @@ if (document.readyState === "loading") {
     initWebsiteWegInview();
 }
 
+const initWebsiteWegHeadingPastState = () => {
+    const section = document.querySelector(".website-weg");
+    if (!section) return;
+    if (!("IntersectionObserver" in window)) {
+        document.body.classList.remove("website-weg-scrolled-past");
+        return;
+    }
+
+    let coversTop = false;
+    let coversBottom = false;
+    const syncClass = () => {
+        document.body.classList.toggle("website-weg-scrolled-past", coversTop && coversBottom);
+    };
+    syncClass();
+
+    const topBandObserver = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                coversTop = entry.isIntersecting;
+                syncClass();
+            });
+        },
+        {
+            threshold: 0,
+            rootMargin: "0px 0px -99% 0px",
+        }
+    );
+
+    const bottomBandObserver = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                coversBottom = entry.isIntersecting;
+                syncClass();
+            });
+        },
+        {
+            threshold: 0,
+            rootMargin: "-99% 0px 0px 0px",
+        }
+    );
+
+    topBandObserver.observe(section);
+    bottomBandObserver.observe(section);
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initWebsiteWegHeadingPastState);
+} else {
+    initWebsiteWegHeadingPastState();
+}
+
 const initFaqLayoutAppear = () => {
     const faqLayout = document.getElementById("faq-layout") || document.querySelector(".faq-layout");
     if (!faqLayout) return;

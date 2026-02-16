@@ -17,6 +17,14 @@ get_header();
         <div class="contact mw-small">
             <div class="contact-info">
                 <h4>Erzählen Sie uns<br>von Ihrem <span>Projekt.</span></h4>
+                <div class="phone" onclick="window.location.href='tel:+4915238976827'">
+                    <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/phone-thin-blue.svg' ); ?>" alt="">
+                    <p>0152 389 768 27</p>
+                </div>
+                <div class="phone">
+                    <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/mail-thick-blue.svg' ); ?>" alt="">
+                    <p>office@wenlandwebdesign.de</p>
+                </div>
             </div>
             <form action="<?php echo esc_url( get_stylesheet_directory_uri() . '/send-mail.php' ); ?>" class="contact-form" method="post">
                 <?php wp_nonce_field('wwd_contact_form', 'wwd_nonce'); ?>
@@ -28,32 +36,36 @@ get_header();
 
                 <div class="form-row">
                     <input type="text" name="name" id="name" class="light" required>
-                    <label class="light" for="name">Name</label>
+                    <label class="default" for="name">Name</label>
                 </div>
 
                 <div class="form-row">
                     <input type="text" name="firma" id="firma" class="light">
-                    <label class="light" for="firma">Firma</label>
+                    <label class="default" for="firma">Firma</label>
                 </div>
 
                 <div class="form-row">
                     <input type="email" name="email" id="email" class="light" required>
-                    <label class="light" for="email">Email</label>
+                    <label class="default" for="email">Email</label>
                 </div>
 
                 <div class="form-row">
                     <input type="text" name="phone" id="phone" class="light" required>
-                    <label class="light" for="phone">Telefon</label>
+                    <label class="default" for="phone">Telefon</label>
                 </div>
 
                 <div class="form-row">
                     <input type="text" name="betreff" id="betreff" class="light" required>
-                    <label class="light" for="betreff">Betreff</label>
+                    <label class="default" for="betreff">Betreff</label>
                 </div>
 
                 <div class="form-row">
                     <textarea name="nachricht" id="nachricht" class="light" required></textarea>
-                    <label class="light" for="nachricht">Nachricht</label>
+                    <label class="default" for="nachricht">Nachricht</label>
+                </div>
+                <div class="form-row">
+                    <input type="checkbox" class="light" required>
+                    <p class="light">Ich bin mit den <a href="<?php echo esc_url( home_url( '/datenschutzerklaerung/' ) ); ?>">Datenschutzbestimmungen</a> , der Verwendung meiner Daten zur Verarbeitung meiner Anfrage und der Zusendung weiterer Informationen per E-Mail einverstanden.</p>
                 </div>
 
                 <!-- WICHTIG: kein onclick-redirect, sondern submit -->

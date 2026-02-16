@@ -9,8 +9,6 @@ get_header();
 
 
 <main>
-
-
     <div class="home-hero observe-nav">
         <img class="hero-img" src="<?php echo esc_url(get_option('home-img')); ?>" alt="hero image">
         <div class="home-hero-inner mw">
@@ -117,31 +115,91 @@ get_header();
 
 </main>
 
+<?php
+$website_weg_items = array();
+
+$website_weg_query = new WP_Query(
+	array(
+		'post_type'      => 'website_weg',
+		'posts_per_page' => 4,
+		'orderby'        => array(
+			'menu_order' => 'ASC',
+			'date'       => 'DESC',
+		),
+		'no_found_rows'  => true,
+	)
+);
+
+if ( $website_weg_query->have_posts() ) {
+	$website_weg_items = $website_weg_query->posts;
+}
+wp_reset_postdata();
+?>
+
 <div class="website-weg-holder">
     <h3 class="mw">Der Weg zu deiner Website</h3>
     <div class="website-weg-wrapper">
         <div class="website-weg">
             <svg class="website-weg__connector" aria-hidden="true" focusable="false"></svg>
             <div class="website-weg__media">
-                <div class="img-transition-top"></div>
-                <div class="img-transition-bottom"></div>
+
             </div>
             <div class="website-weg__overlay">
                 <div class="txt-holder">
-                    <p class="light mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span>Kostenloses Erstgespräch</p>
-                    <p class="light">Alles beginnt mit einem entspannten Kennenlernen. Wir analysieren deine bestehende Website, sprechen über mögliche Probleme und zeigen ungenutzte Chancen auf. Gemeinsam definieren wir das Ziel deiner neuen Website und den Weg dorthin.</p>
+                    <?php
+                    $website_weg_post = isset( $website_weg_items[0] ) && $website_weg_items[0] instanceof WP_Post ? $website_weg_items[0] : null;
+                    $website_weg_title = 'Kostenloses Erstgespräch';
+                    $website_weg_content = 'Alles beginnt mit einem entspannten Kennenlernen. Wir analysieren deine bestehende Website, sprechen über mögliche Probleme und zeigen ungenutzte Chancen auf. Gemeinsam definieren wir das Ziel deiner neuen Website und den Weg dorthin.';
+
+                    if ( $website_weg_post ) {
+                        $website_weg_title = get_the_title( $website_weg_post );
+                        $website_weg_content = apply_filters( 'the_content', $website_weg_post->post_content );
+                    }
+                    ?>
+                    <p class="dark mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span><?php echo esc_html( $website_weg_title ); ?></p>
+                    <p class="dark"><?php echo wp_kses_post( $website_weg_content ); ?></p>
                 </div>
                 <div class="txt-holder">
-                    <p class="light mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span>Konzept & Design</p>
-                    <p class="light">Auf Basis dieser Ziele entwickeln wir ein durchdachtes Konzept und ein modernes Design. Struktur, Nutzerführung und Inhalte werden von Anfang an sauber geplant – damit alles logisch aufgebaut und zukunftssicher ist.</p>
+                    <?php
+                    $website_weg_post = isset( $website_weg_items[1] ) && $website_weg_items[1] instanceof WP_Post ? $website_weg_items[1] : null;
+                    $website_weg_title = 'Konzept & Design';
+                    $website_weg_content = 'Auf Basis dieser Ziele entwickeln wir ein durchdachtes Konzept und ein modernes Design. Struktur, Nutzerführung und Inhalte werden von Anfang an sauber geplant – damit alles logisch aufgebaut und zukunftssicher ist.';
+
+                    if ( $website_weg_post ) {
+                        $website_weg_title = get_the_title( $website_weg_post );
+                        $website_weg_content = apply_filters( 'the_content', $website_weg_post->post_content );
+                    }
+                    ?>
+                    <p class="dark mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span><?php echo esc_html( $website_weg_title ); ?></p>
+                    <p class="dark"><?php echo wp_kses_post( $website_weg_content ); ?></p>
                 </div>
                 <div class="txt-holder">
-                    <p class="light mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span>Custom Entwicklung mit Fokus auf Performance</p>
-                    <p class="light">Nach deiner Freigabe setzen wir das Design individuell und codebasiert um. Performance, Technik und Details stehen dabei im Fokus. Die Inhalte können später bei Bedarf über ein CMS selbst gepflegt werden, ohne die technische Basis anzutasten.</p>
+                    <?php
+                    $website_weg_post = isset( $website_weg_items[2] ) && $website_weg_items[2] instanceof WP_Post ? $website_weg_items[2] : null;
+                    $website_weg_title = 'Custom Entwicklung mit Fokus auf Performance';
+                    $website_weg_content = 'Nach deiner Freigabe setzen wir das Design individuell und codebasiert um. Performance, Technik und Details stehen dabei im Fokus. Die Inhalte können später bei Bedarf über ein CMS selbst gepflegt werden, ohne die technische Basis anzutasten.';
+
+                    if ( $website_weg_post ) {
+                        $website_weg_title = get_the_title( $website_weg_post );
+                        $website_weg_content = apply_filters( 'the_content', $website_weg_post->post_content );
+                    }
+                    ?>
+                    <p class="dark mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span><?php echo esc_html( $website_weg_title ); ?></p>
+                    <p class="dark"><?php echo wp_kses_post( $website_weg_content ); ?></p>
                 </div>
                 <div class="txt-holder">
-                    <p class="light mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span>Hosting & Launch</p>
-                    <p class="light">Nach der Fertigstellung übernehmen wir das Hosting und bringen deine Website online. Stabil, sicher und sauber aufgesetzt – damit deine Website nicht nur startet, sondern langfristig zuverlässig läuft.</p>
+                    <?php
+                    $website_weg_post = isset( $website_weg_items[3] ) && $website_weg_items[3] instanceof WP_Post ? $website_weg_items[3] : null;
+                    $website_weg_title = 'Hosting & Launch';
+                    $website_weg_content = 'Nach der Fertigstellung übernehmen wir das Hosting und bringen deine Website online. Stabil, sicher und sauber aufgesetzt – damit deine Website nicht nur startet, sondern langfristig zuverlässig läuft.';
+
+                    if ( $website_weg_post ) {
+                        $website_weg_title = get_the_title( $website_weg_post );
+                        $website_weg_content = apply_filters( 'the_content', $website_weg_post->post_content );
+                    }
+                    ?>
+                    <p class="dark mini-heading"><span class="mini-heading__anchor" aria-hidden="true"></span><?php echo esc_html( $website_weg_title ); ?></p>
+                    <p class="dark"><?php echo wp_kses_post( $website_weg_content ); ?></p>
                 </div>
             </div>
         </div>
@@ -170,8 +228,4 @@ get_header();
 
 <?php
 get_footer();
-
-
-
-
-
+?>

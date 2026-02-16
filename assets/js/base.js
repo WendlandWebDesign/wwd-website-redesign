@@ -5,9 +5,17 @@ const closeBtn = document.querySelector(".close-btn-wrapper");
 const navList = document.querySelector(".nav-list-wrapper");
 const siteOverlay = document.querySelector(".site-overlay");
 
+
+const navContactBtn = document.querySelector(".nav-contact-btn");
+const navContactBtnMobile = document.querySelector(".nav-contact-btn-mobile");
+const navContact = document.querySelector(".nav-contact-holder");
+const navContactCloseBtn = document.querySelector(".nav-contact-close-wrapper");
+
+
 menuBtn.addEventListener("click", (e) => {
     document.dispatchEvent(new CustomEvent("nav:open"));
     navList.classList.add('active');
+    navContact.classList.remove('active');
     document.body.classList.add('is-nav-open');
 })
 closeBtn.addEventListener("click", (e) => {
@@ -17,9 +25,30 @@ closeBtn.addEventListener("click", (e) => {
 if (siteOverlay) {
     siteOverlay.addEventListener("click", () => {
         navList.classList.remove('active');
+        navContact.classList.remove('active');
         document.body.classList.remove('is-nav-open');
     });
 }
+
+
+
+//nav contact
+navContactBtn.addEventListener("click", function() {
+    navContact.classList.add("active");
+    navList.classList.remove('active');
+    document.body.classList.add('is-nav-open');
+})
+navContactBtnMobile.addEventListener("click", function() {
+    navContact.classList.add("active");
+    document.body.classList.add('is-nav-open');
+})
+navContactCloseBtn.addEventListener("click", function() {
+    navContact.classList.remove("active");
+    document.body.classList.remove('is-nav-open');
+})
+
+
+
 
 // Menu hover: move burger ::before lines via CSS variable
 document.querySelectorAll(".menu").forEach(menu => {
@@ -185,6 +214,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Scroll-Logik
     window.addEventListener("scroll", () => {
+        if (document.body.classList.contains("is-nav-open")) {
+            lastScrollY = window.scrollY;
+            return;
+        }
+
         if (!isActive) return;
 
         const currentScrollY = window.scrollY;
@@ -206,17 +240,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     const slider = document.querySelector('.slider');
+    const sliderWrapper = document.querySelector('.slider-wrapper');
     const slides = Array.from(document.querySelectorAll('.slide'));
 
     const indicators = Array.from(document.querySelectorAll('.slider-bar .indikator'));
     const btnNext = document.querySelector('.slider-btn.next');
     const btnPrev = document.querySelector('.slider-btn.prev');
 
-    if (!slider || slides.length === 0) return;
+    if (!slider || !sliderWrapper || slides.length === 0) return;
 
     let currentIndex = 0;
-
+    let timer = null;
+    let isPaused = false;
+    const autoplayDelay = 5000;
+    const autoplayEnabled = true;
+    const minSwipeDistance = 40;
+    const maxVerticalDrift = 80;
+    const horizontalDominanceFactor = 1.2;
+    const interactiveSelector = 'a,button,input,textarea,select,label,[data-no-pause]';
     const isMobile = () => window.innerWidth < 801;
+    const isInteractive = (el) => Boolean(el && el.closest(interactiveSelector));
+
+    let startX = 0;
+    let startY = 0;
+    let isPointerTracking = false;
+    let pointerId = null;
+    let swipeMoved = false;
 
     function setMarginLeftByIndex(index) {
         if (index === 0) slider.style.marginLeft = '0';
@@ -225,17 +274,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setActive(index) {
-        // Slide active
-        slides.forEach(s => s.classList.remove('active'));
+        slides.forEach((s) => s.classList.remove('active'));
         slides[index].classList.add('active');
 
-        // Indicator active (falls vorhanden)
         if (indicators.length) {
-            indicators.forEach(i => i.classList.remove('active'));
+            indicators.forEach((i) => i.classList.remove('active'));
             if (indicators[index]) indicators[index].classList.add('active');
         }
 
-        // Slider Position
         setMarginLeftByIndex(index);
     }
 
@@ -244,33 +290,138 @@ document.addEventListener('DOMContentLoaded', () => {
         setActive(currentIndex);
     }
 
-    // Initial state
-    setActive(currentIndex);
+    function stopAutoplay() {
+        if (!timer) return;
+        clearInterval(timer);
+        timer = null;
+    }
 
-    // Desktop: click indicators
+    function startAutoplay() {
+        if (!autoplayEnabled || isPaused || timer) return;
+        timer = setInterval(() => {
+            goTo(currentIndex + 1);
+        }, autoplayDelay);
+    }
+
+    function resetAutoplayAfterInteraction() {
+        if (!autoplayEnabled || isPaused) return;
+        stopAutoplay();
+        startAutoplay();
+    }
+
+    function togglePause() {
+        isPaused = !isPaused;
+        sliderWrapper.classList.toggle('is-paused', isPaused);
+        if (isPaused) {
+            stopAutoplay();
+            return;
+        }
+        startAutoplay();
+    }
+
+    function handleManualNavigation(nextIndex) {
+        goTo(nextIndex);
+        resetAutoplayAfterInteraction();
+    }
+
+    function processSwipe(deltaX, deltaY) {
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+        const isHorizontalSwipe =
+            absX >= minSwipeDistance &&
+            absY <= maxVerticalDrift &&
+            absX > absY * horizontalDominanceFactor;
+
+        if (!isHorizontalSwipe) return false;
+        if (deltaX < 0) handleManualNavigation(currentIndex + 1);
+        else handleManualNavigation(currentIndex - 1);
+        return true;
+    }
+
+    function onPointerDown(event) {
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+        startX = event.clientX;
+        startY = event.clientY;
+        isPointerTracking = true;
+        pointerId = event.pointerId;
+        swipeMoved = false;
+    }
+
+    function onPointerMove(event) {
+        if (!isPointerTracking || pointerId !== event.pointerId) return;
+        if (Math.abs(event.clientX - startX) > 4 || Math.abs(event.clientY - startY) > 4) {
+            swipeMoved = true;
+        }
+    }
+
+    function endPointerTracking(event) {
+        if (!isPointerTracking || pointerId !== event.pointerId) return;
+        const deltaX = event.clientX - startX;
+        const deltaY = event.clientY - startY;
+        processSwipe(deltaX, deltaY);
+        isPointerTracking = false;
+        pointerId = null;
+    }
+
+    function bindSwipeHandlers() {
+        if ('PointerEvent' in window) {
+            sliderWrapper.addEventListener('pointerdown', onPointerDown, { passive: true });
+            sliderWrapper.addEventListener('pointermove', onPointerMove, { passive: true });
+            sliderWrapper.addEventListener('pointerup', endPointerTracking, { passive: true });
+            sliderWrapper.addEventListener('pointercancel', endPointerTracking, { passive: true });
+            return;
+        }
+
+        sliderWrapper.addEventListener('touchstart', (event) => {
+            const touch = event.changedTouches[0];
+            if (!touch) return;
+            startX = touch.clientX;
+            startY = touch.clientY;
+        }, { passive: true });
+
+        sliderWrapper.addEventListener('touchend', (event) => {
+            const touch = event.changedTouches[0];
+            if (!touch) return;
+            const deltaX = touch.clientX - startX;
+            const deltaY = touch.clientY - startY;
+            processSwipe(deltaX, deltaY);
+        }, { passive: true });
+    }
+
+    setActive(currentIndex);
+    startAutoplay();
+    bindSwipeHandlers();
+
     indicators.forEach((indikator, idx) => {
         indikator.addEventListener('click', () => {
-            if (isMobile()) return; // auf Mobile hast du die Bar eh ausgeblendet
-            goTo(idx);
+            if (isMobile()) return;
+            handleManualNavigation(idx);
         });
     });
 
-    // Mobile: buttons
     if (btnNext) {
         btnNext.addEventListener('click', () => {
             if (!isMobile()) return;
-            goTo(currentIndex + 1);
+            handleManualNavigation(currentIndex + 1);
         });
     }
 
     if (btnPrev) {
         btnPrev.addEventListener('click', () => {
             if (!isMobile()) return;
-            goTo(currentIndex - 1);
+            handleManualNavigation(currentIndex - 1);
         });
     }
 
-    // Optional: bei Resize Position/Active konsistent halten
+    sliderWrapper.addEventListener('click', (event) => {
+        if (swipeMoved) {
+            swipeMoved = false;
+            return;
+        }
+        if (isInteractive(event.target)) return;
+        togglePause();
+    });
+
     window.addEventListener('resize', () => {
         setActive(currentIndex);
     });
