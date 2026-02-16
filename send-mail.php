@@ -7,7 +7,7 @@ require_once dirname(__FILE__, 4) . '/wp-load.php';
  * HARTE Redirect-Basis (lokal)
  * Live später z.B.: https://wendlandwebdesign.de/kontakt/
  */
-$contactUrl = 'http://localhost/wwd-redesign/kontakt/';
+$contactUrl = 'https://wendlandwebdesign.de/kontakt/';
 $redirectSuccess = $contactUrl . '?sent=1';
 $redirectError   = $contactUrl . '?sent=0';
 
