@@ -123,7 +123,7 @@ add_action('phpmailer_init', function ($phpmailer) {
 // -------------------------
 // Mail
 // -------------------------
-$to      = 'wendlandwebdesign@gmail.com';
+$to      = 'office@wendlandwebdesign.de';
 $subject = 'Neue Kontaktanfrage: ' . $betreff;
 
 $messageHtml =

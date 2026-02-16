@@ -100,7 +100,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['website_check
         $phpmailer->CharSet    = 'UTF-8';
     });
 
-    $wcMailTo = 'wendlandwebdesign@gmail.com';
+    $wcMailTo = 'office@wendlandwebdesign.de';
     $wcMailSubject = 'Neue Website-Check Anfrage';
     $wcMessageHtml =
         "<h2>Neue Website-Check Anfrage</h2>" .
