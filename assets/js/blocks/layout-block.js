@@ -8,6 +8,8 @@
 	var Fragment = wp.element.Fragment;
 	var components = wp.components;
 	var blockEditor = wp.blockEditor || wp.editor;
+	var hooks = wp.hooks;
+	var dataApi = wp.data;
 
 	if ( ! blockEditor ) {
 		return;
@@ -204,10 +206,31 @@
 		} );
 	}
 
+	if ( hooks && hooks.addFilter ) {
+		hooks.addFilter(
+			'blocks.getBlockAttributes',
+			'wwd/theme-layout-unlock',
+			function( attributes, blockType ) {
+				if ( ! blockType || 'theme/layout' !== blockType.name ) {
+					return attributes;
+				}
+
+				if ( attributes && attributes.lock ) {
+					delete attributes.lock;
+				}
+
+				return attributes;
+			}
+		);
+	}
+
 	registerBlockType( 'theme/layout', {
 		title: 'Layout einfügen',
 		icon: 'screenoptions',
 		category: 'design',
+		supports: {
+			lock: false
+		},
 		attributes: {
 			layout: {
 				type: 'string',
@@ -223,7 +246,10 @@
 			var layout = attributes.layout || '';
 			var data = attributes.data || {};
 			var definition = definitions[ layout ] || null;
-			var options = [ { label: 'Layout wählen', value: '' } ];
+			var options = [ { label: '-- Layout waehlen --', value: '' } ];
+			var blockEditorStore = 'core/block-editor';
+			var editorDispatch = dataApi && dataApi.dispatch ? dataApi.dispatch( blockEditorStore ) : null;
+			var editorSelect = dataApi && dataApi.select ? dataApi.select( blockEditorStore ) : null;
 
 			Object.keys( definitions ).forEach( function( key ) {
 				var item = definitions[ key ] || {};
@@ -252,7 +278,48 @@
 									data: {}
 								} );
 							}
-						} )
+						} ),
+						el(
+							'p',
+							{
+								style: {
+									marginTop: '12px',
+									marginBottom: 0,
+									color: '#50575e',
+									fontSize: '12px'
+								}
+							},
+							'Du kannst diesen Block jederzeit ueber das Block-Menue (\u22ee) entfernen.'
+						),
+						el(
+							Button,
+							{
+								variant: 'secondary',
+								isDestructive: true,
+								onClick: function() {
+									if ( ! editorDispatch ) {
+										return;
+									}
+
+									var currentClientId = props.clientId;
+									if ( ! currentClientId && editorSelect && editorSelect.getSelectedBlockClientId ) {
+										currentClientId = editorSelect.getSelectedBlockClientId();
+									}
+									if ( ! currentClientId ) {
+										return;
+									}
+
+									if ( editorDispatch.removeBlocks ) {
+										editorDispatch.removeBlocks( [ currentClientId ], false );
+										return;
+									}
+									if ( editorDispatch.removeBlock ) {
+										editorDispatch.removeBlock( currentClientId, false );
+									}
+								}
+							},
+							'Layout-Block loeschen'
+						)
 					)
 				),
 				el(
@@ -269,7 +336,7 @@
 							} );
 						}
 					} ),
-					definition
+					layout && definition
 						? el(
 							'div',
 							{ className: 'wwd-layout-block-fields' },
@@ -277,7 +344,7 @@
 								props.setAttributes( { data: nextData } );
 							} )
 						)
-						: el( 'p', null, 'Bitte ein Layout auswählen.' )
+						: el( 'p', null, 'Kein Layout ausgewaehlt.' )
 				)
 			);
 		},

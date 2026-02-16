@@ -1,8 +1,10 @@
 
 /* === News-Sammlung: max 2 nebeneinander + gleich große Cards === */
 .news-holder {
-    margin: 0 auto;
-    padding: var(--site-padding);
+    padding: var(--section-padding);
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 main .news-sammlung {
     display: grid;
@@ -47,11 +49,14 @@ main .news-sammlung .nav-card .news-card__excerpt {
     margin: 0;
     padding: 0 1em 12px;
     color: var(--txt);
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
+    display: block;
+    overflow: visible;
+}
+
+main .news-sammlung .nav-card .news-read-more {
+    display: inline-block;
+    margin: 0 1em 12px;
+    text-decoration: underline;
 }
 
 .single h1 {
@@ -71,4 +76,35 @@ main .news-sammlung .nav-card .news-card__excerpt {
 
 .single-content p {
     max-width: 700px;
+}
+
+.news-read-more {
+    text-decoration: none !important;
+    position: relative;
+    width: max-content;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.news-read-more::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 100%;
+    width: 0;
+    height: 2px;
+    background-color: var(--ac-clr);
+    box-shadow: 0 0 5px var(--ac-clr);
+    transition: all 0.4s ease;
+}
+
+.news-read-more:hover::after {
+    width: 100%;
+}
+
+.arrow-read-more {
+    fill: var(--light);
+    width: 20px;
+    height: 20px;
 }

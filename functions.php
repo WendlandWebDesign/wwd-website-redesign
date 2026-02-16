@@ -790,7 +790,12 @@ function wwd_sanitize_layout_block_data( $layout, $raw_data ) {
 
 function wwd_render_layout_block( $attributes ) {
 	$definitions = wwd_layout_block_definitions();
-	$layout      = isset( $attributes['layout'] ) ? sanitize_key( $attributes['layout'] ) : '';
+	$layout_raw  = isset( $attributes['layout'] ) ? (string) $attributes['layout'] : '';
+	if ( '' === trim( $layout_raw ) ) {
+		return '';
+	}
+
+	$layout = sanitize_key( $layout_raw );
 
 	if ( '' === $layout || ! isset( $definitions[ $layout ] ) ) {
 		return '';
@@ -864,7 +869,7 @@ function wwd_enqueue_layout_block_editor_assets() {
 	wp_enqueue_script(
 		'wwd-layout-block',
 		get_theme_file_uri( $script_rel_path ),
-		array( 'wp-blocks', 'wp-element', 'wp-components', 'wp-block-editor', 'wp-editor' ),
+		array( 'wp-blocks', 'wp-element', 'wp-components', 'wp-block-editor', 'wp-editor', 'wp-hooks', 'wp-data' ),
 		filemtime( $script_path ),
 		true
 	);

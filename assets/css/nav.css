@@ -790,6 +790,9 @@ footer .bottom a:hover::after{
     width: 100%;
 }
 
+footer .cookies a{
+    color: var(--txt) !important;
+}
 
 @media(max-width: 700px){
     footer .top{

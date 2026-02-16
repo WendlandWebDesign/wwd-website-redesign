@@ -10,8 +10,8 @@ get_header();
     ?>
 
     <?php include_once "assets/_snippets/hero.php" ?>
-<div class="news-holder mw">
-    <div class="news-sammlung">
+<div class="news-holder">
+    <div class="news-sammlung mw">
     <?php
         $news_query = wwd_get_news_query();
         if ( $news_query->have_posts() ) :
@@ -35,6 +35,10 @@ get_header();
                     <?php if ( ! empty( $excerpt ) ) : ?>
                         <?php $trimmed_excerpt = wp_trim_words( $excerpt, 30, '...' ); ?>
                         <p class="news-card__excerpt"><?php echo esc_html( $trimmed_excerpt ); ?></p>
+                        <a class="news-read-more light" href="<?php echo esc_url( get_permalink() ); ?>">
+                            <?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'arrow-read-more', 'aria_hidden' => true ) ); ?>
+                            <?php echo esc_html( 'Mehr lesen' ); ?>
+                        </a>
                     <?php endif; ?>
                 </div>
                 <?php
