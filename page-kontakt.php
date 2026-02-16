@@ -84,7 +84,7 @@ get_header();
                     </div>
 
                     <div class="form-row">
-                        <input type="text" name="phone" id="phone" class="light" required>
+                        <input type="text" name="phone" id="phone" class="light">
                         <label class="default<?php echo esc_attr($invalidClass('phone')); ?>" for="phone">Telefon</label>
                     </div>
 

@@ -2329,6 +2329,7 @@ function wwd_render_slider_layout_metabox( $post ) {
 		$img_id  = absint( get_post_meta( $post->ID, "_slider_slide_{$i}_image", true ) );
 		$heading = get_post_meta( $post->ID, "_slider_slide_{$i}_heading", true );
 		$text    = get_post_meta( $post->ID, "_slider_slide_{$i}_text", true );
+		$url     = get_post_meta( $post->ID, "_slider_slide_{$i}_url", true );
 
 		$preview_url = $img_id ? wp_get_attachment_image_url( $img_id, 'medium' ) : '';
 		$input_id    = "wwd-slider-slide-{$i}-image";
@@ -2377,6 +2378,17 @@ function wwd_render_slider_layout_metabox( $post ) {
 			class="widefat"
 			required
 		><?php echo esc_textarea( $text ); ?></textarea>
+
+		<p>
+			<label for="<?php echo esc_attr( "wwd-slider-slide-{$i}-url" ); ?>"><strong><?php echo esc_html( 'Link (URL)' ); ?></strong></label>
+		</p>
+		<input
+			type="url"
+			id="<?php echo esc_attr( "wwd-slider-slide-{$i}-url" ); ?>"
+			name="<?php echo esc_attr( "slider_slide_{$i}_url" ); ?>"
+			value="<?php echo esc_attr( $url ); ?>"
+			class="widefat"
+		/>
 		<?php
 	}
 }
@@ -2416,6 +2428,7 @@ function wwd_save_slider_layout_meta( $post_id ) {
 		$img_id  = isset( $_POST[ "slider_slide_{$i}_image" ] ) ? absint( $_POST[ "slider_slide_{$i}_image" ] ) : 0;
 		$heading = isset( $_POST[ "slider_slide_{$i}_heading" ] ) ? sanitize_text_field( wp_unslash( $_POST[ "slider_slide_{$i}_heading" ] ) ) : '';
 		$text    = isset( $_POST[ "slider_slide_{$i}_text" ] ) ? sanitize_textarea_field( wp_unslash( $_POST[ "slider_slide_{$i}_text" ] ) ) : '';
+		$url     = isset( $_POST[ "slider_slide_{$i}_url" ] ) ? esc_url_raw( wp_unslash( $_POST[ "slider_slide_{$i}_url" ] ) ) : '';
 
 		if ( $img_id <= 0 || '' === $heading || '' === $text ) {
 			$complete = false;
@@ -2425,6 +2438,7 @@ function wwd_save_slider_layout_meta( $post_id ) {
 			"_slider_slide_{$i}_image"   => $img_id,
 			"_slider_slide_{$i}_heading" => $heading,
 			"_slider_slide_{$i}_text"    => $text,
+			"_slider_slide_{$i}_url"     => $url,
 		);
 
 		foreach ( $meta_map as $meta_key => $value ) {

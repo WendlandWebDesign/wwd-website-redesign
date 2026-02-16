@@ -43,6 +43,7 @@ if ( isset( $layout_data ) && is_array( $layout_data ) && isset( $layout_data['s
 		$img_id  = absint( get_post_meta( $layout_id, "_slider_slide_{$i}_image", true ) );
 		$heading = get_post_meta( $layout_id, "_slider_slide_{$i}_heading", true );
 		$text    = get_post_meta( $layout_id, "_slider_slide_{$i}_text", true );
+		$cta_url = get_post_meta( $layout_id, "_slider_slide_{$i}_url", true );
 
 		$url = $img_id ? wp_get_attachment_image_url( $img_id, 'full' ) : '';
 		$alt = $img_id ? get_post_meta( $img_id, '_wp_attachment_image_alt', true ) : '';
@@ -56,7 +57,7 @@ if ( isset( $layout_data ) && is_array( $layout_data ) && isset( $layout_data['s
 			'alt'       => $alt,
 			'heading'   => $heading,
 			'text'      => $text,
-			'cta_url'   => home_url( '/kontakt/' ),
+			'cta_url'   => '' !== $cta_url ? $cta_url : home_url( '/kontakt/' ),
 			'cta_label' => 'Zum Projekt',
 		);
 	}
@@ -93,7 +94,7 @@ if ( 3 !== count( $slides ) ) {
 							<div class="txt-holder">
 								<p class="light slider-heading"><?php echo esc_html( $slide['heading'] ); ?></p>
 								<p class="light"><?php echo esc_html( $slide['text'] ); ?></p>
-								<button onclick="window.location.href='<?php echo esc_url( $slide['cta_url'] ); ?>'" class="btn light" data-slide-snake-btn="1">
+								<a href="<?php echo esc_url( $slide['cta_url'] ); ?>" class="btn light" data-slide-snake-btn="1">
 									<span class="btn__border" aria-hidden="true">
 										<svg class="btn__svg" viewBox="0 0 100 40" preserveAspectRatio="none">
 											<path class="btn__path" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
@@ -104,7 +105,7 @@ if ( 3 !== count( $slides ) ) {
 										</svg>
 									</span>
 									<p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?><?php echo esc_html( $slide['cta_label'] ); ?></p>
-								</button>
+								</a>
 							</div>
 						</div>
 					</div>
