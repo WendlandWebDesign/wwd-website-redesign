@@ -1,4 +1,4 @@
-//burger Menu
+﻿//burger Menu
 
 const menuBtn = document.querySelector(".menu");
 const closeBtn = document.querySelector(".close-btn-wrapper");
@@ -12,20 +12,25 @@ const navContact = document.querySelector(".nav-contact-holder");
 const navContactCloseBtn = document.querySelector(".nav-contact-close-wrapper");
 
 
-menuBtn.addEventListener("click", (e) => {
-    document.dispatchEvent(new CustomEvent("nav:open"));
-    navList.classList.add('active');
-    navContact.classList.remove('active');
-    document.body.classList.add('is-nav-open');
-})
-closeBtn.addEventListener("click", (e) => {
-    navList.classList.remove('active');
-    document.body.classList.remove('is-nav-open');
-})
+if (menuBtn && navList && navContact) {
+    menuBtn.addEventListener("click", () => {
+        document.dispatchEvent(new CustomEvent("nav:open"));
+        navList.classList.add('active');
+        navContact.classList.remove('active');
+        document.body.classList.add('is-nav-open');
+    });
+}
+
+if (closeBtn && navList) {
+    closeBtn.addEventListener("click", () => {
+        navList.classList.remove('active');
+        document.body.classList.remove('is-nav-open');
+    });
+}
 if (siteOverlay) {
     siteOverlay.addEventListener("click", () => {
-        navList.classList.remove('active');
-        navContact.classList.remove('active');
+        if (navList) navList.classList.remove('active');
+        if (navContact) navContact.classList.remove('active');
         document.body.classList.remove('is-nav-open');
     });
 }
@@ -33,19 +38,27 @@ if (siteOverlay) {
 
 
 //nav contact
-navContactBtn.addEventListener("click", function() {
-    navContact.classList.add("active");
-    navList.classList.remove('active');
-    document.body.classList.add('is-nav-open');
-})
-navContactBtnMobile.addEventListener("click", function() {
-    navContact.classList.add("active");
-    document.body.classList.add('is-nav-open');
-})
-navContactCloseBtn.addEventListener("click", function() {
-    navContact.classList.remove("active");
-    document.body.classList.remove('is-nav-open');
-})
+if (navContactBtn && navContact) {
+    navContactBtn.addEventListener("click", () => {
+        navContact.classList.add("active");
+        if (navList) navList.classList.remove('active');
+        document.body.classList.add('is-nav-open');
+    });
+}
+
+if (navContactBtnMobile && navContact) {
+    navContactBtnMobile.addEventListener("click", () => {
+        navContact.classList.add("active");
+        document.body.classList.add('is-nav-open');
+    });
+}
+
+if (navContactCloseBtn && navContact) {
+    navContactCloseBtn.addEventListener("click", () => {
+        navContact.classList.remove("active");
+        document.body.classList.remove('is-nav-open');
+    });
+}
 
 
 
@@ -194,7 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastScrollY = window.scrollY;
     let isActive = false;
 
-    // Intersection Observer für Hero
+    // Intersection Observer fÃ¼r Hero
     const observer = new IntersectionObserver(
         ([entry]) => {
             if (!entry.isIntersecting) {
@@ -422,7 +435,372 @@ document.addEventListener('DOMContentLoaded', () => {
         togglePause();
     });
 
-    window.addEventListener('resize', () => {
+window.addEventListener('resize', () => {
         setActive(currentIndex);
     });
 });
+
+// shared form UX helpers for contact + website-check
+const FORM_COOLDOWN_DURATION_MS = 30 * 1000;
+
+function getStoredTimestamp(key) {
+    try {
+        const value = window.localStorage.getItem(key);
+        if (!value) return null;
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+    } catch (error) {
+        return null;
+    }
+}
+
+function setLastSentNow(key) {
+    try {
+        window.localStorage.setItem(key, String(Date.now()));
+    } catch (error) {
+        // noop
+    }
+}
+
+function clearCooldown(key) {
+    try {
+        window.localStorage.removeItem(key);
+    } catch (error) {
+        // noop
+    }
+}
+
+function getCooldownRemaining(key, durationMs) {
+    const lastSentAt = getStoredTimestamp(key);
+    if (!lastSentAt || lastSentAt <= 0) {
+        clearCooldown(key);
+        return 0;
+    }
+
+    const elapsed = Date.now() - lastSentAt;
+    if (!Number.isFinite(elapsed) || elapsed < 0 || elapsed >= durationMs) {
+        clearCooldown(key);
+        return 0;
+    }
+
+    return durationMs - elapsed;
+}
+
+function formatDurationMmSs(ms) {
+    const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+    const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+    const seconds = String(totalSeconds % 60).padStart(2, "0");
+    return `${minutes}:${seconds}`;
+}
+
+function startCooldownTimer({ key, durationMs, onTick, onDone }) {
+    let timerId = null;
+    let stopped = false;
+
+    const tick = () => {
+        if (stopped) return;
+        const remainingMs = getCooldownRemaining(key, durationMs);
+        if (typeof onTick === "function") onTick(remainingMs);
+        if (remainingMs <= 0) {
+            if (timerId) clearInterval(timerId);
+            timerId = null;
+            if (typeof onDone === "function") onDone();
+        }
+    };
+
+    tick();
+    if (getCooldownRemaining(key, durationMs) > 0) {
+        timerId = window.setInterval(tick, 1000);
+    }
+
+    return () => {
+        stopped = true;
+        if (timerId) clearInterval(timerId);
+    };
+}
+
+function consumeSuccessParams(paramNames) {
+    if (!Array.isArray(paramNames) || !paramNames.length) return false;
+    const url = new URL(window.location.href);
+    let successDetected = false;
+    let urlChanged = false;
+
+    paramNames.forEach((paramName) => {
+        const value = url.searchParams.get(paramName);
+        if (value === null) return;
+        if (value === "1" || value === "true" || value === "ok") {
+            successDetected = true;
+            url.searchParams.delete(paramName);
+            urlChanged = true;
+        }
+    });
+
+    if (urlChanged) {
+        const query = url.searchParams.toString();
+        const nextUrl = `${url.pathname}${query ? `?${query}` : ""}${url.hash}`;
+        window.history.replaceState({}, document.title, nextUrl);
+    }
+
+    return successDetected;
+}
+
+function findScopedElement(form, selector) {
+    if (!selector) return null;
+    const parentElement = form.parentElement;
+    return form.querySelector(selector)
+        || (parentElement ? parentElement.querySelector(selector) : null)
+        || document.querySelector(selector);
+}
+
+function initManagedForm(form, options = {}) {
+    if (!form) return;
+
+    const boundFlag = options.boundFlag || "managedBound";
+    if (form.dataset[boundFlag] === "1") return;
+    form.dataset[boundFlag] = "1";
+
+    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+    if (!submitBtn) return;
+
+    const cooldownKey = options.cooldownKey || "";
+    const durationMs = Number.isFinite(options.cooldownDurationMs)
+        ? options.cooldownDurationMs
+        : FORM_COOLDOWN_DURATION_MS;
+
+    const feedbackSelector = options.feedbackSelector || options.messageSelector || "";
+    const feedbackEl = findScopedElement(form, feedbackSelector);
+    const successEl = findScopedElement(form, options.successSelector || "");
+    const successText = options.successText || "Danke! Das Formular wurde versendet.";
+
+    const setSubmitDisabled = (disabled) => {
+        submitBtn.disabled = disabled;
+        submitBtn.setAttribute("aria-disabled", disabled ? "true" : "false");
+    };
+
+    const setFeedback = (text, source) => {
+        if (!feedbackEl) return;
+        feedbackEl.textContent = text || "";
+        if (source) {
+            feedbackEl.dataset.messageSource = source;
+        } else {
+            delete feedbackEl.dataset.messageSource;
+        }
+        feedbackEl.hidden = !text;
+    };
+
+    const clearFeedbackBySource = (source) => {
+        if (!feedbackEl) return;
+        if (feedbackEl.dataset.messageSource === source) {
+            setFeedback("", "");
+        }
+    };
+
+    const setFormVisible = (visible) => {
+        form.hidden = !visible;
+    };
+
+    const setSuccessVisible = (visible, text = successText) => {
+        if (!successEl) return;
+        successEl.hidden = !visible;
+        successEl.textContent = text;
+    };
+
+    let stopCooldown = null;
+
+    const applyCooldownUi = (remainingMs, mode) => {
+        if (remainingMs > 0) {
+            const formatted = formatDurationMmSs(remainingMs);
+            setSubmitDisabled(true);
+
+            if (mode === "success") {
+                setFormVisible(false);
+                setSuccessVisible(true, `${successText} Bitte warten: ${formatted}`);
+                setFeedback("", "");
+            } else {
+                setFormVisible(true);
+                setSuccessVisible(false);
+                setFeedback(`Bitte warten: ${formatted}`, "timer");
+            }
+
+            return;
+        }
+
+        setSubmitDisabled(false);
+        clearFeedbackBySource("timer");
+        if (mode === "success") {
+            setFormVisible(true);
+            setSuccessVisible(false);
+        }
+    };
+
+    const startCooldown = (mode) => {
+        if (!cooldownKey) return;
+        if (typeof stopCooldown === "function") {
+            stopCooldown();
+        }
+        stopCooldown = startCooldownTimer({
+            key: cooldownKey,
+            durationMs,
+            onTick: (remainingMs) => applyCooldownUi(remainingMs, mode),
+            onDone: () => {
+                clearCooldown(cooldownKey);
+                applyCooldownUi(0, mode);
+            },
+        });
+    };
+
+    const handleSuccess = () => {
+        if (!cooldownKey) return;
+        setLastSentNow(cooldownKey);
+        startCooldown("success");
+    };
+
+    form.addEventListener("wwd:form-success", handleSuccess);
+
+    const successDetectedFromUrl = consumeSuccessParams(options.successParams || []);
+    if (successDetectedFromUrl) {
+        handleSuccess();
+    } else if (cooldownKey) {
+        const remaining = getCooldownRemaining(cooldownKey, durationMs);
+        if (remaining > 0) {
+            startCooldown("default");
+        } else {
+            clearCooldown(cooldownKey);
+            applyCooldownUi(0, "default");
+        }
+    }
+
+    const getFieldLabel = (field) => {
+        if (!field || !field.id) return null;
+        return form.querySelector(`label[for="${field.id}"]`);
+    };
+
+    const syncInvalidLabel = (field) => {
+        if (field instanceof HTMLInputElement && field.type === "checkbox") {
+            return;
+        }
+        const label = getFieldLabel(field);
+        if (!label) return;
+        if (field.checkValidity()) {
+            label.classList.remove("is-invalid");
+        } else {
+            label.classList.add("is-invalid");
+        }
+    };
+
+    const syncCheckboxInvalidState = (field) => {
+        if (!(field instanceof HTMLInputElement) || field.type !== "checkbox") {
+            return;
+        }
+        const isInvalid = field.required && !field.checked;
+        field.classList.toggle("is-invalid", isInvalid);
+    };
+
+    const requiredFields = Array.from(form.querySelectorAll("input[required], textarea[required], select[required]"));
+    const valueFields = Array.from(
+        form.querySelectorAll('input:not([type="checkbox"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="file"]), textarea')
+    );
+
+    const syncHasValueClass = (field) => {
+        if (field.value.trim() !== "") {
+            field.classList.add("has-value");
+        } else {
+            field.classList.remove("has-value");
+        }
+    };
+
+    const syncAllHasValueClasses = () => {
+        valueFields.forEach((field) => {
+            syncHasValueClass(field);
+        });
+    };
+
+    submitBtn.addEventListener("click", () => {
+        requiredFields.forEach((field) => {
+            syncCheckboxInvalidState(field);
+            syncInvalidLabel(field);
+        });
+        if (!form.checkValidity()) {
+            setFeedback(options.requiredMessage || "Bitte alle Pflichtfelder ausfüllen", "required");
+        }
+    });
+
+    form.addEventListener("input", () => {
+        if (feedbackEl && feedbackEl.dataset.messageSource === "required" && form.checkValidity()) {
+            clearFeedbackBySource("required");
+        }
+    });
+
+    form.addEventListener("input", (event) => {
+        const field = event.target;
+        if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) {
+            return;
+        }
+        if (!field.matches("input[required], textarea[required], select[required]")) {
+            if (field.matches('input:not([type="checkbox"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="file"]), textarea')) {
+                syncHasValueClass(field);
+            }
+            return;
+        }
+        syncHasValueClass(field);
+        syncInvalidLabel(field);
+    });
+
+    form.addEventListener("change", (event) => {
+        const field = event.target;
+        if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement)) {
+            return;
+        }
+        if (field instanceof HTMLInputElement && field.type === "checkbox") {
+            if (field.checked) {
+                field.classList.remove("is-invalid");
+            }
+            return;
+        }
+        if (!field.matches('input:not([type="checkbox"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="file"]), textarea')) {
+            return;
+        }
+        syncHasValueClass(field);
+    });
+
+    syncAllHasValueClasses();
+    setTimeout(syncAllHasValueClasses, 250);
+}
+
+function initContactForm() {
+    const form = Array.from(document.querySelectorAll("form.contact-form")).find((candidate) => {
+        const actionInput = candidate.querySelector('input[name="action"]');
+        return Boolean(actionInput && actionInput.value === "wwd_send_mail_contact");
+    }) || document.querySelector('#contact-form, form[data-form="contact"]');
+
+    initManagedForm(form, {
+        boundFlag: "contactFormBound",
+        cooldownKey: "cooldown_contact_lastSentAt",
+        cooldownDurationMs: FORM_COOLDOWN_DURATION_MS,
+        feedbackSelector: "#contact-form-message, [data-contact-form-message]",
+        successSelector: "#contact-form-success, [data-contact-form-success]",
+        successParams: ["sent"],
+        requiredMessage: "Bitte alle Pflichtfelder ausfüllen",
+    });
+}
+
+function initWebsiteCheckForm() {
+    const form = document.getElementById("website-check-form")
+        || document.querySelector(".wc-form form.contact-form, form[data-form='website-check']");
+
+    initManagedForm(form, {
+        boundFlag: "websiteCheckFormBound",
+        cooldownKey: "cooldown_wc_lastSentAt",
+        cooldownDurationMs: FORM_COOLDOWN_DURATION_MS,
+        feedbackSelector: "#website-check-form-error, [data-website-check-form-error]",
+        successSelector: "#website-check-form-success, [data-website-check-form-success]",
+        successParams: ["wc_sent", "sent"],
+        requiredMessage: "Bitte alle Pflichtfelder ausfüllen",
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    initContactForm();
+    initWebsiteCheckForm();
+});
+

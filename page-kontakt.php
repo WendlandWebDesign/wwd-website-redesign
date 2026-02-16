@@ -26,7 +26,7 @@ get_header();
                     <p>office@wenlandwebdesign.de</p>
                 </div>
             </div>
-            <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="contact-form" method="post">
+            <form id="contact-form" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="contact-form" method="post" data-form="contact">
                 <input type="hidden" name="action" value="wwd_send_mail_contact">
                 <?php wp_nonce_field('wwd_contact_form', 'wwd_nonce'); ?>
                 <input type="hidden" name="form_ts" value="<?php echo time(); ?>">
@@ -82,7 +82,9 @@ get_header();
                     </span>
                     <p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>Absenden</p>
                 </button>
+                <p id="contact-form-message" class="form-feedback-message default" data-contact-form-message hidden></p>
             </form>
+            <div id="contact-form-success" class="form-success-message default" data-contact-form-success hidden>Danke! Das Formular wurde versendet.</div>
         </div>
     </div>
 
