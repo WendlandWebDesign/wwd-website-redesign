@@ -8,11 +8,9 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<script>document.documentElement.classList.add('js');</script>
 	<?php
-	$seo_plugin_active = defined( 'WPSEO_VERSION' ) || defined( 'RANK_MATH_VERSION' ) || defined( 'AIOSEO_VERSION' ) || defined( 'AIOSEO_PLUGIN_DIR' );
-	$theme_output_seo = (bool) apply_filters( 'theme_output_seo_meta', ! $seo_plugin_active );
 	$theme_robots_noindex = false;
 
-	if ( $theme_output_seo && ( is_search() || is_404() ) ) {
+	if ( is_search() || is_404() ) {
 		$theme_robots_noindex = true;
 
 		if ( function_exists( 'add_filter' ) ) {
@@ -33,66 +31,68 @@
 		}
 	}
 
-	if ( $theme_output_seo ) {
-		$canonical = '';
-		$paged     = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
+	$canonical = '';
+	$paged     = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
 
-		if ( ! is_search() && ! is_404() ) {
-			if ( is_singular() && function_exists( 'wp_get_canonical_url' ) ) {
-				$canonical = (string) wp_get_canonical_url();
-			}
+	if ( ! is_search() && ! is_404() ) {
+		if ( is_singular() && function_exists( 'wp_get_canonical_url' ) ) {
+			$canonical = (string) wp_get_canonical_url();
+		}
 
-			if ( '' === $canonical ) {
-				if ( is_front_page() ) {
-					$canonical = home_url( '/' );
-				} elseif ( is_home() ) {
-					$posts_page_id = (int) get_option( 'page_for_posts' );
-					$canonical     = $posts_page_id ? get_permalink( $posts_page_id ) : home_url( '/' );
-				} elseif ( is_singular() ) {
-					$canonical = get_permalink();
-				} elseif ( is_category() || is_tag() || is_tax() ) {
-					$term = get_queried_object();
-					if ( $term instanceof WP_Term ) {
-						$term_link = get_term_link( $term );
-						if ( ! is_wp_error( $term_link ) ) {
-							$canonical = $term_link;
-						}
-					}
-				} elseif ( is_post_type_archive() ) {
-					$post_type = get_query_var( 'post_type' );
-					$post_type = is_array( $post_type ) ? reset( $post_type ) : $post_type;
-					if ( is_string( $post_type ) && '' !== $post_type ) {
-						$canonical = get_post_type_archive_link( $post_type );
-					}
-				} elseif ( is_author() ) {
-					$author_id = (int) get_query_var( 'author' );
-					if ( $author_id > 0 ) {
-						$canonical = get_author_posts_url( $author_id );
-					}
-				} elseif ( is_date() ) {
-					if ( is_day() ) {
-						$canonical = get_day_link( (int) get_query_var( 'year' ), (int) get_query_var( 'monthnum' ), (int) get_query_var( 'day' ) );
-					} elseif ( is_month() ) {
-						$canonical = get_month_link( (int) get_query_var( 'year' ), (int) get_query_var( 'monthnum' ) );
-					} elseif ( is_year() ) {
-						$canonical = get_year_link( (int) get_query_var( 'year' ) );
+		if ( '' === $canonical ) {
+			if ( is_front_page() ) {
+				$canonical = home_url( '/' );
+			} elseif ( is_home() ) {
+				$posts_page_id = (int) get_option( 'page_for_posts' );
+				$canonical     = $posts_page_id ? get_permalink( $posts_page_id ) : home_url( '/' );
+			} elseif ( is_singular() ) {
+				$canonical = get_permalink();
+			} elseif ( is_category() || is_tag() || is_tax() ) {
+				$term = get_queried_object();
+				if ( $term instanceof WP_Term ) {
+					$term_link = get_term_link( $term );
+					if ( ! is_wp_error( $term_link ) ) {
+						$canonical = $term_link;
 					}
 				}
-			}
-
-			if ( $paged > 1 ) {
-				$canonical = get_pagenum_link( $paged );
+			} elseif ( is_post_type_archive() ) {
+				$post_type = get_query_var( 'post_type' );
+				$post_type = is_array( $post_type ) ? reset( $post_type ) : $post_type;
+				if ( is_string( $post_type ) && '' !== $post_type ) {
+					$canonical = get_post_type_archive_link( $post_type );
+				}
+			} elseif ( is_author() ) {
+				$author_id = (int) get_query_var( 'author' );
+				if ( $author_id > 0 ) {
+					$canonical = get_author_posts_url( $author_id );
+				}
+			} elseif ( is_date() ) {
+				if ( is_day() ) {
+					$canonical = get_day_link( (int) get_query_var( 'year' ), (int) get_query_var( 'monthnum' ), (int) get_query_var( 'day' ) );
+				} elseif ( is_month() ) {
+					$canonical = get_month_link( (int) get_query_var( 'year' ), (int) get_query_var( 'monthnum' ) );
+				} elseif ( is_year() ) {
+					$canonical = get_year_link( (int) get_query_var( 'year' ) );
+				}
 			}
 		}
 
-		if ( ! ( is_singular() && has_action( 'wp_head', 'rel_canonical' ) ) && ! empty( $canonical ) ) {
-			?>
-			<link rel="canonical" href="<?php echo esc_url( $canonical ); ?>" />
-			<?php
+		if ( $paged > 1 ) {
+			$canonical = get_pagenum_link( $paged );
 		}
 	}
 
-	if ( $theme_output_seo && $theme_robots_noindex && ! has_action( 'wp_head', 'wp_robots' ) ) {
+	if ( '' !== $canonical && function_exists( 'theme_normalize_seo_url' ) ) {
+		$canonical = theme_normalize_seo_url( $canonical );
+	}
+
+	if ( ! ( is_singular() && has_action( 'wp_head', 'rel_canonical' ) ) && ! empty( $canonical ) ) {
+		?>
+		<link rel="canonical" href="<?php echo esc_url( $canonical ); ?>" />
+		<?php
+	}
+
+	if ( $theme_robots_noindex && ! has_action( 'wp_head', 'wp_robots' ) ) {
 		?>
 		<meta name="robots" content="noindex, follow" />
 		<?php
@@ -133,11 +133,11 @@
 	$data_org = array(
 		'@type' => 'Organization',
 		'name'  => get_bloginfo( 'name' ),
-		'url'   => home_url( '/' ),
+		'url'   => function_exists( 'theme_normalize_seo_url' ) ? theme_normalize_seo_url( home_url( '/' ) ) : home_url( '/' ),
 	);
 
 	if ( ! empty( $logo_url ) ) {
-		$data_org['logo'] = $logo_url;
+		$data_org['logo'] = function_exists( 'theme_normalize_seo_url' ) ? theme_normalize_seo_url( $logo_url ) : $logo_url;
 	}
 
 	if ( ! empty( $same_as_array ) ) {
@@ -147,12 +147,12 @@
 	$data_site = array(
 		'@type' => 'WebSite',
 		'name'  => get_bloginfo( 'name' ),
-		'url'   => home_url( '/' ),
+		'url'   => function_exists( 'theme_normalize_seo_url' ) ? theme_normalize_seo_url( home_url( '/' ) ) : home_url( '/' ),
 	);
 
 	$data_site['potentialAction'] = array(
 		'@type'       => 'SearchAction',
-		'target'      => home_url( '/?s={search_term_string}' ),
+		'target'      => function_exists( 'theme_normalize_seo_url' ) ? theme_normalize_seo_url( home_url( '/?s={search_term_string}' ) ) : home_url( '/?s={search_term_string}' ),
 		'query-input' => 'required name=search_term_string',
 	);
 
@@ -173,7 +173,7 @@
 					'@type'    => 'ListItem',
 					'position' => $position,
 					'name'     => wp_strip_all_tags( (string) $breadcrumb_item['name'] ),
-					'item'     => esc_url_raw( (string) $breadcrumb_item['url'] ),
+					'item'     => function_exists( 'theme_normalize_seo_url' ) ? theme_normalize_seo_url( (string) $breadcrumb_item['url'] ) : esc_url_raw( (string) $breadcrumb_item['url'] ),
 				);
 				$position++;
 			}

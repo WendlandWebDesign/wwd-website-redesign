@@ -17,10 +17,12 @@ get_header();
             $herotxt = get_the_title();
             include_once get_template_directory() . '/assets/_snippets/hero.php';
             ?>
-            <div class="single-content light">
-                <p class="light">
-                    <?php the_content(); ?>
-                </p>
+            <div class="single-holder">
+                <div class="single-content mw-small light">
+                    <p class="light">
+                        <?php the_content(); ?>
+                    </p>
+                </div>
             </div>
             <?php
         endwhile;

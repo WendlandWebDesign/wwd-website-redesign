@@ -15,6 +15,273 @@ function allow_svg($mimes) {
 }
 add_filter('upload_mimes', 'allow_svg');
 
+if ( ! defined( 'WENDLAND_CANONICAL_HOST' ) ) {
+	define( 'WENDLAND_CANONICAL_HOST', 'wendlandwebdesign.de' );
+}
+
+if ( ! defined( 'WENDLAND_CANONICAL_SCHEME' ) ) {
+	define( 'WENDLAND_CANONICAL_SCHEME', 'https' );
+}
+
+if ( ! function_exists( 'theme_normalize_seo_url' ) ) {
+	/**
+	 * Normalizes SEO URLs to canonical scheme and host.
+	 *
+	 * @param string $url Source URL (absolute or relative).
+	 * @return string
+	 */
+	function theme_normalize_seo_url( $url ) {
+		$url = trim( (string) $url );
+		if ( '' === $url ) {
+			return '';
+		}
+
+		if ( 0 === strpos( $url, '//' ) ) {
+			$url = WENDLAND_CANONICAL_SCHEME . ':' . $url;
+		}
+
+		if ( 0 !== strpos( $url, 'http://' ) && 0 !== strpos( $url, 'https://' ) ) {
+			$path = '/' . ltrim( $url, '/' );
+			return esc_url_raw( WENDLAND_CANONICAL_SCHEME . '://' . WENDLAND_CANONICAL_HOST . $path );
+		}
+
+		$parts = wp_parse_url( $url );
+		if ( empty( $parts ) || ! is_array( $parts ) ) {
+			return '';
+		}
+
+		$path = isset( $parts['path'] ) && '' !== $parts['path'] ? $parts['path'] : '/';
+		if ( '/' !== substr( $path, 0, 1 ) ) {
+			$path = '/' . $path;
+		}
+
+		$query    = isset( $parts['query'] ) ? '?' . $parts['query'] : '';
+		$fragment = isset( $parts['fragment'] ) ? '#' . $parts['fragment'] : '';
+
+		return esc_url_raw( WENDLAND_CANONICAL_SCHEME . '://' . WENDLAND_CANONICAL_HOST . $path . $query . $fragment );
+	}
+}
+
+if ( ! function_exists( 'theme_normalize_sitemap_entry' ) ) {
+	/**
+	 * Ensures sitemap entry locations always use canonical domain and scheme.
+	 *
+	 * @param array $entry Sitemap entry.
+	 * @return array
+	 */
+	function theme_normalize_sitemap_entry( $entry ) {
+		if ( ! is_array( $entry ) || empty( $entry['loc'] ) ) {
+			return $entry;
+		}
+
+		$entry['loc'] = theme_normalize_seo_url( $entry['loc'] );
+		return $entry;
+	}
+}
+
+add_filter( 'wp_sitemaps_posts_entry', 'theme_normalize_sitemap_entry', 10, 1 );
+add_filter( 'wp_sitemaps_taxonomies_entry', 'theme_normalize_sitemap_entry', 10, 1 );
+add_filter( 'wp_sitemaps_users_entry', 'theme_normalize_sitemap_entry', 10, 1 );
+add_filter( 'wp_sitemaps_index_entry', 'theme_normalize_sitemap_entry', 10, 1 );
+
+if ( ! function_exists( 'theme_custom_robots_txt' ) ) {
+	/**
+	 * Overrides virtual robots.txt output via WordPress core filter.
+	 *
+	 * Note: a physical robots.txt in WordPress root takes precedence and this
+	 * filter output will not be used by web servers in that case.
+	 *
+	 * @param string $output Current robots content.
+	 * @param bool   $public Blog visibility flag.
+	 * @return string
+	 */
+	function theme_custom_robots_txt( $output, $public ) {
+		if ( ! $public ) {
+			return "User-agent: *\nDisallow: /";
+		}
+
+		$lines   = array();
+		$lines[] = 'User-agent: *';
+		$lines[] = 'Disallow: /wp-admin/';
+		$lines[] = 'Allow: /wp-admin/admin-ajax.php';
+		$lines[] = 'Disallow: /wp-login.php';
+		$lines[] = 'Disallow: /?s=';
+		$lines[] = '';
+		$lines[] = 'Sitemap: https://wendlandwebdesign.de/sitemap.xml';
+
+		return implode( "\n", $lines );
+	}
+}
+add_filter( 'robots_txt', 'theme_custom_robots_txt', 10, 2 );
+
+/**
+ * Registers custom sitemap route: /sitemap.xml.
+ */
+function theme_register_sitemap_rewrite_rule() {
+	add_rewrite_rule( '^sitemap\.xml$', 'index.php?theme_sitemap=1', 'top' );
+}
+add_action( 'init', 'theme_register_sitemap_rewrite_rule' );
+
+/**
+ * Adds sitemap query var.
+ *
+ * @param array $vars Query vars.
+ * @return array
+ */
+function theme_register_sitemap_query_var( $vars ) {
+	$vars[] = 'theme_sitemap';
+	return $vars;
+}
+add_filter( 'query_vars', 'theme_register_sitemap_query_var' );
+
+if ( ! function_exists( 'theme_sitemap_xml_escape' ) ) {
+	/**
+	 * Escapes plain XML values.
+	 *
+	 * @param string $value Value to escape.
+	 * @return string
+	 */
+	function theme_sitemap_xml_escape( $value ) {
+		return htmlspecialchars( (string) $value, ENT_QUOTES | ENT_XML1, 'UTF-8' );
+	}
+}
+
+if ( ! function_exists( 'theme_sitemap_add_url' ) ) {
+	/**
+	 * Emits one sitemap url node.
+	 *
+	 * @param string      $loc      Absolute URL.
+	 * @param string|null $lastmod  Optional W3C datetime.
+	 * @param string|null $priority Optional priority value.
+	 * @return void
+	 */
+	function theme_sitemap_add_url( $loc, $lastmod = null, $priority = null ) {
+		$normalized_loc = function_exists( 'theme_normalize_seo_url' ) ? theme_normalize_seo_url( $loc ) : esc_url_raw( $loc );
+		if ( '' === $normalized_loc ) {
+			return;
+		}
+
+		echo '<url>';
+		echo '<loc>' . theme_sitemap_xml_escape( $normalized_loc ) . '</loc>';
+
+		if ( ! empty( $lastmod ) ) {
+			echo '<lastmod>' . theme_sitemap_xml_escape( $lastmod ) . '</lastmod>';
+		}
+
+		if ( null !== $priority && '' !== $priority ) {
+			echo '<priority>' . theme_sitemap_xml_escape( $priority ) . '</priority>';
+		}
+
+		echo '</url>';
+	}
+}
+
+if ( ! function_exists( 'theme_render_sitemap' ) ) {
+	/**
+	 * Renders custom sitemap XML response.
+	 *
+	 * @return void
+	 */
+	function theme_render_sitemap() {
+		status_header( 200 );
+		header( 'Content-Type: application/xml; charset=utf-8' );
+
+		echo '<?xml version="1.0" encoding="UTF-8"?>';
+		echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+		$emitted_urls = array();
+		$emit_once    = static function ( $loc, $lastmod = null, $priority = null ) use ( &$emitted_urls ) {
+			$normalized = function_exists( 'theme_normalize_seo_url' ) ? theme_normalize_seo_url( $loc ) : esc_url_raw( $loc );
+			if ( '' === $normalized || isset( $emitted_urls[ $normalized ] ) ) {
+				return;
+			}
+
+			$emitted_urls[ $normalized ] = true;
+			theme_sitemap_add_url( $normalized, $lastmod, $priority );
+		};
+
+		$emit_type_posts = static function ( $post_type, $priority ) use ( $emit_once ) {
+			$query = new WP_Query(
+				array(
+					'post_type'              => $post_type,
+					'post_status'            => 'publish',
+					'posts_per_page'         => -1,
+					'orderby'                => 'modified',
+					'order'                  => 'DESC',
+					'fields'                 => 'ids',
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'cache_results'          => true,
+				)
+			);
+
+			if ( empty( $query->posts ) || ! is_array( $query->posts ) ) {
+				wp_reset_postdata();
+				return;
+			}
+
+			foreach ( $query->posts as $post_id ) {
+				$permalink = get_permalink( $post_id );
+				if ( empty( $permalink ) ) {
+					continue;
+				}
+
+				$lastmod = get_post_modified_time( 'c', true, $post_id );
+				$emit_once( $permalink, $lastmod ? $lastmod : null, $priority );
+			}
+
+			wp_reset_postdata();
+		};
+
+		$emit_once( home_url( '/' ), current_time( 'Y-m-d' ), '1.0' );
+		$emit_type_posts( 'page', '0.8' );
+		$emit_type_posts( 'post', '0.7' );
+
+		$excluded_post_types = array(
+			'attachment',
+			'nav_menu_item',
+			'page',
+			'post',
+		);
+
+		$post_type_objects = get_post_types(
+			array(
+				'public'             => true,
+				'publicly_queryable' => true,
+			),
+			'objects'
+		);
+
+		foreach ( $post_type_objects as $post_type => $object ) {
+			if ( in_array( $post_type, $excluded_post_types, true ) ) {
+				continue;
+			}
+
+			if ( ! $object instanceof WP_Post_Type || empty( $object->public ) || empty( $object->publicly_queryable ) ) {
+				continue;
+			}
+
+			$emit_type_posts( $post_type, '0.7' );
+		}
+
+		echo '</urlset>';
+	}
+}
+
+/**
+ * Intercepts /sitemap.xml requests and returns XML output only.
+ */
+function theme_maybe_render_sitemap() {
+	if ( (int) get_query_var( 'theme_sitemap' ) !== 1 ) {
+		return;
+	}
+
+	theme_render_sitemap();
+	exit;
+}
+add_action( 'template_redirect', 'theme_maybe_render_sitemap', 0 );
+
 
 
 function wwd_website_redesign_enqueue_assets() {
@@ -199,6 +466,25 @@ function wwd_website_redesign_enqueue_assets() {
 	}
 }
 add_action( 'wp_enqueue_scripts', 'wwd_website_redesign_enqueue_assets' );
+
+/**
+ * Disable speculative prefetching on references pages.
+ *
+ * Prevents automatic background document fetches on page load so permission-related
+ * prompts can only happen from explicit user navigation/interaction.
+ */
+function wwd_disable_speculation_rules_on_referenzen( $config ) {
+	if ( is_admin() ) {
+		return $config;
+	}
+
+	if ( is_page( 'referenzen' ) || is_singular( 'referenzen' ) ) {
+		return null;
+	}
+
+	return $config;
+}
+add_filter( 'wp_speculation_rules_configuration', 'wwd_disable_speculation_rules_on_referenzen' );
 
 
 /**
