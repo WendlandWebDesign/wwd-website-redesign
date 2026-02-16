@@ -434,11 +434,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const submitBtn = form.querySelector('button[type="submit"]');
     const messageEl = document.getElementById("contact-form-message");
+    const lockEl = document.getElementById("mail-lock");
     if (!submitBtn || !messageEl) return;
 
-    const lockDurationMs = 30000;
-    const storageKey = "mail_last_sent_ts";
     let timerId = null;
+    let remainingSeconds = 0;
 
     const setMessage = (text, source) => {
         messageEl.textContent = text;
@@ -452,33 +452,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    const getStoredTimestamp = () => {
-        try {
-            const raw = sessionStorage.getItem(storageKey);
-            if (!raw) return 0;
-            const ts = Number(raw);
-            return Number.isFinite(ts) ? ts : 0;
-        } catch (error) {
-            return 0;
-        }
-    };
-
-    const storeTimestamp = (ts) => {
-        try {
-            sessionStorage.setItem(storageKey, String(ts));
-        } catch (error) {
-            // ignore storage access errors
-        }
-    };
-
-    const clearTimestamp = () => {
-        try {
-            sessionStorage.removeItem(storageKey);
-        } catch (error) {
-            // ignore storage access errors
-        }
-    };
-
     const stopTimer = () => {
         if (timerId) {
             clearInterval(timerId);
@@ -486,19 +459,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    const applyLockState = () => {
-        const lastSentTs = getStoredTimestamp();
-        if (!lastSentTs) {
-            submitBtn.disabled = false;
-            clearMessageBySource("timer");
-            stopTimer();
-            return;
-        }
-
-        const elapsed = Date.now() - lastSentTs;
-        const remainingMs = lockDurationMs - elapsed;
-        if (remainingMs <= 0) {
-            clearTimestamp();
+    const renderLockState = () => {
+        if (remainingSeconds <= 0) {
             submitBtn.disabled = false;
             clearMessageBySource("timer");
             stopTimer();
@@ -506,24 +468,61 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         submitBtn.disabled = true;
-        const remainingSeconds = Math.ceil(remainingMs / 1000);
         setMessage(`Bitte warten Sie ${remainingSeconds} Sekunden, bevor Sie erneut senden.`, "timer");
 
         if (!timerId) {
-            timerId = setInterval(applyLockState, 1000);
+            timerId = setInterval(() => {
+                remainingSeconds -= 1;
+                renderLockState();
+            }, 1000);
         }
     };
 
-    const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.get("sent") === "1") {
-        const existingTs = getStoredTimestamp();
-        const hasActiveLock = existingTs > 0 && (Date.now() - existingTs) < lockDurationMs;
-        if (!hasActiveLock) {
-            storeTimestamp(Date.now());
+    if (lockEl && lockEl.dataset.remaining) {
+        const parsedRemaining = Number(lockEl.dataset.remaining);
+        if (Number.isFinite(parsedRemaining) && parsedRemaining > 0) {
+            remainingSeconds = Math.ceil(parsedRemaining);
         }
     }
 
+    const getFieldLabel = (field) => {
+        if (!field || !field.id) return null;
+        return form.querySelector(`label[for="${field.id}"]`);
+    };
+
+    const syncInvalidLabel = (field) => {
+        const label = getFieldLabel(field);
+        if (!label) return;
+        if (field.checkValidity()) {
+            label.classList.remove("is-invalid");
+        } else {
+            label.classList.add("is-invalid");
+        }
+    };
+
+    const requiredFields = Array.from(form.querySelectorAll("input[required], textarea[required], select[required]"));
+    const valueFields = Array.from(
+        form.querySelectorAll('input:not([type="checkbox"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="file"]), textarea')
+    );
+
+    const syncHasValueClass = (field) => {
+        if (field.value.trim() !== "") {
+            field.classList.add("has-value");
+        } else {
+            field.classList.remove("has-value");
+        }
+    };
+
+    const syncAllHasValueClasses = () => {
+        valueFields.forEach((field) => {
+            syncHasValueClass(field);
+        });
+    };
+
     submitBtn.addEventListener("click", () => {
+        requiredFields.forEach((field) => {
+            syncInvalidLabel(field);
+        });
         if (!form.checkValidity()) {
             setMessage("Bitte alle Pflichtfelder ausf\u00fcllen", "required");
         }
@@ -535,5 +534,34 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    applyLockState();
+    form.addEventListener("input", (event) => {
+        const field = event.target;
+        if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) {
+            return;
+        }
+        if (!field.matches("input[required], textarea[required], select[required]")) {
+            if (field.matches('input:not([type="checkbox"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="file"]), textarea')) {
+                syncHasValueClass(field);
+            }
+            return;
+        }
+        syncHasValueClass(field);
+        syncInvalidLabel(field);
+    });
+
+    form.addEventListener("change", (event) => {
+        const field = event.target;
+        if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement)) {
+            return;
+        }
+        if (!field.matches('input:not([type="checkbox"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="file"]), textarea')) {
+            return;
+        }
+        syncHasValueClass(field);
+    });
+
+    syncAllHasValueClasses();
+    setTimeout(syncAllHasValueClasses, 250);
+
+    renderLockState();
 });

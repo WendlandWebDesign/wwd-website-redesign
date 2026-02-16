@@ -115,16 +115,26 @@
 }
 
 .contact-form .form-row input:focus + label,
-.contact-form .form-row textarea:focus + label{
+.contact-form .form-row input.has-value + label,
+.contact-form .form-row textarea:focus + label,
+.contact-form .form-row textarea.has-value + label{
     bottom: 100%;
     font-size: .8rem;
     color: var(--ac-clr);
 }
+.contact-form .form-row label.is-invalid,
+.contact-form .form-row input:focus + label.is-invalid,
+.contact-form .form-row textarea:focus + label.is-invalid{
+    color: #c40000 !important;
+}
 .contact-form .form-row:has(input:focus)::after,
-.contact-form .form-row:has(textarea:focus)::after{
+.contact-form .form-row:has(input.has-value)::after,
+.contact-form .form-row:has(textarea:focus)::after,
+.contact-form .form-row:has(textarea.has-value)::after{
     width: 100%;;
 }
-.contact-form .form-row:has(input:focus)::before{
+.contact-form .form-row:has(input:focus)::before,
+.contact-form .form-row:has(input.has-value)::before{
     width: 0;
 }
 
@@ -146,21 +156,29 @@
 .contact-form .form-row a:hover{
     text-decoration: underline;
 }
-.contact-form .form-row:last-of-type{
+.contact-form .checkbox-row{
     display: flex;
     align-items: center;
     gap: 15px;
     padding: 0 10px;
 }
-.contact-form .form-row:last-of-type input{
+.contact-form .checkbox-row input{
     min-width: 20px;
     min-height: 20px;
     max-width: 20px;
     max-height: 20px;
 }
-.contact-form .form-row:last-of-type::before,
-.contact-form .form-row:last-of-type::after{
+.contact-form .checkbox-row::before,
+.contact-form .checkbox-row::after{
     display: none;
+}
+
+.form-success-message{
+    padding: 24px 16px;
+}
+
+.form-success-message p{
+    margin: 0;
 }
 
 @media (max-width: 1000px) {

@@ -67,13 +67,35 @@ if (!empty($lockedUntil) && (int)$lockedUntil > time()) {
 // -------------------------
 $name      = trim((string)($_POST['name'] ?? ''));
 $firma     = trim((string)($_POST['firma'] ?? ''));
-$email     = filter_var((string)($_POST['email'] ?? ''), FILTER_VALIDATE_EMAIL);
+$emailRaw  = trim((string)($_POST['email'] ?? ''));
+$email     = filter_var($emailRaw, FILTER_VALIDATE_EMAIL);
 $phone     = trim((string)($_POST['phone'] ?? ''));
 $betreff   = trim((string)($_POST['betreff'] ?? ''));
 $nachricht = trim((string)($_POST['nachricht'] ?? ''));
 
-if ($name === '' || !$email || $phone === '' || $betreff === '' || $nachricht === '') {
-    header('Location: ' . $redirectErrorRequired, true, 302);
+$invalidFields = [];
+if ($name === '') {
+    $invalidFields[] = 'name';
+}
+if (!$email) {
+    $invalidFields[] = 'email';
+}
+if ($phone === '') {
+    $invalidFields[] = 'phone';
+}
+if ($betreff === '') {
+    $invalidFields[] = 'betreff';
+}
+if ($nachricht === '') {
+    $invalidFields[] = 'nachricht';
+}
+
+if (!empty($invalidFields)) {
+    $redirectWithInvalid = add_query_arg(
+        ['invalid' => implode(',', $invalidFields)],
+        $redirectErrorRequired
+    );
+    header('Location: ' . $redirectWithInvalid, true, 302);
     exit;
 }
 
@@ -119,6 +141,15 @@ $sent = wp_mail($to, $subject, $messageHtml, $headers);
 
 if ($sent) {
     set_transient($lockKey, time() + 30, 30);
+    $successToken = wp_generate_password(20, false, false);
+    set_transient('mail_success_' . $successToken, 1, 300);
+    $redirectSuccess = add_query_arg(
+        [
+            'sent' => '1',
+            'success_token' => $successToken,
+        ],
+        $contactUrl
+    );
 }
 
 // Redirect
