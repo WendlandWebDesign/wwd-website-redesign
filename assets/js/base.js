@@ -582,3 +582,160 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderLockState();
 });
+
+// website-check form: server-driven lock UX + has-value + invalid states
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("website-check-form");
+    if (!form) return;
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const messageEl = document.getElementById("website-check-form-error");
+    const lockEl = document.getElementById("website-check-mail-lock");
+    if (!submitBtn || !messageEl) return;
+
+    let timerId = null;
+    let remainingSeconds = 0;
+
+    const setMessage = (text, source) => {
+        messageEl.textContent = text;
+        messageEl.dataset.messageSource = source;
+    };
+
+    const clearMessageBySource = (source) => {
+        if (messageEl.dataset.messageSource === source) {
+            messageEl.textContent = "";
+            delete messageEl.dataset.messageSource;
+        }
+    };
+
+    const stopTimer = () => {
+        if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+        }
+    };
+
+    const renderLockState = () => {
+        if (remainingSeconds <= 0) {
+            submitBtn.disabled = false;
+            clearMessageBySource("timer");
+            stopTimer();
+            return;
+        }
+
+        submitBtn.disabled = true;
+        setMessage(`Bitte warten Sie ${remainingSeconds} Sekunden, bevor Sie erneut senden.`, "timer");
+
+        if (!timerId) {
+            timerId = setInterval(() => {
+                remainingSeconds -= 1;
+                renderLockState();
+            }, 1000);
+        }
+    };
+
+    if (lockEl && lockEl.dataset.remaining) {
+        const parsedRemaining = Number(lockEl.dataset.remaining);
+        if (Number.isFinite(parsedRemaining) && parsedRemaining > 0) {
+            remainingSeconds = Math.ceil(parsedRemaining);
+        }
+    }
+
+    const getFieldLabel = (field) => {
+        if (!field || !field.id) return null;
+        return form.querySelector(`label[for="${field.id}"]`);
+    };
+
+    const syncInvalidLabel = (field) => {
+        if (field instanceof HTMLInputElement && field.type === "checkbox") {
+            return;
+        }
+        const label = getFieldLabel(field);
+        if (!label) return;
+        if (field.checkValidity()) {
+            label.classList.remove("is-invalid");
+        } else {
+            label.classList.add("is-invalid");
+        }
+    };
+
+    const syncCheckboxInvalidState = (field) => {
+        if (!(field instanceof HTMLInputElement) || field.type !== "checkbox") {
+            return;
+        }
+        const isInvalid = field.required && !field.checked;
+        field.classList.toggle("is-invalid", isInvalid);
+    };
+
+    const requiredFields = Array.from(form.querySelectorAll("input[required], textarea[required], select[required]"));
+    const valueFields = Array.from(
+        form.querySelectorAll('input:not([type="checkbox"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="file"]), textarea')
+    );
+
+    const syncHasValueClass = (field) => {
+        if (field.value.trim() !== "") {
+            field.classList.add("has-value");
+        } else {
+            field.classList.remove("has-value");
+        }
+    };
+
+    const syncAllHasValueClasses = () => {
+        valueFields.forEach((field) => {
+            syncHasValueClass(field);
+        });
+    };
+
+    submitBtn.addEventListener("click", () => {
+        requiredFields.forEach((field) => {
+            syncCheckboxInvalidState(field);
+            syncInvalidLabel(field);
+        });
+        if (!form.checkValidity()) {
+            setMessage("Bitte alle Pflichtfelder ausfüllen", "required");
+        }
+    });
+
+    form.addEventListener("input", () => {
+        if (messageEl.dataset.messageSource === "required" && form.checkValidity()) {
+            clearMessageBySource("required");
+        }
+    });
+
+    form.addEventListener("input", (event) => {
+        const field = event.target;
+        if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) {
+            return;
+        }
+        if (!field.matches("input[required], textarea[required], select[required]")) {
+            if (field.matches('input:not([type="checkbox"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="file"]), textarea')) {
+                syncHasValueClass(field);
+            }
+            return;
+        }
+        syncHasValueClass(field);
+        syncInvalidLabel(field);
+    });
+
+    form.addEventListener("change", (event) => {
+        const field = event.target;
+        if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement)) {
+            return;
+        }
+        if (field instanceof HTMLInputElement && field.type === "checkbox") {
+            if (field.checked) {
+                field.classList.remove("is-invalid");
+            }
+            return;
+        }
+        if (!field.matches('input:not([type="checkbox"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="file"]), textarea')) {
+            return;
+        }
+        syncHasValueClass(field);
+    });
+
+    syncAllHasValueClasses();
+    setTimeout(syncAllHasValueClasses, 250);
+
+    renderLockState();
+});
