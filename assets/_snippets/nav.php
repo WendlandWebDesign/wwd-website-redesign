@@ -162,9 +162,12 @@
                                     if ( $referenzen_query->have_posts() ) :
                                         while ( $referenzen_query->have_posts() ) :
                                             $referenzen_query->the_post();
-                                            $card_link = get_post_meta( get_the_ID(), '_nav_card_link', true );
+                                            $card_link = get_post_meta( get_the_ID(), 'referenzen_card_link_url', true );
+                                            if ( '' === $card_link ) {
+                                                $card_link = get_permalink();
+                                            }
                                             ?>
-                                            <div class="nav-card nav-card--clickable js-right-card" onclick="window.location.href='<?php echo esc_url( get_permalink() ); ?>';" role="link" tabindex="0">
+                                            <a class="nav-card nav-card--clickable js-right-card" href="<?php echo esc_url( $card_link ); ?>">
                                                 <div class="card-img-holder">
                                                     <?php
                                                     if ( has_post_thumbnail() ) {
@@ -177,7 +180,7 @@
                                                     ?>
                                                 </div>
                                                 <p class="light nav-card__text-row"><?php echo esc_html( get_the_title() ); ?> <?php echo wwd_inline_svg( 'corner-arrow-light.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
-                                            </div>
+                                            </a>
                                             <?php
                                         endwhile;
                                         wp_reset_postdata();

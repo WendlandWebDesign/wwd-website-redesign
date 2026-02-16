@@ -25,7 +25,10 @@ get_header();
                 while ( $referenzen_query->have_posts() ) :
                     $referenzen_query->the_post();
                     $image_url = get_post_meta( get_the_ID(), 'referenzen_kundenbild_url', true );
-                    $card_link = get_permalink( get_the_ID() );
+                    $card_link = get_post_meta( get_the_ID(), 'referenzen_card_link_url', true );
+                    if ( '' === $card_link ) {
+                        $card_link = get_permalink( get_the_ID() );
+                    }
                     ?>
                     <a class="kunden-card kunde-card reveal" href="<?php echo esc_url( $card_link ); ?>">
                         <?php if ( ! empty( $image_url ) ) : ?>

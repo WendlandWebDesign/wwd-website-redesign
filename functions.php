@@ -2868,6 +2868,109 @@ function wwd_get_news_query() {
 	);
 }
 
+if ( ! function_exists( 'theme_get_breadcrumb_items' ) ) {
+	/**
+	 * Returns normalized breadcrumb items for schema output.
+	 *
+	 * @return array<int,array{name:string,url:string}>
+	 */
+	function theme_get_breadcrumb_items() {
+		$items = array(
+			array(
+				'name' => wp_strip_all_tags( get_bloginfo( 'name' ) ),
+				'url'  => esc_url_raw( home_url( '/' ) ),
+			),
+		);
+
+		if ( is_front_page() ) {
+			return $items;
+		}
+
+		if ( is_page() ) {
+			$page_id = get_queried_object_id();
+			if ( $page_id ) {
+				$parents = array_reverse( get_post_ancestors( $page_id ) );
+				foreach ( $parents as $parent_id ) {
+					$items[] = array(
+						'name' => wp_strip_all_tags( get_the_title( $parent_id ) ),
+						'url'  => esc_url_raw( get_permalink( $parent_id ) ),
+					);
+				}
+
+				$items[] = array(
+					'name' => wp_strip_all_tags( get_the_title( $page_id ) ),
+					'url'  => esc_url_raw( get_permalink( $page_id ) ),
+				);
+			}
+
+			return $items;
+		}
+
+		if ( is_singular() ) {
+			$post_id = get_queried_object_id();
+			if ( ! $post_id ) {
+				return $items;
+			}
+
+			$post_type = get_post_type( $post_id );
+
+			if ( 'news' === $post_type ) {
+				$news_page = get_page_by_path( 'news' );
+				if ( $news_page instanceof WP_Post ) {
+					$items[] = array(
+						'name' => wp_strip_all_tags( get_the_title( $news_page->ID ) ),
+						'url'  => esc_url_raw( get_permalink( $news_page->ID ) ),
+					);
+				}
+			} elseif ( 'referenzen' === $post_type ) {
+				$referenzen_page = get_page_by_path( 'referenzen' );
+				if ( $referenzen_page instanceof WP_Post ) {
+					$items[] = array(
+						'name' => wp_strip_all_tags( get_the_title( $referenzen_page->ID ) ),
+						'url'  => esc_url_raw( get_permalink( $referenzen_page->ID ) ),
+					);
+				}
+			} elseif ( $post_type ) {
+				$post_type_object = get_post_type_object( $post_type );
+				if ( $post_type_object && ! empty( $post_type_object->has_archive ) ) {
+					$archive_url = get_post_type_archive_link( $post_type );
+					if ( $archive_url ) {
+						$items[] = array(
+							'name' => wp_strip_all_tags( $post_type_object->labels->name ),
+							'url'  => esc_url_raw( $archive_url ),
+						);
+					}
+				}
+			}
+
+			$items[] = array(
+				'name' => wp_strip_all_tags( get_the_title( $post_id ) ),
+				'url'  => esc_url_raw( get_permalink( $post_id ) ),
+			);
+
+			return $items;
+		}
+
+		if ( is_post_type_archive() ) {
+			$post_type = get_query_var( 'post_type' );
+			$post_type = is_array( $post_type ) ? reset( $post_type ) : $post_type;
+
+			if ( is_string( $post_type ) && '' !== $post_type ) {
+				$post_type_object = get_post_type_object( $post_type );
+				$archive_url      = get_post_type_archive_link( $post_type );
+				if ( $post_type_object && $archive_url ) {
+					$items[] = array(
+						'name' => wp_strip_all_tags( $post_type_object->labels->name ),
+						'url'  => esc_url_raw( $archive_url ),
+					);
+				}
+			}
+		}
+
+		return $items;
+	}
+}
+
 /**
  * Admin column for manual ordering (menu_order).
  */
@@ -2920,7 +3023,7 @@ function wwd_add_nav_card_link_metabox() {
 		'wwd_nav_card_link',
 		'Card Link (URL)',
 		'wwd_render_nav_card_link_metabox',
-		array( 'nav_dienstleistungen', 'referenzen' ),
+		array( 'nav_dienstleistungen' ),
 		'side',
 		'default'
 	);
@@ -2968,7 +3071,6 @@ function wwd_save_nav_card_link_metabox( $post_id ) {
 	}
 }
 add_action( 'save_post_nav_dienstleistungen', 'wwd_save_nav_card_link_metabox' );
-add_action( 'save_post_referenzen', 'wwd_save_nav_card_link_metabox' );
 
 function wwd_add_referenzen_kunde_image_metabox() {
 	add_meta_box(
@@ -3040,7 +3142,7 @@ add_action( 'save_post_referenzen', 'wwd_save_referenzen_kunde_image_metabox' );
 function wwd_add_referenzen_card_link_metabox() {
 	add_meta_box(
 		'wwd_referenzen_card_link',
-		'Card Link URL',
+		'Card Link',
 		'wwd_render_referenzen_card_link_metabox',
 		'referenzen',
 		'side',
@@ -3054,7 +3156,7 @@ function wwd_render_referenzen_card_link_metabox( $post ) {
 	wp_nonce_field( 'referenzen_card_link_save', 'referenzen_card_link_nonce' );
 	?>
 	<p>
-		<label for="wwd-referenzen-card-link"><?php echo esc_html( 'Card Link URL' ); ?></label>
+		<label for="wwd-referenzen-card-link"><?php echo esc_html( 'Card Link' ); ?></label>
 	</p>
 	<input
 		type="url"
