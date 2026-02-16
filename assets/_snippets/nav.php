@@ -163,12 +163,8 @@
                                         while ( $referenzen_query->have_posts() ) :
                                             $referenzen_query->the_post();
                                             $card_link = get_post_meta( get_the_ID(), '_nav_card_link', true );
-                                            $onclick_attr = '';
-                                            if ( ! empty( $card_link ) ) {
-                                                $onclick_attr = ' onclick="window.location.href=\'' . esc_url( $card_link ) . '\';"';
-                                            }
                                             ?>
-                                            <div class="nav-card nav-card--clickable js-right-card"<?php echo $onclick_attr; ?> role="link" tabindex="0">
+                                            <div class="nav-card nav-card--clickable js-right-card" onclick="window.location.href='<?php echo esc_url( get_permalink() ); ?>';" role="link" tabindex="0">
                                                 <div class="card-img-holder">
                                                     <?php
                                                     if ( has_post_thumbnail() ) {
