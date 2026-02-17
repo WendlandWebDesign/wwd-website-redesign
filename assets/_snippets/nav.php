@@ -165,8 +165,9 @@
                                         array(
                                             'post_type'      => 'referenzen',
                                             'posts_per_page' => 4,
-                                            'orderby'        => 'date',
-                                            'order'          => 'DESC',
+                                            'post_status'    => 'publish',
+                                            'orderby'        => 'menu_order',
+                                            'order'          => 'ASC',
                                         )
                                     );
                                     if ( $referenzen_query->have_posts() ) :

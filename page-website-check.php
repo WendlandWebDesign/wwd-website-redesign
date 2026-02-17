@@ -4,140 +4,8 @@ get_header();
 
 
 <?php
-$heroImgSrc = esc_url(get_option('home-img'));
-$heroTxt = "Website-Check";
-
-$websiteCheckUrl = get_permalink();
-if (!is_string($websiteCheckUrl) || $websiteCheckUrl === '') {
-    $websiteCheckUrl = home_url('/website-check/');
-}
-
-$wcFormError = '';
-$wcMailSent = false;
-$wcInvalidFields = [];
-$wcAllowedInvalidFields = ['domain', 'wc_email', 'privacy'];
-
-$wcIp = (string)($_SERVER['REMOTE_ADDR'] ?? 'unknown');
-$wcUa = (string)($_SERVER['HTTP_USER_AGENT'] ?? 'unknown');
-$wcLockKey = 'website_check_mail_lock_' . md5($wcIp . '|' . $wcUa);
-$wcLockedUntil = (int) get_transient($wcLockKey);
-$wcLockRemaining = max(0, $wcLockedUntil - time());
-
-$wcSentParam = isset($_GET['sent']) ? sanitize_text_field(wp_unslash((string)$_GET['sent'])) : '';
-$wcSuccessToken = isset($_GET['success_token']) ? sanitize_text_field(wp_unslash((string)$_GET['success_token'])) : '';
-$wcErrorParam = isset($_GET['error']) ? sanitize_text_field(wp_unslash((string)$_GET['error'])) : '';
-$wcInvalidParam = isset($_GET['invalid']) ? sanitize_text_field(wp_unslash((string)$_GET['invalid'])) : '';
-
-if ($wcSentParam === '1' && $wcSuccessToken !== '') {
-    $wcMailSent = (bool) get_transient('website_check_mail_success_' . $wcSuccessToken);
-}
-
-if ($wcInvalidParam !== '') {
-    foreach (explode(',', $wcInvalidParam) as $wcFieldName) {
-        $wcFieldName = sanitize_key($wcFieldName);
-        if (in_array($wcFieldName, $wcAllowedInvalidFields, true) && !in_array($wcFieldName, $wcInvalidFields, true)) {
-            $wcInvalidFields[] = $wcFieldName;
-        }
-    }
-}
-
-if ($wcErrorParam === 'required') {
-    $wcFormError = 'Bitte alle Pflichtfelder ausfüllen';
-} elseif ($wcErrorParam === 'rate_limit') {
-    $wcFormError = 'Bitte warten Sie 30 Sekunden, bevor Sie erneut senden.';
-}
-
-if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['website_check_nonce'])) {
-    $wcNonce = (string)($_POST['website_check_nonce'] ?? '');
-    if ($wcNonce === '' || !wp_verify_nonce($wcNonce, 'website_check_form')) {
-        wp_safe_redirect(add_query_arg(['sent' => '0'], $websiteCheckUrl));
-        exit;
-    }
-
-    if ($wcLockRemaining > 0) {
-        wp_safe_redirect(add_query_arg(['sent' => '0', 'error' => 'rate_limit'], $websiteCheckUrl));
-        exit;
-    }
-
-    $wcDomain = trim((string)($_POST['domain'] ?? ''));
-    $wcEmailRaw = trim((string)($_POST['wc-email'] ?? ''));
-    $wcEmail = filter_var($wcEmailRaw, FILTER_VALIDATE_EMAIL);
-    $wcPrivacy = (string)($_POST['privacy'] ?? '');
-
-    $wcSubmitInvalidFields = [];
-    if ($wcDomain === '') {
-        $wcSubmitInvalidFields[] = 'domain';
-    }
-    if (!$wcEmail) {
-        $wcSubmitInvalidFields[] = 'wc_email';
-    }
-    if (empty($wcPrivacy)) {
-        $wcSubmitInvalidFields[] = 'privacy';
-    }
-
-    if (!empty($wcSubmitInvalidFields)) {
-        wp_safe_redirect(
-            add_query_arg(
-                [
-                    'sent' => '0',
-                    'error' => 'required',
-                    'invalid' => implode(',', $wcSubmitInvalidFields),
-                ],
-                $websiteCheckUrl
-            )
-        );
-        exit;
-    }
-
-    add_action('phpmailer_init', function ($phpmailer) {
-        $phpmailer->isSMTP();
-        $phpmailer->Host       = 'smtp.hostinger.com';
-        $phpmailer->SMTPAuth   = true;
-        $phpmailer->Username   = 'office@wendlandwebdesign.de';
-        $phpmailer->Password   = 'MGP^Ge@23aZnwHuJH6qB6$Ul';
-        $phpmailer->SMTPSecure = 'ssl';
-        $phpmailer->Port       = 465;
-        $phpmailer->CharSet    = 'UTF-8';
-    });
-
-    $wcMailTo = 'office@wendlandwebdesign.de';
-    $wcMailSubject = 'Neue Website-Check Anfrage';
-    $wcMessageHtml =
-        "<h2>Neue Website-Check Anfrage</h2>" .
-        "<p><strong>Domain:</strong> " . esc_html($wcDomain) . "</p>" .
-        "<p><strong>E-Mail:</strong> " . esc_html((string)$wcEmail) . "</p>";
-
-    $wcHeaders = [
-        'Content-Type: text/html; charset=UTF-8',
-        'From: Wendland Webdesign <office@wendlandwebdesign.de>',
-        'Reply-To: <' . $wcEmail . '>',
-    ];
-
-    $wcSent = wp_mail($wcMailTo, $wcMailSubject, $wcMessageHtml, $wcHeaders);
-
-    if ($wcSent) {
-        set_transient($wcLockKey, time() + 30, 30);
-        $wcSuccessTokenNew = wp_generate_password(20, false, false);
-        set_transient('website_check_mail_success_' . $wcSuccessTokenNew, 1, 300);
-        wp_safe_redirect(
-            add_query_arg(
-                [
-                    'sent' => '1',
-                    'success_token' => $wcSuccessTokenNew,
-                ],
-                $websiteCheckUrl
-            )
-        );
-        exit;
-    }
-
-    wp_safe_redirect(add_query_arg(['sent' => '0'], $websiteCheckUrl));
-    exit;
-}
-
-$wcInvalidClass = static function (string $wcFieldName) use ($wcInvalidFields): string {
-    return in_array($wcFieldName, $wcInvalidFields, true) ? ' is-invalid' : '';
-};
+	$heroImgSrc = esc_url(get_option('website-check'));
+	$heroTxt = "Website-Check";
 ?>
 
 <main>
@@ -202,22 +70,32 @@ $wcInvalidClass = static function (string $wcFieldName) use ($wcInvalidFields): 
             <div class="contact-info">
                 <h4>Jetzt<br>kostenlosen <br><span>Websitecheck</span><br>anfordern!</h4>
             </div>
-            <?php if (!$wcMailSent) : ?>
-                <form action="<?php echo esc_url($websiteCheckUrl); ?>" class="contact-form" method="post" id="website-check-form">
-                    <?php wp_nonce_field('website_check_form', 'website_check_nonce'); ?>
+            <div class="form-holder">
+                <form action="<?php echo esc_url( home_url('/wc-send-mail.php') ); ?>" class="contact-form" method="post" id="website-check-form" novalidate data-endpoint="<?php echo esc_url( home_url('/wc-send-mail.php') ); ?>">
+                    <input type="hidden" name="action" value="website_check_form">
+
+                    <!-- Honeypot -->
+                    <div class="hp-field" aria-hidden="true">
+                        <label for="wc-website">Website</label>
+                        <input type="text" id="wc-website" name="website" tabindex="-1" autocomplete="off">
+                    </div>
+
                     <div class="form-row">
                         <input class="light" type="text" id="domain" name="domain" required>
-                        <label class="default<?php echo esc_attr($wcInvalidClass('domain')); ?>" for="domain">Ihre Domain</label>
+                        <label class="default" for="domain">Ihre Domain</label>
                     </div>
+
                     <div class="form-row">
-                        <input class="light" type="email" id="wc-email" name="wc-email" required>
-                        <label class="default<?php echo esc_attr($wcInvalidClass('wc_email')); ?>" for="wc-email">Email</label>
+                        <input class="light" type="email" id="wc-email" name="wc_email" required>
+                        <label class="default" for="wc-email">Email</label>
                     </div>
+
                     <div class="form-row checkbox-row">
-                        <input type="checkbox" class="light<?php echo esc_attr($wcInvalidClass('privacy')); ?>" name="privacy" id="website-check-privacy" value="1" required>
-                        <label class="light" for="website-check-privacy">Ich bin mit den <a href="<?php echo esc_url( home_url( '/datenschutzerklaerung/' ) ); ?>">Datenschutzbestimmungen</a> , der Verwendung meiner Daten zur Verarbeitung meiner Anfrage und der Zusendung weiterer Informationen per E-Mail einverstanden.</label>
+                        <input type="checkbox" class="light" name="privacy" id="website-check-privacy" value="1" required>
+                        <p class="light">Ich bin mit den <a href="<?php echo esc_url( home_url( '/datenschutzerklaerung/' ) ); ?>">Datenschutzbestimmungen</a> , der Verwendung meiner Daten zur Verarbeitung meiner Anfrage und der Zusendung weiterer Informationen per E-Mail einverstanden.</p>
                     </div>
-                    <button type="submit" class="btn light">
+
+                    <button type="submit" class="btn light" data-hero-snake-load="1">
                         <span class="btn__border" aria-hidden="true">
                             <svg class="btn__svg" viewBox="0 0 100 40" preserveAspectRatio="none">
                                 <path class="btn__path" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
@@ -227,18 +105,13 @@ $wcInvalidClass = static function (string $wcFieldName) use ($wcInvalidFields): 
                                 <path class="btn__seg btn__seg--4" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
                             </svg>
                         </span>
-                        <p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>Anfordern</p>
+                        <p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>Absenden</p>
                     </button>
-                    <p id="website-check-form-error" class="contact-form-message light" aria-live="polite"><?php echo $wcFormError !== '' ? esc_html($wcFormError) : ''; ?></p>
-                    <?php if ($wcLockRemaining > 0) : ?>
-                        <div id="website-check-mail-lock" data-remaining="<?php echo esc_attr((string)$wcLockRemaining); ?>" hidden></div>
-                    <?php endif; ?>
                 </form>
-            <?php else : ?>
-                <div class="contact-form form-success-message light" aria-live="polite">
-                    <p>Vielen Dank! Ihre Nachricht wurde erfolgreich versendet.</p>
-                </div>
-            <?php endif; ?>
+
+                <p id="wc-form-message" class="form-message light" style="display:none;"></p>
+
+            </div>
         </div>
     </div>
 
@@ -269,6 +142,240 @@ $wcInvalidClass = static function (string $wcFieldName) use ($wcInvalidFields): 
     ?>
 
 </main>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("website-check-form");
+            const messageBox = document.getElementById("wc-form-message");
+            if (!form || !messageBox) return;
+
+            // --- Cooldown (Reload-sicher) ---
+            const COOLDOWN_SECONDS = 30;
+            const STORAGE_KEY = "websiteCheckCooldownUntil";
+            let countdownInterval = null;
+
+            const nowMs = () => Date.now();
+            const readCooldownUntil = () => {
+                const v = localStorage.getItem(STORAGE_KEY);
+                const t = v ? parseInt(v, 10) : 0;
+                return Number.isFinite(t) ? t : 0;
+            };
+            const setCooldownUntil = (untilMs) => localStorage.setItem(STORAGE_KEY, String(untilMs));
+            const clearCooldown = () => localStorage.removeItem(STORAGE_KEY);
+
+            const getSubmitButton = () => form.querySelector("button[type='submit']");
+
+            function clearCountdownTimer() {
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+            }
+
+            function showMessage(html) {
+                messageBox.style.display = "block";
+                messageBox.innerHTML = html;
+            }
+
+            function hideMessage() {
+                messageBox.style.display = "none";
+                messageBox.innerHTML = "";
+            }
+
+            function showTimerUnderForm(untilMs) {
+                clearCountdownTimer();
+
+                showMessage(`
+      <p class="error-message">
+        Bitte warten Sie <strong><span id="wc-countdown"></span></strong> Sekunden, bevor Sie erneut senden.
+      </p>
+    `);
+
+                const countdownEl = document.getElementById("wc-countdown");
+                const btn = getSubmitButton();
+                if (btn) btn.disabled = true;
+
+                const tick = () => {
+                    const msLeft = untilMs - nowMs();
+                    const secLeft = Math.max(0, Math.ceil(msLeft / 1000));
+                    if (countdownEl) countdownEl.textContent = String(secLeft);
+
+                    if (msLeft <= 0) {
+                        clearCountdownTimer();
+                        hideMessage();
+                        if (btn) btn.disabled = false;
+                        clearCooldown();
+                    }
+                };
+
+                tick();
+                countdownInterval = setInterval(tick, 250);
+            }
+
+            // --- Active-State für .form-row ---
+            const textFields = form.querySelectorAll("input:not([type='checkbox']):not([type='hidden']), textarea");
+            textFields.forEach(field => {
+                const row = field.closest(".form-row");
+                if (!row) return;
+
+                const checkActive = () => {
+                    if (field.value.trim() !== "") row.classList.add("active");
+                    else row.classList.remove("active");
+                };
+
+                field.addEventListener("input", checkActive);
+                field.addEventListener("focus", () => row.classList.add("active"));
+                field.addEventListener("blur", checkActive);
+                checkActive();
+            });
+
+            // --- Required + Email validation ---
+            const requiredTextFields = form.querySelectorAll("input[required]:not([type='checkbox']), textarea[required]");
+            const privacyCheckbox = form.querySelector("input[name='privacy'][required]");
+            const emailField = form.querySelector("#wc-email");
+
+            function clearErrors() {
+                form.querySelectorAll(".form-row.error").forEach(el => el.classList.remove("error"));
+                const cbRow = privacyCheckbox ? privacyCheckbox.closest(".checkbox-row") : null;
+                if (cbRow) cbRow.classList.remove("error");
+            }
+
+            function isEmailValid(value) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            }
+
+            function validateAll() {
+                clearErrors();
+
+                // 1) Required fields
+                let ok = true;
+                requiredTextFields.forEach(field => {
+                    const row = field.closest(".form-row");
+                    if (!row) return;
+
+                    const empty = field.value.trim() === "";
+                    row.classList.toggle("error", empty);
+                    if (empty) ok = false;
+                });
+
+                // 2) Privacy checkbox
+                if (privacyCheckbox) {
+                    const cbRow = privacyCheckbox.closest(".checkbox-row");
+                    const bad = !privacyCheckbox.checked;
+                    if (cbRow) cbRow.classList.toggle("error", bad);
+                    if (bad) ok = false;
+                }
+
+                if (!ok) {
+                    showMessage("<p class='error-message'>Bitte alle Pflichtfelder ausfüllen</p>");
+                    return false;
+                }
+
+                // 3) Email format (eigene Meldung)
+                if (emailField) {
+                    const val = emailField.value.trim();
+                    const row = emailField.closest(".form-row");
+                    if (!isEmailValid(val)) {
+                        if (row) row.classList.add("error");
+                        showMessage("<p class='error-message'>Bitte geben Sie eine gültige Email-Adresse an</p>");
+                        return false;
+                    }
+                }
+
+                hideMessage();
+                return true;
+            }
+
+            // Fehlerzustände beim Tippen entfernen
+            requiredTextFields.forEach(field => {
+                field.addEventListener("input", () => {
+                    const row = field.closest(".form-row");
+                    if (row && field.value.trim() !== "") row.classList.remove("error");
+                });
+            });
+
+            if (privacyCheckbox) {
+                privacyCheckbox.addEventListener("change", () => {
+                    const cbRow = privacyCheckbox.closest(".checkbox-row");
+                    if (cbRow && privacyCheckbox.checked) cbRow.classList.remove("error");
+                });
+            }
+
+            if (emailField) {
+                emailField.addEventListener("input", () => {
+                    const row = emailField.closest(".form-row");
+                    const val = emailField.value.trim();
+                    if (row && isEmailValid(val)) row.classList.remove("error");
+                });
+            }
+
+            // --- Submit: Cooldown -> Validation -> AJAX ---
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const cooldownUntil = readCooldownUntil();
+                if (cooldownUntil && cooldownUntil > nowMs()) {
+                    showTimerUnderForm(cooldownUntil);
+                    return;
+                }
+
+                if (!validateAll()) return;
+
+                const btn = getSubmitButton();
+                if (btn) btn.disabled = true;
+
+                showMessage("<p>Sende…</p>");
+
+                try {
+                    const endpoint = form.dataset.endpoint;
+// alternativ dynamisch: const endpoint = window.location.origin + "/wwd-redesign/wc-send-mail.php";
+
+                    const res = await fetch(endpoint, {
+                        method: "POST",
+                        body: new FormData(form),
+                        credentials: "same-origin",
+                        cache: "no-store"
+                    });
+
+
+                    const text = await res.text();
+
+// TEMP: Response sichtbar machen (damit du sofort siehst was kommt)
+                    console.log("wc-send-mail response status:", res.status);
+                    console.log("wc-send-mail response text:", text);
+
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (err) {
+                        showMessage("<p class='error-message'>Server-Antwort ist kein JSON:<br><small style=\"word-break:break-word;\">" +
+                            text.replace(/</g,"&lt;").slice(0, 300) +
+                            "</small></p>");
+                        if (btn) btn.disabled = false;
+                        return;
+                    }
+
+
+                    if (data.status === "success") {
+                        setCooldownUntil(nowMs() + COOLDOWN_SECONDS * 1000);
+
+                        form.style.display = "none";
+                        showMessage("<p class='success-message'>Ihre Nachricht wurde versendet</p>");
+                    } else {
+                        showMessage("<p class='error-message'>" + (data.message || "Fehler") + "</p>");
+                        if (btn) btn.disabled = false;
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    showMessage("<p class='error-message'>Netzwerkfehler. Bitte erneut versuchen.</p>");
+                    if (btn) btn.disabled = false;
+                }
+            });
+        });
+    </script>
+
 
 
 <?php

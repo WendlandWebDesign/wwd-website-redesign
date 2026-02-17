@@ -28,9 +28,9 @@
         </div>
         <div class="bottom">
             <ul>
-                <li class="cookies"><?php echo do_shortcode('[rcb-consent type="change" tag="a" text="Cookies"]'); ?></li>
+				<li><a class="default" href="<?php echo esc_url( home_url( '/impressum/' ) ); ?>">Impressum</a></li>
                 <li><a class="default" href="<?php echo esc_url( home_url( '/datenschutzerklaerung/' ) ); ?>">Datenschutzerklärung</a></li>
-                <li><a class="default" href="<?php echo esc_url( home_url( '/impressum/' ) ); ?>">Impressum</a></li>
+				<li class="cookies"><?php echo do_shortcode('[rcb-consent type="change" tag="a" text="Cookies"]'); ?></li>
             </ul>
         </div>
     </div>

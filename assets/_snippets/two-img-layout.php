@@ -1,5 +1,7 @@
 <?php
-$post_id = isset( $post_id ) ? (int) $post_id : get_the_ID();
+if ( ! isset( $post_id, $meta ) ) {
+	return;
+}
 
 $headline  = isset( $meta['headline'] ) ? $meta['headline'] : '';
 $mini_head = isset( $meta['mini_heading'] ) ? $meta['mini_heading'] : '';
@@ -7,32 +9,11 @@ $text      = isset( $meta['text'] ) ? $meta['text'] : '';
 $cta_label = isset( $meta['cta_label'] ) ? $meta['cta_label'] : '';
 $cta_url   = isset( $meta['cta_url'] ) ? $meta['cta_url'] : '';
 
-$img_1_id = isset( $meta['img_1_id'] ) ? (int) $meta['img_1_id'] : 0;
-$img_2_id = isset( $meta['img_2_id'] ) ? (int) $meta['img_2_id'] : 0;
+$img_1_id = ! empty( $meta['img_1_id'] ) ? (int) $meta['img_1_id'] : 0;
+$img_2_id = ! empty( $meta['img_2_id'] ) ? (int) $meta['img_2_id'] : 0;
 
 $img_1_url = $img_1_id ? wp_get_attachment_image_url( $img_1_id, 'large' ) : '';
 $img_2_url = $img_2_id ? wp_get_attachment_image_url( $img_2_id, 'large' ) : '';
-$img_1_alt = $img_1_id ? get_post_meta( $img_1_id, '_wp_attachment_image_alt', true ) : '';
-$img_2_alt = $img_2_id ? get_post_meta( $img_2_id, '_wp_attachment_image_alt', true ) : '';
-
-if ( isset( $layout_data ) && is_array( $layout_data ) && ! empty( $layout_data ) ) {
-	$headline  = isset( $layout_data['headline'] ) ? (string) $layout_data['headline'] : $headline;
-	$mini_head = isset( $layout_data['mini_heading'] ) ? (string) $layout_data['mini_heading'] : $mini_head;
-	$text      = isset( $layout_data['text'] ) ? (string) $layout_data['text'] : $text;
-	$cta_label = isset( $layout_data['cta_label'] ) ? (string) $layout_data['cta_label'] : $cta_label;
-	$cta_url   = isset( $layout_data['cta_url'] ) ? (string) $layout_data['cta_url'] : $cta_url;
-	$img_1_url = isset( $layout_data['img_1_url'] ) ? (string) $layout_data['img_1_url'] : $img_1_url;
-	$img_2_url = isset( $layout_data['img_2_url'] ) ? (string) $layout_data['img_2_url'] : $img_2_url;
-	$img_1_alt = isset( $layout_data['img_1_alt'] ) ? (string) $layout_data['img_1_alt'] : $img_1_alt;
-	$img_2_alt = isset( $layout_data['img_2_alt'] ) ? (string) $layout_data['img_2_alt'] : $img_2_alt;
-}
-
-if ( ! $img_1_alt ) {
-	$img_1_alt = get_the_title( $post_id );
-}
-if ( ! $img_2_alt ) {
-	$img_2_alt = get_the_title( $post_id );
-}
 ?>
 
 <div class="two-img-layout-holder">
@@ -43,10 +24,10 @@ if ( ! $img_2_alt ) {
 		<?php if ( $img_1_url || $img_2_url ) : ?>
         <div class="img-holder">
 				<?php if ( $img_1_url ) : ?>
-					<img class="" data-twoimg="img1" src="<?php echo esc_url( $img_1_url ); ?>" alt="<?php echo esc_attr( $img_1_alt ); ?>">
+					<img class="" data-twoimg="img1" src="<?php echo esc_url( $img_1_url ); ?>" alt="<?php echo esc_attr( get_post_meta( $img_1_id, '_wp_attachment_image_alt', true ) ?: get_the_title( $post_id ) ); ?>">
 				<?php endif; ?>
 				<?php if ( $img_2_url ) : ?>
-					<img class="" data-twoimg="img2" src="<?php echo esc_url( $img_2_url ); ?>" alt="<?php echo esc_attr( $img_2_alt ); ?>">
+					<img class="" data-twoimg="img2" src="<?php echo esc_url( $img_2_url ); ?>" alt="<?php echo esc_attr( get_post_meta( $img_2_id, '_wp_attachment_image_alt', true ) ?: get_the_title( $post_id ) ); ?>">
 				<?php endif; ?>
         </div>
 		<?php endif; ?>

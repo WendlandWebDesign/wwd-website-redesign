@@ -20,6 +20,10 @@ if ( isset( $layout_data ) && is_array( $layout_data ) && ! empty( $layout_data 
 	$text      = isset( $layout_data['text'] ) ? (string) $layout_data['text'] : $text;
 	$img_1_url = isset( $layout_data['img_1_url'] ) ? (string) $layout_data['img_1_url'] : $img_1_url;
 	$img_1_alt = isset( $layout_data['img_1_alt'] ) ? (string) $layout_data['img_1_alt'] : $img_1_alt;
+	$btn_text_label = isset( $layout_data['btn_text_label'] ) ? (string) $layout_data['btn_text_label'] : ( isset( $layout_data['cta_label'] ) ? (string) $layout_data['cta_label'] : $btn_text_label );
+	$btn_text_url   = isset( $layout_data['btn_text_url'] ) ? (string) $layout_data['btn_text_url'] : ( isset( $layout_data['cta_url'] ) ? (string) $layout_data['cta_url'] : $btn_text_url );
+	$btn_list_label = isset( $layout_data['btn_list_label'] ) ? (string) $layout_data['btn_list_label'] : $btn_list_label;
+	$btn_list_url   = isset( $layout_data['btn_list_url'] ) ? (string) $layout_data['btn_list_url'] : $btn_list_url;
 
 	if ( isset( $layout_data['bottom_items'] ) && is_array( $layout_data['bottom_items'] ) ) {
 		foreach ( array_slice( $layout_data['bottom_items'], 0, 6 ) as $item ) {

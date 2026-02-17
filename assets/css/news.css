@@ -1,4 +1,3 @@
-
 /* === News-Sammlung: max 2 nebeneinander + gleich große Cards === */
 .news-holder {
     padding: var(--section-padding);
@@ -17,6 +16,9 @@ main .news-sammlung {
     main .news-sammlung {
         grid-template-columns: 1fr;
     }
+	main .news-sammlung .nav-card{
+		max-width: 500px;
+	}
 }
 
 main .news-sammlung .nav-card {

@@ -441,6 +441,28 @@ body.is-nav-open .menu .burger .bar{
 }
 
 
+.list-left::-webkit-scrollbar,
+.list-right-content-wrapper::-webkit-scrollbar{
+  	width: 10px;
+}
+.list-left::-webkit-scrollbar-track,
+.list-right-content-wrapper::-webkit-scrollbar-track{
+	background: transparent;
+}
+.list-left::-webkit-scrollbar-thumb,
+.list-right-content-wrapper::-webkit-scrollbar-thumb{
+	background: var(--heading-clr);
+	border-radius: 999px;
+}
+
+.list-left,
+.list-right-content-wrapper{
+  scrollbar-width: thin;
+  scrollbar-color: var(--heading-clr) transparent;
+}
+
+
+
 .right-buttons{
     width: 100%;
 }

@@ -118,12 +118,16 @@
     }
 }
 
-@media (max-width: 750px) {
+@media (max-width: 900px) {
     .dienstleistungen-cards{
         grid-template-columns: 100%;
         gap: 3em;
         place-items: center;
     }
+	.dienstleistung-card{
+		width: 100%;
+		max-width: 500px;
+	}
     .dienstleistung-card .icon-holder{
         width: 60px;
         height: 60px;
