@@ -3398,7 +3398,7 @@ function wwd_handle_send_mail_contact() {
 	$betreff   = isset( $_POST['betreff'] ) ? sanitize_text_field( wp_unslash( $_POST['betreff'] ) ) : '';
 	$nachricht = isset( $_POST['nachricht'] ) ? sanitize_textarea_field( wp_unslash( $_POST['nachricht'] ) ) : '';
 
-	if ( '' === $name || '' === $email || ! is_email( $email ) || '' === $phone || '' === $betreff || '' === $nachricht ) {
+	if ( '' === $name || '' === $email || ! is_email( $email ) || '' === $betreff ) {
 		wwd_contact_form_log( 'validation failed', array( 'request_id' => $request_id ) );
 		wp_safe_redirect( $redirect_ng );
 		exit;
@@ -3412,9 +3412,9 @@ function wwd_handle_send_mail_contact() {
 	$message_html .= '<p><strong>Name:</strong> ' . esc_html( $name ) . '</p>';
 	$message_html .= '<p><strong>Firma:</strong> ' . esc_html( $firma ) . '</p>';
 	$message_html .= '<p><strong>E-Mail:</strong> ' . esc_html( $email ) . '</p>';
-	$message_html .= '<p><strong>Telefon:</strong> ' . esc_html( $phone ) . '</p>';
+	$message_html .= '<p><strong>Telefon:</strong> ' . esc_html( '' !== $phone ? $phone : '-' ) . '</p>';
 	$message_html .= '<p><strong>Betreff:</strong> ' . esc_html( $betreff ) . '</p>';
-	$message_html .= '<p><strong>Nachricht:</strong><br>' . nl2br( esc_html( $nachricht ) ) . '</p>';
+	$message_html .= '<p><strong>Nachricht:</strong><br>' . nl2br( esc_html( '' !== $nachricht ? $nachricht : '-' ) ) . '</p>';
 
 	$to = 'office@wendlandwebdesign.de';
 	if ( ! is_email( $to ) ) {

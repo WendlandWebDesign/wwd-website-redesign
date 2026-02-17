@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 get_header();
 ?>
 
@@ -16,7 +16,7 @@ get_header();
     <div class="contact-holder">
         <div class="contact mw-small">
             <div class="contact-info">
-                <h4>Erzählen Sie uns<br>von Ihrem <span>Projekt.</span></h4>
+                <h4>ErzÃ¤hlen Sie uns<br>von Ihrem <span>Projekt.</span></h4>
                 <div class="phone" onclick="window.location.href='tel:+4915238976827'">
                     <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/phone-thin-blue.svg' ); ?>" alt="">
                     <p>0152 389 768 27</p>
@@ -51,7 +51,7 @@ get_header();
                 </div>
 
                 <div class="form-row">
-                    <input type="text" name="phone" id="phone" class="light" required>
+                    <input type="text" name="phone" id="phone" class="light">
                     <label class="default" for="phone">Telefon</label>
                 </div>
 
@@ -61,7 +61,7 @@ get_header();
                 </div>
 
                 <div class="form-row">
-                    <textarea name="nachricht" id="nachricht" class="light" required></textarea>
+                    <textarea name="nachricht" id="nachricht" class="light"></textarea>
                     <label class="default" for="nachricht">Nachricht</label>
                 </div>
                 <div class="form-row">
@@ -84,7 +84,7 @@ get_header();
                 </button>
                 <p id="contact-form-message" class="form-feedback-message default" data-contact-form-message hidden></p>
             </form>
-            <div id="contact-form-success" class="form-success-message default" data-contact-form-success hidden>Danke! Das Formular wurde versendet.</div>
+            <div id="contact-form-success" class="form-success-message default" data-contact-form-success hidden>Formular wurde erfolgreich versendet</div>
         </div>
     </div>
 
@@ -92,3 +92,4 @@ get_header();
 
 <?php
 get_footer();
+

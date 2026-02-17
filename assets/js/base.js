@@ -470,6 +470,26 @@ function clearCooldown(key) {
     }
 }
 
+function setStorageFlag(key, value) {
+    try {
+        if (value) {
+            window.localStorage.setItem(key, "1");
+        } else {
+            window.localStorage.removeItem(key);
+        }
+    } catch (error) {
+        // noop
+    }
+}
+
+function hasStorageFlag(key) {
+    try {
+        return window.localStorage.getItem(key) === "1";
+    } catch (error) {
+        return false;
+    }
+}
+
 function getCooldownRemaining(key, durationMs) {
     const lastSentAt = getStoredTimestamp(key);
     if (!lastSentAt || lastSentAt <= 0) {
@@ -563,6 +583,8 @@ function initManagedForm(form, options = {}) {
     if (!submitBtn) return;
 
     const cooldownKey = options.cooldownKey || "";
+    const successStateKey = options.successStateKey
+        || (cooldownKey ? `${cooldownKey}_success` : "");
     const durationMs = Number.isFinite(options.cooldownDurationMs)
         ? options.cooldownDurationMs
         : FORM_COOLDOWN_DURATION_MS;
@@ -570,7 +592,7 @@ function initManagedForm(form, options = {}) {
     const feedbackSelector = options.feedbackSelector || options.messageSelector || "";
     const feedbackEl = findScopedElement(form, feedbackSelector);
     const successEl = findScopedElement(form, options.successSelector || "");
-    const successText = options.successText || "Danke! Das Formular wurde versendet.";
+    const successText = options.successText || "Formular wurde versendet.";
 
     const setSubmitDisabled = (disabled) => {
         submitBtn.disabled = disabled;
@@ -614,7 +636,7 @@ function initManagedForm(form, options = {}) {
 
             if (mode === "success") {
                 setFormVisible(false);
-                setSuccessVisible(true, `${successText} Bitte warten: ${formatted}`);
+                setSuccessVisible(true, successText);
                 setFeedback("", "");
             } else {
                 setFormVisible(true);
@@ -644,6 +666,9 @@ function initManagedForm(form, options = {}) {
             onTick: (remainingMs) => applyCooldownUi(remainingMs, mode),
             onDone: () => {
                 clearCooldown(cooldownKey);
+                if (successStateKey) {
+                    setStorageFlag(successStateKey, false);
+                }
                 applyCooldownUi(0, mode);
             },
         });
@@ -652,6 +677,9 @@ function initManagedForm(form, options = {}) {
     const handleSuccess = () => {
         if (!cooldownKey) return;
         setLastSentNow(cooldownKey);
+        if (successStateKey) {
+            setStorageFlag(successStateKey, true);
+        }
         startCooldown("success");
     };
 
@@ -663,9 +691,13 @@ function initManagedForm(form, options = {}) {
     } else if (cooldownKey) {
         const remaining = getCooldownRemaining(cooldownKey, durationMs);
         if (remaining > 0) {
-            startCooldown("default");
+            const successModeActive = successStateKey && hasStorageFlag(successStateKey);
+            startCooldown(successModeActive ? "success" : "default");
         } else {
             clearCooldown(cooldownKey);
+            if (successStateKey) {
+                setStorageFlag(successStateKey, false);
+            }
             applyCooldownUi(0, "default");
         }
     }
@@ -768,10 +800,11 @@ function initManagedForm(form, options = {}) {
 }
 
 function initContactForm() {
-    const form = Array.from(document.querySelectorAll("form.contact-form")).find((candidate) => {
+    const form = document.getElementById("contact-form")
+        || Array.from(document.querySelectorAll("form.contact-form")).find((candidate) => {
         const actionInput = candidate.querySelector('input[name="action"]');
         return Boolean(actionInput && actionInput.value === "wwd_send_mail_contact");
-    }) || document.querySelector('#contact-form, form[data-form="contact"]');
+    }) || document.querySelector('form[data-form="contact"]');
 
     initManagedForm(form, {
         boundFlag: "contactFormBound",
@@ -781,6 +814,7 @@ function initContactForm() {
         successSelector: "#contact-form-success, [data-contact-form-success]",
         successParams: ["sent"],
         requiredMessage: "Bitte alle Pflichtfelder ausfüllen",
+        successText: "Formular wurde erfolgreich versendet",
     });
 }
 
@@ -794,7 +828,7 @@ function initWebsiteCheckForm() {
         cooldownDurationMs: FORM_COOLDOWN_DURATION_MS,
         feedbackSelector: "#website-check-form-error, [data-website-check-form-error]",
         successSelector: "#website-check-form-success, [data-website-check-form-success]",
-        successParams: ["wc_sent", "sent"],
+        successParams: ["sent"],
         requiredMessage: "Bitte alle Pflichtfelder ausfüllen",
     });
 }
