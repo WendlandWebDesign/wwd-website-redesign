@@ -6,6 +6,7 @@ get_header();
 <?php
 $heroImgSrc = esc_url(get_option('home-img'));
 $heroTxt = "Website-Check";
+$website_check_sent = isset( $_GET['sent'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['sent'] ) );
 ?>
 
 <main>
@@ -70,7 +71,14 @@ $heroTxt = "Website-Check";
             <div class="contact-info">
                 <h4>Jetzt<br>kostenlosen <br><span>Websitecheck</span><br>anfordern!</h4>
             </div>
-            <form action="" class="contact-form" method="post">
+            <form id="website-check-form" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="contact-form" method="post" data-form="website-check"<?php echo $website_check_sent ? ' hidden' : ''; ?>>
+                <input type="hidden" name="action" value="wwd_send_mail_website_check">
+                <?php wp_nonce_field( 'wwd_website_check_form', 'wwd_wc_nonce' ); ?>
+                <input type="hidden" name="form_ts" value="<?php echo time(); ?>">
+                <div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
+                    <label for="website">Website</label>
+                    <input type="text" name="website" id="website" tabindex="-1" autocomplete="off">
+                </div>
                 <div class="form-row">
                     <input class="light" type="text" id="domain" name="domain">
                     <label class="default" for="domain">Ihre Domain</label>
@@ -95,7 +103,9 @@ $heroTxt = "Website-Check";
                     </span>
                     <p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>Anfordern</p>
                 </button>
+                <p id="website-check-form-error" class="form-feedback-message default" data-website-check-form-error hidden></p>
             </form>
+            <div id="website-check-form-success" class="form-success-message default" data-website-check-form-success<?php echo $website_check_sent ? '' : ' hidden'; ?>>Formular wurde erfolgreich versendet</div>
         </div>
     </div>
 

@@ -3463,3 +3463,105 @@ function wwd_handle_send_mail_contact() {
 }
 add_action( 'admin_post_nopriv_wwd_send_mail_contact', 'wwd_handle_send_mail_contact' );
 add_action( 'admin_post_wwd_send_mail_contact', 'wwd_handle_send_mail_contact' );
+
+/**
+ * Website-check form handler for admin-post.php.
+ */
+function wwd_handle_send_mail_website_check() {
+	$request_id = wp_generate_uuid4();
+
+	$website_check_url = home_url( '/website-check/' );
+	$redirect_ok       = add_query_arg( 'sent', '1', $website_check_url );
+	$redirect_ng       = add_query_arg( 'sent', '0', $website_check_url );
+
+	if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) {
+		wwd_contact_form_log( 'website-check invalid request method', array( 'request_id' => $request_id ) );
+		wp_safe_redirect( $redirect_ng );
+		exit;
+	}
+
+	$nonce = isset( $_POST['wwd_wc_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wwd_wc_nonce'] ) ) : '';
+	if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'wwd_website_check_form' ) ) {
+		wwd_contact_form_log( 'website-check nonce check failed', array( 'request_id' => $request_id ) );
+		wp_safe_redirect( $redirect_ng );
+		exit;
+	}
+
+	$honeypot = isset( $_POST['website'] ) ? sanitize_text_field( wp_unslash( $_POST['website'] ) ) : '';
+	if ( '' !== $honeypot ) {
+		wwd_contact_form_log( 'website-check honeypot triggered', array( 'request_id' => $request_id ) );
+		wp_safe_redirect( $redirect_ok );
+		exit;
+	}
+
+	$form_ts     = isset( $_POST['form_ts'] ) ? absint( $_POST['form_ts'] ) : 0;
+	$min_seconds = 3;
+	if ( $form_ts <= 0 || ( time() - $form_ts ) < $min_seconds ) {
+		wwd_contact_form_log( 'website-check time trap failed', array( 'request_id' => $request_id, 'form_ts' => $form_ts ) );
+		wp_safe_redirect( $redirect_ng );
+		exit;
+	}
+
+	$domain = isset( $_POST['domain'] ) ? sanitize_text_field( wp_unslash( $_POST['domain'] ) ) : '';
+	$email  = isset( $_POST['wc-email'] ) ? sanitize_email( wp_unslash( $_POST['wc-email'] ) ) : '';
+
+	if ( '' === $domain || '' === $email || ! is_email( $email ) ) {
+		wwd_contact_form_log( 'website-check validation failed', array( 'request_id' => $request_id ) );
+		wp_safe_redirect( $redirect_ng );
+		exit;
+	}
+
+	$subject = 'Neuer Website-Check';
+	$subject = str_replace( array( "\r", "\n" ), '', $subject );
+
+	$message_html  = '<h2>Neue Website-Check Anfrage</h2>';
+	$message_html .= '<p><strong>Domain:</strong> ' . esc_html( $domain ) . '</p>';
+	$message_html .= '<p><strong>E-Mail:</strong> ' . esc_html( $email ) . '</p>';
+
+	$to = 'office@wendlandwebdesign.de';
+	if ( ! is_email( $to ) ) {
+		wwd_contact_form_log( 'website-check invalid recipient', array( 'request_id' => $request_id ) );
+		wp_safe_redirect( $redirect_ng );
+		exit;
+	}
+
+	$headers = array(
+		'Content-Type: text/html; charset=UTF-8',
+		'From: Wendland Webdesign <office@wendlandwebdesign.de>',
+		'Reply-To: Website-Check <' . $email . '>',
+	);
+
+	$mail_failed_cb = static function ( $wp_error ) use ( $request_id ) {
+		wwd_contact_form_log(
+			'website-check wp_mail_failed',
+			array(
+				'request_id' => $request_id,
+				'error'      => $wp_error instanceof WP_Error ? $wp_error->get_error_message() : 'unknown',
+			)
+		);
+	};
+	$smtp_init_cb   = static function ( $phpmailer ) {
+		$phpmailer->isSMTP();
+		$phpmailer->Host       = 'smtp.hostinger.com';
+		$phpmailer->SMTPAuth   = true;
+		$phpmailer->Username   = 'office@wendlandwebdesign.de';
+		$phpmailer->Password   = 'MGP^Ge@23aZnwHuJH6qB6$Ul';
+		$phpmailer->SMTPSecure = 'ssl';
+		$phpmailer->Port       = 465;
+		$phpmailer->CharSet    = 'UTF-8';
+	};
+
+	add_action( 'wp_mail_failed', $mail_failed_cb, 10, 1 );
+	add_action( 'phpmailer_init', $smtp_init_cb );
+
+	$sent = wp_mail( $to, $subject, $message_html, $headers );
+
+	remove_action( 'phpmailer_init', $smtp_init_cb );
+	remove_action( 'wp_mail_failed', $mail_failed_cb, 10 );
+	wwd_contact_form_log( 'website-check mail result', array( 'request_id' => $request_id, 'sent' => (bool) $sent ) );
+
+	wp_safe_redirect( $sent ? $redirect_ok : $redirect_ng );
+	exit;
+}
+add_action( 'admin_post_nopriv_wwd_send_mail_website_check', 'wwd_handle_send_mail_website_check' );
+add_action( 'admin_post_wwd_send_mail_website_check', 'wwd_handle_send_mail_website_check' );

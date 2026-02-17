@@ -6,6 +6,7 @@ get_header();
 <?php
     $heroImgSrc = esc_url(get_option('kontakt'));
     $heroTxt = "Kontakt";
+    $contact_form_sent = isset( $_GET['sent'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['sent'] ) );
 ?>
 
 <main>
@@ -26,7 +27,7 @@ get_header();
                     <p>office@wenlandwebdesign.de</p>
                 </div>
             </div>
-            <form id="contact-form" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="contact-form" method="post" data-form="contact">
+            <form id="contact-form" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="contact-form" method="post" data-form="contact"<?php echo $contact_form_sent ? ' hidden' : ''; ?>>
                 <input type="hidden" name="action" value="wwd_send_mail_contact">
                 <?php wp_nonce_field('wwd_contact_form', 'wwd_nonce'); ?>
                 <input type="hidden" name="form_ts" value="<?php echo time(); ?>">
@@ -84,7 +85,7 @@ get_header();
                 </button>
                 <p id="contact-form-message" class="form-feedback-message default" data-contact-form-message hidden></p>
             </form>
-            <div id="contact-form-success" class="form-success-message default" data-contact-form-success hidden>Formular wurde erfolgreich versendet</div>
+            <div id="contact-form-success" class="form-success-message default" data-contact-form-success<?php echo $contact_form_sent ? '' : ' hidden'; ?>>Formular wurde erfolgreich versendet</div>
         </div>
     </div>
 

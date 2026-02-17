@@ -636,7 +636,7 @@ function initManagedForm(form, options = {}) {
 
             if (mode === "success") {
                 setFormVisible(false);
-                setSuccessVisible(true, successText);
+                setSuccessVisible(true, `${successText} Bitte warten: ${formatted}`);
                 setFeedback("", "");
             } else {
                 setFormVisible(true);
@@ -650,8 +650,8 @@ function initManagedForm(form, options = {}) {
         setSubmitDisabled(false);
         clearFeedbackBySource("timer");
         if (mode === "success") {
-            setFormVisible(true);
-            setSuccessVisible(false);
+            setFormVisible(false);
+            setSuccessVisible(true, successText);
         }
     };
 
