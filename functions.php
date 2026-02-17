@@ -32,6 +32,11 @@ if ( ! defined( 'WENDLAND_CANONICAL_SCHEME' ) ) {
 	define( 'WENDLAND_CANONICAL_SCHEME', 'https' );
 }
 
+if ( ! defined( 'WWD_SLIDER_BUTTON_LINK_META_KEY' ) ) {
+	// Shared meta key for slider button links used in backend and frontend output.
+	define( 'WWD_SLIDER_BUTTON_LINK_META_KEY', '_slider_button_link' );
+}
+
 if ( ! function_exists( 'theme_normalize_seo_url' ) ) {
 	/**
 	 * Normalizes SEO URLs to canonical scheme and host.
@@ -3549,6 +3554,66 @@ function wwd_save_nav_card_link_metabox( $post_id ) {
 	}
 }
 add_action( 'save_post_nav_dienstleistungen', 'wwd_save_nav_card_link_metabox' );
+
+/**
+ * Meta box for slider slide button links.
+ */
+function wwd_add_slider_button_link_metabox() {
+	add_meta_box(
+		'wwd_slider_button_link',
+		'Button Link (URL)',
+		'wwd_render_slider_button_link_metabox',
+		array( 'slider_slide' ),
+		'side',
+		'default'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_slider_button_link_metabox' );
+
+function wwd_render_slider_button_link_metabox( $post ) {
+	$link = get_post_meta( $post->ID, WWD_SLIDER_BUTTON_LINK_META_KEY, true );
+	wp_nonce_field( 'wwd_slider_button_link_save', 'wwd_slider_button_link_nonce' );
+	?>
+	<p>
+		<label for="wwd-slider-button-link"><?php echo esc_html( 'Button Link (URL)' ); ?></label>
+	</p>
+	<input
+		type="url"
+		id="wwd-slider-button-link"
+		name="wwd_slider_button_link"
+		value="<?php echo esc_attr( $link ); ?>"
+		class="widefat"
+		placeholder="<?php echo esc_attr( 'https://example.com' ); ?>"
+	/>
+	<?php
+}
+
+function wwd_save_slider_button_link_metabox( $post_id ) {
+	if ( ! isset( $_POST['wwd_slider_button_link_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( $_POST['wwd_slider_button_link_nonce'], 'wwd_slider_button_link_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	if ( isset( $_POST['wwd_slider_button_link'] ) ) {
+		$link = esc_url_raw( wp_unslash( $_POST['wwd_slider_button_link'] ) );
+		if ( '' === $link ) {
+			delete_post_meta( $post_id, WWD_SLIDER_BUTTON_LINK_META_KEY );
+		} else {
+			update_post_meta( $post_id, WWD_SLIDER_BUTTON_LINK_META_KEY, $link );
+		}
+	}
+}
+add_action( 'save_post_slider_slide', 'wwd_save_slider_button_link_metabox' );
 
 function wwd_add_referenzen_kunde_image_metabox() {
 	add_meta_box(

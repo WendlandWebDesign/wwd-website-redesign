@@ -1,69 +1,48 @@
 <?php
-$layout_id = isset( $post_id ) ? (int) $post_id : get_the_ID();
-if ( ! $layout_id ) {
-	return;
-}
-
 $slides = array();
 
-if ( isset( $layout_data ) && is_array( $layout_data ) && isset( $layout_data['slides'] ) && is_array( $layout_data['slides'] ) ) {
-	foreach ( array_slice( $layout_data['slides'], 0, 3 ) as $slide ) {
-		if ( ! is_array( $slide ) ) {
-			continue;
-		}
+// Uses WWD_SLIDER_BUTTON_LINK_META_KEY from functions.php as shared backend/frontend key.
+$slider_query = new WP_Query(
+	array(
+		'post_type'      => 'slider_slide',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'orderby'        => array(
+			'menu_order' => 'ASC',
+			'date'       => 'DESC',
+		),
+	)
+);
 
-		$url     = isset( $slide['image_url'] ) ? (string) $slide['image_url'] : '';
-		$alt     = isset( $slide['image_alt'] ) ? (string) $slide['image_alt'] : '';
-		$heading = isset( $slide['heading'] ) ? (string) $slide['heading'] : '';
-		$text    = isset( $slide['text'] ) ? (string) $slide['text'] : '';
-		$cta_url = isset( $slide['cta_url'] ) ? (string) $slide['cta_url'] : '';
-		$cta_lbl = isset( $slide['cta_label'] ) ? (string) $slide['cta_label'] : 'Zum Projekt';
+if ( $slider_query->have_posts() ) {
+	while ( $slider_query->have_posts() ) {
+		$slider_query->the_post();
 
-		if ( '' === $url || '' === $heading || '' === $text ) {
-			continue;
-		}
-		if ( '' === $alt ) {
-			$alt = $heading;
-		}
-		if ( '' === $cta_url ) {
-			$cta_url = home_url( '/kontakt/' );
-		}
+		$slide_id = get_the_ID();
+		$image    = get_the_post_thumbnail_url( $slide_id, 'full' );
+		$thumb_id = get_post_thumbnail_id( $slide_id );
+		$alt      = $thumb_id ? get_post_meta( $thumb_id, '_wp_attachment_image_alt', true ) : '';
+		$heading  = get_the_title( $slide_id );
+		$text     = get_the_excerpt( $slide_id );
+		$cta_url  = get_post_meta( $slide_id, WWD_SLIDER_BUTTON_LINK_META_KEY, true );
 
-		$slides[] = array(
-			'url'       => $url,
-			'alt'       => $alt,
-			'heading'   => $heading,
-			'text'      => $text,
-			'cta_url'   => $cta_url,
-			'cta_label' => $cta_lbl,
-		);
-	}
-} else {
-	for ( $i = 1; $i <= 3; $i++ ) {
-		$img_id  = absint( get_post_meta( $layout_id, "_slider_slide_{$i}_image", true ) );
-		$heading = get_post_meta( $layout_id, "_slider_slide_{$i}_heading", true );
-		$text    = get_post_meta( $layout_id, "_slider_slide_{$i}_text", true );
-		$cta_url = get_post_meta( $layout_id, "_slider_slide_{$i}_url", true );
-
-		$url = $img_id ? wp_get_attachment_image_url( $img_id, 'full' ) : '';
-		$alt = $img_id ? get_post_meta( $img_id, '_wp_attachment_image_alt', true ) : '';
-
-		if ( $img_id <= 0 || '' === $heading || '' === $text || ! $url ) {
-			return;
+		if ( '' === $text ) {
+			$text = get_the_content( null, false, $slide_id );
 		}
 
 		$slides[] = array(
-			'url'       => $url,
-			'alt'       => $alt,
-			'heading'   => $heading,
-			'text'      => $text,
-			'cta_url'   => '' !== $cta_url ? $cta_url : home_url( '/kontakt/' ),
+			'url'       => $image ? $image : '',
+			'alt'       => '' !== $alt ? $alt : ( $heading ? $heading : '' ),
+			'heading'   => $heading ? $heading : '',
+			'text'      => $text ? $text : '',
+			'cta_url'   => $cta_url ? $cta_url : '',
 			'cta_label' => 'Zum Projekt',
 		);
 	}
+	wp_reset_postdata();
 }
 
-if ( 3 !== count( $slides ) ) {
+if ( 0 === count( $slides ) ) {
 	return;
 }
 ?>
@@ -88,24 +67,30 @@ if ( 3 !== count( $slides ) ) {
 						<div class="left">
 							<div class="img-transition-bottom"></div>
 							<div class="img-transition-right"></div>
-							<img src="<?php echo esc_url( $slide['url'] ); ?>" alt="<?php echo esc_attr( $slide['alt'] ); ?>">
+							<?php if ( '' !== $slide['url'] ) : ?>
+								<img src="<?php echo esc_url( $slide['url'] ); ?>" alt="<?php echo esc_attr( $slide['alt'] ); ?>">
+							<?php endif; ?>
 						</div>
 						<div class="right">
 							<div class="txt-holder">
 								<p class="light slider-heading"><?php echo esc_html( $slide['heading'] ); ?></p>
-								<p class="light"><?php echo esc_html( $slide['text'] ); ?></p>
-								<a href="<?php echo esc_url( $slide['cta_url'] ); ?>" class="btn light" data-slide-snake-btn="1">
-									<span class="btn__border" aria-hidden="true">
-										<svg class="btn__svg" viewBox="0 0 100 40" preserveAspectRatio="none">
-											<path class="btn__path" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-											<path class="btn__seg btn__seg--1" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-											<path class="btn__seg btn__seg--2" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-											<path class="btn__seg btn__seg--3" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-											<path class="btn__seg btn__seg--4" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-										</svg>
-									</span>
-									<p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?><?php echo esc_html( $slide['cta_label'] ); ?></p>
-								</a>
+								<?php if ( '' !== $slide['text'] ) : ?>
+									<p class="light"><?php echo wp_kses_post( $slide['text'] ); ?></p>
+								<?php endif; ?>
+								<?php if ( '' !== $slide['cta_url'] ) : ?>
+									<a href="<?php echo esc_url( $slide['cta_url'] ); ?>" class="btn light" data-slide-snake-btn="1">
+										<span class="btn__border" aria-hidden="true">
+											<svg class="btn__svg" viewBox="0 0 100 40" preserveAspectRatio="none">
+												<path class="btn__path" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
+												<path class="btn__seg btn__seg--1" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
+												<path class="btn__seg btn__seg--2" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
+												<path class="btn__seg btn__seg--3" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
+												<path class="btn__seg btn__seg--4" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
+											</svg>
+										</span>
+										<p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?><?php echo esc_html( $slide['cta_label'] ); ?></p>
+									</a>
+								<?php endif; ?>
 							</div>
 						</div>
 					</div>
