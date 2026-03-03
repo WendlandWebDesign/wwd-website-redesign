@@ -1358,6 +1358,7 @@ function wwd_get_allowed_layouts() {
 		'three-img-layout' => 'assets/_snippets/three-img-layout.php',
 		'two-img-layout'   => 'assets/_snippets/two-img-layout.php',
 		'one-img-layout'   => 'assets/_snippets/one-img-layout.php',
+		'text-left'        => 'assets/_snippets/text-left.php',
 		'balken-layout'    => 'assets/_snippets/balken.php',
 		'slider-layout'    => 'assets/_snippets/slider.php',
 	);
@@ -1388,6 +1389,7 @@ function wwd_layout_shortcode( $atts ) {
 		'one-img-layout',
 		'two-img-layout',
 		'three-img-layout',
+		'text-left',
 		'faq',
 		'balken',
 		'slider',
@@ -1477,6 +1479,17 @@ function wwd_layout_block_definitions() {
 				array( 'key' => 'btn_list_url', 'label' => 'Button unter Liste: URL', 'type' => 'url', 'default' => '' ),
 				array( 'key' => 'cta_label', 'label' => 'CTA Label', 'type' => 'text', 'default' => '' ),
 				array( 'key' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'default' => '' ),
+			),
+		),
+		'text-left'        => array(
+			'label'   => 'Text Left',
+			'snippet' => 'assets/_snippets/text-left.php',
+			'fields'  => array(
+				array( 'key' => 'text_left_accent', 'label' => 'Accent', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'text_left_heading', 'label' => 'Mini Heading', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'text_left_text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+				array( 'key' => 'text_left_image_url', 'label' => 'Bild URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'text_left_image_alt', 'label' => 'Bild Alt', 'type' => 'text', 'default' => '' ),
 			),
 		),
 		'two-img-layout'   => array(
@@ -1860,6 +1873,7 @@ function wwd_render_layout_template_metabox( $post ) {
 		<option value="offer-card" <?php selected( $current, 'offer-card' ); ?>><?php echo esc_html( 'Offer Card' ); ?></option>
 		<option value="faq" <?php selected( $current, 'faq' ); ?>><?php echo esc_html( 'FAQ' ); ?></option>
 		<option value="one-img-layout" <?php selected( $current, 'one-img-layout' ); ?>><?php echo esc_html( 'One-Image Layout' ); ?></option>
+		<option value="text-left" <?php selected( $current, 'text-left' ); ?>><?php echo esc_html( 'Text Left' ); ?></option>
 		<option value="two-img-layout" <?php selected( $current, 'two-img-layout' ); ?>><?php echo esc_html( 'Two-Image Layout' ); ?></option>
 		<option value="three-img-layout" <?php selected( $current, 'three-img-layout' ); ?>><?php echo esc_html( 'Three-Image Layout' ); ?></option>
 		<option value="balken-layout" <?php selected( $current, 'balken-layout' ); ?>><?php echo esc_html( 'Balken' ); ?></option>
@@ -1886,6 +1900,70 @@ function wwd_render_unterseiten_content_metabox( $post ) {
 	$img_3_id = absint( get_post_meta( $post->ID, '_img_3_id', true ) );
 
 	wp_nonce_field( 'wwd_unterseiten_content_save', 'wwd_unterseiten_content_nonce' );
+
+	if ( 'text-left' === $layout ) {
+		$text_left_accent  = get_post_meta( $post->ID, 'text_left_accent', true );
+		$text_left_heading = get_post_meta( $post->ID, 'text_left_heading', true );
+		$text_left_text    = get_post_meta( $post->ID, 'text_left_text', true );
+		$text_left_image   = absint( get_post_meta( $post->ID, 'text_left_image', true ) );
+		$preview_url       = $text_left_image ? wp_get_attachment_image_url( $text_left_image, 'medium' ) : '';
+		?>
+		<p>
+			<label for="wwd-text-left-accent"><strong><?php echo esc_html( 'Accent Text' ); ?></strong></label>
+		</p>
+		<input
+			type="text"
+			id="wwd-text-left-accent"
+			name="wwd_text_left_accent"
+			value="<?php echo esc_attr( $text_left_accent ); ?>"
+			class="widefat"
+		/>
+
+		<p>
+			<label for="wwd-text-left-heading"><strong><?php echo esc_html( 'Mini-Heading' ); ?></strong></label>
+		</p>
+		<input
+			type="text"
+			id="wwd-text-left-heading"
+			name="wwd_text_left_heading"
+			value="<?php echo esc_attr( $text_left_heading ); ?>"
+			class="widefat"
+		/>
+
+		<p>
+			<label for="wwd-text-left-text"><strong><?php echo esc_html( 'Text' ); ?></strong></label>
+		</p>
+		<textarea
+			id="wwd-text-left-text"
+			name="wwd_text_left_text"
+			rows="6"
+			class="widefat"
+		><?php echo esc_textarea( $text_left_text ); ?></textarea>
+		<p class="description"><?php echo esc_html( 'HTML ist erlaubt und wird beim Speichern bereinigt.' ); ?></p>
+
+		<hr />
+
+		<div class="wwd-media-field" data-target="wwd-text-left-image-id">
+			<p><label for="wwd-text-left-image-id"><strong><?php echo esc_html( 'Bild' ); ?></strong></label></p>
+			<input
+				type="hidden"
+				id="wwd-text-left-image-id"
+				name="wwd-text-left-image-id"
+				value="<?php echo esc_attr( $text_left_image ); ?>"
+			/>
+			<div class="wwd-media-preview">
+				<?php if ( $preview_url ) : ?>
+					<img src="<?php echo esc_url( $preview_url ); ?>" alt="" />
+				<?php endif; ?>
+			</div>
+			<p>
+				<button type="button" class="button wwd-media-select"><?php echo esc_html( 'Bild auswaehlen' ); ?></button>
+				<button type="button" class="button wwd-media-remove"><?php echo esc_html( 'Entfernen' ); ?></button>
+			</p>
+		</div>
+		<?php
+		return;
+	}
 	?>
 	<p>
 		<label for="wwd-section-headline"><strong><?php echo esc_html( 'Headline' ); ?></strong></label>
@@ -2039,6 +2117,33 @@ function wwd_save_unterseiten_meta( $post_id ) {
 			delete_post_meta( $post_id, $meta_key );
 		} else {
 			update_post_meta( $post_id, $meta_key, $value );
+		}
+	}
+
+	if ( 'text-left' === $layout ) {
+		$text_left_accent  = isset( $_POST['wwd_text_left_accent'] ) ? sanitize_text_field( wp_unslash( $_POST['wwd_text_left_accent'] ) ) : '';
+		$text_left_heading = isset( $_POST['wwd_text_left_heading'] ) ? sanitize_text_field( wp_unslash( $_POST['wwd_text_left_heading'] ) ) : '';
+		$text_left_text    = isset( $_POST['wwd_text_left_text'] ) ? wp_kses_post( wp_unslash( $_POST['wwd_text_left_text'] ) ) : '';
+		$text_left_image   = isset( $_POST['wwd-text-left-image-id'] ) ? absint( wp_unslash( $_POST['wwd-text-left-image-id'] ) ) : 0;
+
+		$text_left_meta = array(
+			'text_left_accent'  => $text_left_accent,
+			'text_left_heading' => $text_left_heading,
+			'text_left_text'    => $text_left_text,
+		);
+
+		foreach ( $text_left_meta as $meta_key => $value ) {
+			if ( '' === $value ) {
+				delete_post_meta( $post_id, $meta_key );
+			} else {
+				update_post_meta( $post_id, $meta_key, $value );
+			}
+		}
+
+		if ( $text_left_image <= 0 ) {
+			delete_post_meta( $post_id, 'text_left_image' );
+		} else {
+			update_post_meta( $post_id, 'text_left_image', $text_left_image );
 		}
 	}
 
@@ -4530,5 +4635,3 @@ function wwd_seitenbilder_callback() {
     submit_button('Bilder speichern');
     echo '</form></div>';
 }
-
-
