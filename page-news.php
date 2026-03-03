@@ -10,19 +10,33 @@ get_header();
     ?>
 
     <?php include_once "assets/_snippets/hero.php" ?>
-<div class="news-holder mw">
-    <div class="news-sammlung">
+	
+	
+	
+<div class="news-holder">
+    <div class="news-sammlung mw">
     <?php
         $news_query = wwd_get_news_query();
         if ( $news_query->have_posts() ) :
             while ( $news_query->have_posts() ) :
                 $news_query->the_post();
+	
                 ?>
+		
+		
                 <div class="nav-card nav-card--clickable js-right-card" onclick="window.location.href='<?php echo esc_url( get_permalink() ); ?>';" role="link" tabindex="0">
                     <div class="card-img-holder">
                         <?php
                         if ( has_post_thumbnail() ) {
-                            echo wp_get_attachment_image( get_post_thumbnail_id(), 'medium', false, array( 'class' => 'card-img' ) );
+                            echo wp_get_attachment_image(
+                                get_post_thumbnail_id(),
+                                'news_card',
+                                false,
+                                array(
+                                    'class' => 'card-img',
+                                    'sizes' => '(max-width: 640px) 100vw, (max-width: 1532px) calc((100vw - 24px) / 2), 738px',
+                                )
+                            );
                         } else {
                             ?>
                             <div class="nav-card__placeholder"></div>
@@ -35,6 +49,10 @@ get_header();
                     <?php if ( ! empty( $excerpt ) ) : ?>
                         <?php $trimmed_excerpt = wp_trim_words( $excerpt, 30, '...' ); ?>
                         <p class="news-card__excerpt"><?php echo esc_html( $trimmed_excerpt ); ?></p>
+                        <a class="news-read-more light" href="<?php echo esc_url( get_permalink() ); ?>">
+                            <?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'arrow-read-more', 'aria_hidden' => true ) ); ?>
+                            <?php echo esc_html( 'Mehr lesen' ); ?>
+                        </a>
                     <?php endif; ?>
                 </div>
                 <?php

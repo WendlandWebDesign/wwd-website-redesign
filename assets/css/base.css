@@ -35,6 +35,11 @@
     color: var(--lighter);
 }
 
+
+html{
+	
+}
+
 html,
 body{
     margin: 0;
@@ -257,3 +262,6 @@ a{
     height: auto;
 }
 
+.rcb-content p {
+	font-family: var(--font-body);
+}

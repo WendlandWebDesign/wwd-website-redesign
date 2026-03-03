@@ -26,8 +26,11 @@ get_header();
                     $referenzen_query->the_post();
                     $image_url = get_post_meta( get_the_ID(), 'referenzen_kundenbild_url', true );
                     $card_link = get_post_meta( get_the_ID(), 'referenzen_card_link_url', true );
+                    if ( '' === $card_link ) {
+                        $card_link = get_permalink( get_the_ID() );
+                    }
                     ?>
-                    <a class="kunden-card kunde-card reveal" href="<?php echo esc_url( $card_link ? $card_link : '#' ); ?>">
+                    <a class="kunden-card kunde-card reveal" href="<?php echo esc_url( $card_link ); ?>">
                         <?php if ( ! empty( $image_url ) ) : ?>
                             <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
                         <?php endif; ?>
@@ -44,6 +47,7 @@ get_header();
 
     <div class="die-nächsten-holder">
         <div class="img-transition-top"></div>
+		<img class="nächsten-img" src="https://wendlandwebdesign.de/wp-content/uploads/2026/02/weltall_compressed_compressed.webp" alt="">
         <div class="die-nächsten-inner mw">
             <h3 class="light reveal">Sind Sie die Nächsten?</h3>
             <button onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="btn light reveal">

@@ -1,4 +1,4 @@
-//burger Menu
+﻿//burger Menu
 
 const menuBtn = document.querySelector(".menu");
 const closeBtn = document.querySelector(".close-btn-wrapper");
@@ -12,20 +12,25 @@ const navContact = document.querySelector(".nav-contact-holder");
 const navContactCloseBtn = document.querySelector(".nav-contact-close-wrapper");
 
 
-menuBtn.addEventListener("click", (e) => {
-    document.dispatchEvent(new CustomEvent("nav:open"));
-    navList.classList.add('active');
-    navContact.classList.remove('active');
-    document.body.classList.add('is-nav-open');
-})
-closeBtn.addEventListener("click", (e) => {
-    navList.classList.remove('active');
-    document.body.classList.remove('is-nav-open');
-})
+if (menuBtn && navList && navContact) {
+    menuBtn.addEventListener("click", () => {
+        document.dispatchEvent(new CustomEvent("nav:open"));
+        navList.classList.add('active');
+        navContact.classList.remove('active');
+        document.body.classList.add('is-nav-open');
+    });
+}
+
+if (closeBtn && navList) {
+    closeBtn.addEventListener("click", () => {
+        navList.classList.remove('active');
+        document.body.classList.remove('is-nav-open');
+    });
+}
 if (siteOverlay) {
     siteOverlay.addEventListener("click", () => {
-        navList.classList.remove('active');
-        navContact.classList.remove('active');
+        if (navList) navList.classList.remove('active');
+        if (navContact) navContact.classList.remove('active');
         document.body.classList.remove('is-nav-open');
     });
 }
@@ -33,19 +38,27 @@ if (siteOverlay) {
 
 
 //nav contact
-navContactBtn.addEventListener("click", function() {
-    navContact.classList.add("active");
-    navList.classList.remove('active');
-    document.body.classList.add('is-nav-open');
-})
-navContactBtnMobile.addEventListener("click", function() {
-    navContact.classList.add("active");
-    document.body.classList.add('is-nav-open');
-})
-navContactCloseBtn.addEventListener("click", function() {
-    navContact.classList.remove("active");
-    document.body.classList.remove('is-nav-open');
-})
+if (navContactBtn && navContact) {
+    navContactBtn.addEventListener("click", () => {
+        navContact.classList.add("active");
+        if (navList) navList.classList.remove('active');
+        document.body.classList.add('is-nav-open');
+    });
+}
+
+if (navContactBtnMobile && navContact) {
+    navContactBtnMobile.addEventListener("click", () => {
+        navContact.classList.add("active");
+        document.body.classList.add('is-nav-open');
+    });
+}
+
+if (navContactCloseBtn && navContact) {
+    navContactCloseBtn.addEventListener("click", () => {
+        navContact.classList.remove("active");
+        document.body.classList.remove('is-nav-open');
+    });
+}
 
 
 
@@ -194,7 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastScrollY = window.scrollY;
     let isActive = false;
 
-    // Intersection Observer für Hero
+    // Intersection Observer fÃ¼r Hero
     const observer = new IntersectionObserver(
         ([entry]) => {
             if (!entry.isIntersecting) {
@@ -212,27 +225,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     observer.observe(hero);
 
-    // Scroll-Logik
-    window.addEventListener("scroll", () => {
-        if (document.body.classList.contains("is-nav-open")) {
-            lastScrollY = window.scrollY;
-            return;
-        }
-
-        if (!isActive) return;
-
-        const currentScrollY = window.scrollY;
-
-        if (currentScrollY > lastScrollY && currentScrollY > 100) {
-            // Scroll nach unten
-            navbar.classList.add("hide");
-        } else {
-            // Scroll nach oben
-            navbar.classList.remove("hide");
-        }
-
-        lastScrollY = currentScrollY;
-    });
 });
 
 
@@ -422,7 +414,8 @@ document.addEventListener('DOMContentLoaded', () => {
         togglePause();
     });
 
-    window.addEventListener('resize', () => {
+window.addEventListener('resize', () => {
         setActive(currentIndex);
     });
 });
+

@@ -7,7 +7,279 @@ function auto_theme_support() {
     add_theme_support('title-tag');
     add_theme_support('custom-logo');
     add_theme_support('post-thumbnails');
+	add_theme_support( 'title-tag' );
 }add_action('after_setup_theme','auto_theme_support');
+
+/* Google Analytics */
+
+add_action('wp_head', function () {
+    if (is_admin()) return;
+
+    ?>
+    <!-- Google Analytics 4 -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        'analytics_storage': 'denied'
+      });
+    </script>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TGKXHC3YR4"></script>
+    <script>
+      gtag('js', new Date());
+      gtag('config', 'G-TGKXHC3YR4', {
+        'anonymize_ip': true,
+        'transport_type': 'beacon'
+      });
+    </script>
+    <!-- End Google Analytics -->
+    <?php
+}, 100);
+
+/* SEO Maßnahmen 
+*/ 
+
+
+/**
+ * ============================================================
+ * WP Core Sitemap – Whitelist:
+ * - Pages: nur 9 Kernseiten
+ * - CPT News: alle News-Einträge
+ * - Keine Taxonomies, keine Users, keine Referenzen-Details, keine Cards/Templates
+ * ============================================================
+ */
+
+/**
+ * 1) Nur diese Post Types dürfen in die Sitemap:
+ *    - page (Kernseiten)
+ *    - news (CPT für News-Einträge)
+ */
+add_filter('wp_sitemaps_post_types', function ($post_types) {
+
+    $allowed = ['page', 'news'];
+
+    foreach ($post_types as $name => $obj) {
+        if (!in_array($name, $allowed, true)) {
+            unset($post_types[$name]);
+        }
+    }
+
+    return $post_types;
+}, 100);
+
+
+/**
+ * 2) Taxonomie-Sitemaps komplett entfernen (Kategorie/Tag/etc.)
+ */
+add_filter('wp_sitemaps_taxonomies', function ($taxonomies) {
+    return [];
+}, 100);
+
+
+/**
+ * 3) User-Sitemap entfernen
+ */
+add_filter('wp_sitemaps_add_provider', function ($provider, $name) {
+    if ($name === 'users') return false;
+    return $provider;
+}, 100, 2);
+
+
+/**
+ * 4) Pages-Sitemap: harte Whitelist deiner Kernseiten + Startseite (Front Page)
+ */
+add_filter('wp_sitemaps_posts_query_args', function ($args, $post_type) {
+
+    if ($post_type !== 'page') {
+        return $args;
+    }
+
+    // Deine Kernseiten (Slugs)
+    $allowed_page_paths = [
+        'dienstleistungen',
+        'website-check',
+        'referenzen',
+        'ki-integration',
+        'news',
+        'kontakt',
+        'impressum',
+        'datenschutzerklaerung',
+    ];
+
+    $ids = [];
+
+    // Startseite (Front Page) hinzufügen, wenn als Seite gesetzt
+    $front_id = (int) get_option('page_on_front');
+    if ($front_id > 0) {
+        $ids[] = $front_id;
+    }
+
+    foreach ($allowed_page_paths as $path) {
+        $page = get_page_by_path($path);
+        if ($page && !empty($page->ID)) {
+            $ids[] = (int) $page->ID;
+        }
+    }
+
+    $ids = array_values(array_unique(array_filter($ids)));
+
+    // Sicherheit: wenn nichts gefunden, lieber nichts ausgeben als alles
+    if (empty($ids)) {
+        $args['post__in'] = [0];
+        return $args;
+    }
+
+    $args['post__in'] = $ids;
+    $args['orderby']  = 'post__in';
+    $args['posts_per_page'] = count($ids);
+
+    return $args;
+}, 100, 2);
+
+
+/**
+ * 5) Einträge zusätzlich per URL-Muster aus der Sitemap entfernen
+ *    (Cards/Template-Unterseiten, die nicht indexiert werden sollen)
+ */
+add_filter('wp_sitemaps_posts_entry', function ($entry, $post) {
+
+    if (!is_array($entry) || empty($entry['loc'])) {
+        return $entry;
+    }
+
+    $loc = (string) $entry['loc'];
+
+    $exclude_url_patterns = [
+        '/website-check/cards/',
+        '/dienstleistungen/cards/',
+        '/dienstleistungen/one-card-img/',
+        '/ki-integration/start-one-img/',
+        // falls es weitere gibt, hier ergänzen:
+        // '/ki-integration/offer-card/',
+    ];
+
+    foreach ($exclude_url_patterns as $pat) {
+        if (strpos($loc, $pat) !== false) {
+            return false;
+        }
+    }
+
+    return $entry;
+
+}, 200, 2);
+
+
+/**
+ * 6) Noindex für die „falschen“ Pfade (damit sie aus Google verschwinden)
+ */
+add_action('wp_head', function () {
+    if (is_admin()) return;
+
+    $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+
+    $noindex_paths = [
+        '/website-check/cards/',
+        '/dienstleistungen/cards/',
+        '/dienstleistungen/one-card-img/',
+        '/ki-integration/start-one-img/',
+    ];
+
+    foreach ($noindex_paths as $p) {
+        if (strpos($uri, $p) === 0) {
+            echo '<meta name="robots" content="noindex, follow">' . "\n";
+            return;
+        }
+    }
+}, 1);
+
+add_action('wp_head', function () {
+    if (is_admin()) return;
+
+    $desc = get_bloginfo('description');
+
+    if (is_singular()) {
+        $post = get_post();
+        if ($post) {
+            $excerpt = has_excerpt($post) ? get_the_excerpt($post) : wp_trim_words(wp_strip_all_tags($post->post_content), 30);
+            if (!empty($excerpt)) $desc = $excerpt;
+        }
+    }
+
+    // Optional: harte Längenbegrenzung (Google snippet)
+    $desc = trim(preg_replace('/\s+/', ' ', $desc));
+    if (mb_strlen($desc) > 160) {
+        $desc = mb_substr($desc, 0, 157) . '…';
+    }
+
+    echo "\n" . '<meta name="description" content="' . esc_attr($desc) . '">' . "\n";
+}, 1);
+add_action('wp_head', function () {
+    if (is_admin()) return;
+
+    $url   = (function_exists('wp_get_canonical_url') && wp_get_canonical_url()) ? wp_get_canonical_url() : home_url(add_query_arg([], $GLOBALS['wp']->request));
+    if (function_exists('theme_normalize_seo_url')) $url = theme_normalize_seo_url($url);
+
+    $title = wp_get_document_title();
+
+    $desc = get_bloginfo('description');
+    if (is_singular()) {
+        $post = get_post();
+        if ($post) {
+            $excerpt = has_excerpt($post) ? get_the_excerpt($post) : wp_trim_words(wp_strip_all_tags($post->post_content), 30);
+            if (!empty($excerpt)) $desc = $excerpt;
+        }
+    }
+
+    $img = '';
+    if (is_singular() && has_post_thumbnail()) {
+        $img = get_the_post_thumbnail_url(null, 'full');
+    }
+    if (!$img) $img = get_site_icon_url(512);
+
+    $type = is_front_page() ? 'website' : (is_singular() ? 'article' : 'website');
+
+    echo "\n<meta property=\"og:title\" content=\"" . esc_attr($title) . "\">\n";
+    echo "<meta property=\"og:type\" content=\"" . esc_attr($type) . "\">\n";
+    echo "<meta property=\"og:url\" content=\"" . esc_url($url) . "\">\n";
+    echo "<meta property=\"og:description\" content=\"" . esc_attr($desc) . "\">\n";
+    if ($img) echo "<meta property=\"og:image\" content=\"" . esc_url($img) . "\">\n";
+
+    // X/Twitter Cards
+    echo "<meta name=\"twitter:card\" content=\"summary_large_image\">\n";
+    echo "<meta name=\"twitter:title\" content=\"" . esc_attr($title) . "\">\n";
+    echo "<meta name=\"twitter:description\" content=\"" . esc_attr($desc) . "\">\n";
+    if ($img) echo "<meta name=\"twitter:image\" content=\"" . esc_url($img) . "\">\n";
+
+    // optional: twitter:site / twitter:creator, wenn du Handles hast
+    // echo "<meta name=\"twitter:site\" content=\"@Wendland_Design\">\n";
+
+}, 20);
+
+add_filter('pre_get_document_title', function ($title) {
+    if (is_front_page()) {
+        return 'Webdesign Agentur Wendland (Lüchow) | WordPress & SEO';
+    }
+    // Unterseiten: WP-Titel + Brand
+    $brand = 'Wendland Web Design';
+    if (!empty($title) && stripos($title, $brand) === false) {
+        return $title . ' | ' . $brand;
+    }
+    return $title;
+}, 20);
+
+add_filter('document_title_separator', function () {
+    return '|';
+});
+
+/**
+ * Registers image sizes used by theme components.
+ */
+function wwd_register_image_sizes() {
+	add_image_size( 'news_card', 1536, 864, true );
+	add_image_size( 'news_nav_card', 800, 450, true );
+}
+add_action( 'after_setup_theme', 'wwd_register_image_sizes' );
 
 function allow_svg($mimes) {
     $mimes['svg'] = 'image/svg+xml';
@@ -15,9 +287,455 @@ function allow_svg($mimes) {
 }
 add_filter('upload_mimes', 'allow_svg');
 
+if ( ! defined( 'WENDLAND_CANONICAL_HOST' ) ) {
+	define( 'WENDLAND_CANONICAL_HOST', 'wendlandwebdesign.de' );
+}
 
+if ( ! defined( 'WENDLAND_CANONICAL_SCHEME' ) ) {
+	define( 'WENDLAND_CANONICAL_SCHEME', 'https' );
+}
+
+if ( ! defined( 'WWD_SLIDER_BUTTON_LINK_META_KEY' ) ) {
+	// Shared meta key for slider button links used in backend and frontend output.
+	define( 'WWD_SLIDER_BUTTON_LINK_META_KEY', '_slider_button_link' );
+}
+
+if ( ! function_exists( 'theme_normalize_seo_url' ) ) {
+	/**
+	 * Normalizes SEO URLs to canonical scheme and host.
+	 *
+	 * @param string $url Source URL (absolute or relative).
+	 * @return string
+	 */
+	function theme_normalize_seo_url( $url ) {
+		$url = trim( (string) $url );
+		if ( '' === $url ) {
+			return '';
+		}
+
+		if ( 0 === strpos( $url, '//' ) ) {
+			$url = WENDLAND_CANONICAL_SCHEME . ':' . $url;
+		}
+
+		if ( 0 !== strpos( $url, 'http://' ) && 0 !== strpos( $url, 'https://' ) ) {
+			$path = '/' . ltrim( $url, '/' );
+			return esc_url_raw( WENDLAND_CANONICAL_SCHEME . '://' . WENDLAND_CANONICAL_HOST . $path );
+		}
+
+		$parts = wp_parse_url( $url );
+		if ( empty( $parts ) || ! is_array( $parts ) ) {
+			return '';
+		}
+
+		$path = isset( $parts['path'] ) && '' !== $parts['path'] ? $parts['path'] : '/';
+		if ( '/' !== substr( $path, 0, 1 ) ) {
+			$path = '/' . $path;
+		}
+
+		$query    = isset( $parts['query'] ) ? '?' . $parts['query'] : '';
+		$fragment = isset( $parts['fragment'] ) ? '#' . $parts['fragment'] : '';
+
+		return esc_url_raw( WENDLAND_CANONICAL_SCHEME . '://' . WENDLAND_CANONICAL_HOST . $path . $query . $fragment );
+	}
+}
+
+if ( ! function_exists( 'theme_normalize_sitemap_entry' ) ) {
+	/**
+	 * Ensures sitemap entry locations always use canonical domain and scheme.
+	 *
+	 * @param array $entry Sitemap entry.
+	 * @return array
+	 */
+	function theme_normalize_sitemap_entry( $entry ) {
+		if ( ! is_array( $entry ) || empty( $entry['loc'] ) ) {
+			return $entry;
+		}
+
+		$entry['loc'] = theme_normalize_seo_url( $entry['loc'] );
+		return $entry;
+	}
+}
+
+add_action('wp_default_scripts', function ($scripts) {
+    if (is_admin() || !isset($scripts->registered['jquery'])) return;
+
+    // Entfernt jquery-migrate aus den Abhängigkeiten
+    $scripts->registered['jquery']->deps = array('jquery-core');
+});
+
+add_action('wp_default_scripts', function ($scripts) {
+    if (is_admin() || !($scripts instanceof WP_Scripts)) return;
+
+    // jQuery-Core & jQuery in den Footer schieben
+    foreach (['jquery-core', 'jquery'] as $h) {
+        if (isset($scripts->registered[$h])) {
+            $scripts->add_data($h, 'group', 1); // 1 = footer
+        }
+    }
+}, 100);
+
+add_filter('script_loader_tag', function ($tag, $handle, $src) {
+    if (is_admin()) return $tag;
+
+    $handles = [
+        'real-cookie-banner-pro-banner-js',
+        'real-cookie-banner-pro-vendor-real-cookie-banner-pro-banner-js',
+    ];
+
+    if (in_array($handle, $handles, true)) {
+        // Falls es schon defer/async hat: nichts ändern
+        if (stripos($tag, ' defer') !== false || stripos($tag, ' async') !== false) {
+            return $tag;
+        }
+
+        // data-cfasync beibehalten und defer hinzufügen
+        return '<script data-cfasync="false" src="' . esc_url($src) . '" defer></script>';
+    }
+
+    return $tag;
+}, 999, 3);
+add_filter('script_loader_tag', function ($tag, $handle, $src) {
+    if (is_admin()) return $tag;
+
+    if (strpos($src, '/wp-content/02049fc9111e898ced88fbc021d5eb85/dist/1976888689.js') !== false) {
+        if (stripos($tag, ' defer') === false && stripos($tag, ' async') === false) {
+            return '<script data-cfasync="false" src="' . esc_url($src) . '" defer></script>';
+        }
+    }
+
+    return $tag;
+}, 1000, 3);
+
+
+add_filter('script_loader_tag', function ($tag, $handle, $src) {
+    if (is_admin()) return $tag;
+
+    $cookie_handles = [
+        'real-cookie-banner-pro-vendor-real-cookie-banner-pro-banner-js',
+        'real-cookie-banner-pro-banner-js'
+    ];
+
+    if (in_array($handle, $cookie_handles, true)) {
+        if (strpos($tag, ' defer') === false && strpos($tag, ' async') === false) {
+            return '<script data-cfasync="false" src="' . esc_url($src) . '" defer></script>';
+        }
+    }
+
+    return $tag;
+}, 10, 3);
+
+
+add_filter( 'wp_sitemaps_posts_entry', 'theme_normalize_sitemap_entry', 10, 1 );
+add_filter( 'wp_sitemaps_taxonomies_entry', 'theme_normalize_sitemap_entry', 10, 1 );
+add_filter( 'wp_sitemaps_users_entry', 'theme_normalize_sitemap_entry', 10, 1 );
+add_filter( 'wp_sitemaps_index_entry', 'theme_normalize_sitemap_entry', 10, 1 );
+
+if ( ! function_exists( 'theme_custom_robots_txt' ) ) {
+	/**
+	 * Overrides virtual robots.txt output via WordPress core filter.
+	 *
+	 * Note: a physical robots.txt in WordPress root takes precedence and this
+	 * filter output will not be used by web servers in that case.
+	 *
+	 * @param string $output Current robots content.
+	 * @param bool   $public Blog visibility flag.
+	 * @return string
+	 */
+	function theme_custom_robots_txt( $output, $public ) {
+		if ( ! $public ) {
+			return "User-agent: *\nDisallow: /";
+		}
+
+		$lines   = array();
+		$lines[] = 'User-agent: *';
+		$lines[] = 'Disallow: /wp-admin/';
+		$lines[] = 'Allow: /wp-admin/admin-ajax.php';
+		$lines[] = 'Disallow: /wp-login.php';
+		$lines[] = 'Disallow: /?s=';
+		$lines[] = '';
+		$lines[] = 'Sitemap: https://wendlandwebdesign.de/sitemap.xml';
+
+		return implode( "\n", $lines );
+	}
+}
+add_filter( 'robots_txt', 'theme_custom_robots_txt', 10, 2 );
+
+/**
+ * Registers custom sitemap route: /sitemap.xml.
+ */
+function theme_register_sitemap_rewrite_rule() {
+	add_rewrite_rule( '^sitemap\.xml$', 'index.php?theme_sitemap=1', 'top' );
+}
+add_action( 'init', 'theme_register_sitemap_rewrite_rule' );
+
+/**
+ * Adds sitemap query var.
+ *
+ * @param array $vars Query vars.
+ * @return array
+ */
+function theme_register_sitemap_query_var( $vars ) {
+	$vars[] = 'theme_sitemap';
+	return $vars;
+}
+add_filter( 'query_vars', 'theme_register_sitemap_query_var' );
+
+if ( ! function_exists( 'theme_sitemap_xml_escape' ) ) {
+	/**
+	 * Escapes plain XML values.
+	 *
+	 * @param string $value Value to escape.
+	 * @return string
+	 */
+	function theme_sitemap_xml_escape( $value ) {
+		return htmlspecialchars( (string) $value, ENT_QUOTES | ENT_XML1, 'UTF-8' );
+	}
+}
+
+if ( ! function_exists( 'theme_sitemap_add_url' ) ) {
+	/**
+	 * Emits one sitemap url node.
+	 *
+	 * @param string      $loc      Absolute URL.
+	 * @param string|null $lastmod  Optional W3C datetime.
+	 * @param string|null $priority Optional priority value.
+	 * @return void
+	 */
+	function theme_sitemap_add_url( $loc, $lastmod = null, $priority = null ) {
+		$normalized_loc = function_exists( 'theme_normalize_seo_url' ) ? theme_normalize_seo_url( $loc ) : esc_url_raw( $loc );
+		if ( '' === $normalized_loc ) {
+			return;
+		}
+
+		echo '<url>';
+		echo '<loc>' . theme_sitemap_xml_escape( $normalized_loc ) . '</loc>';
+
+		if ( ! empty( $lastmod ) ) {
+			echo '<lastmod>' . theme_sitemap_xml_escape( $lastmod ) . '</lastmod>';
+		}
+
+		if ( null !== $priority && '' !== $priority ) {
+			echo '<priority>' . theme_sitemap_xml_escape( $priority ) . '</priority>';
+		}
+
+		echo '</url>';
+	}
+}
+
+if ( ! function_exists( 'theme_render_sitemap' ) ) {
+	/**
+	 * Renders custom sitemap XML response.
+	 *
+	 * @return void
+	 */
+	function theme_render_sitemap() {
+		status_header( 200 );
+		header( 'Content-Type: application/xml; charset=utf-8' );
+
+		echo '<?xml version="1.0" encoding="UTF-8"?>';
+		echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+		$emitted_urls = array();
+		$emit_once    = static function ( $loc, $lastmod = null, $priority = null ) use ( &$emitted_urls ) {
+			$normalized = function_exists( 'theme_normalize_seo_url' ) ? theme_normalize_seo_url( $loc ) : esc_url_raw( $loc );
+			if ( '' === $normalized || isset( $emitted_urls[ $normalized ] ) ) {
+				return;
+			}
+
+			$emitted_urls[ $normalized ] = true;
+			theme_sitemap_add_url( $normalized, $lastmod, $priority );
+		};
+
+		$emit_type_posts = static function ( $post_type, $priority ) use ( $emit_once ) {
+			$query = new WP_Query(
+				array(
+					'post_type'              => $post_type,
+					'post_status'            => 'publish',
+					'posts_per_page'         => -1,
+					'orderby'                => 'modified',
+					'order'                  => 'DESC',
+					'fields'                 => 'ids',
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'cache_results'          => true,
+				)
+			);
+
+			if ( empty( $query->posts ) || ! is_array( $query->posts ) ) {
+				wp_reset_postdata();
+				return;
+			}
+
+			foreach ( $query->posts as $post_id ) {
+				$permalink = get_permalink( $post_id );
+				if ( empty( $permalink ) ) {
+					continue;
+				}
+
+				$lastmod = get_post_modified_time( 'c', true, $post_id );
+				$emit_once( $permalink, $lastmod ? $lastmod : null, $priority );
+			}
+
+			wp_reset_postdata();
+		};
+
+		$emit_once( home_url( '/' ), current_time( 'Y-m-d' ), '1.0' );
+		$emit_type_posts( 'page', '0.8' );
+		$emit_type_posts( 'post', '0.7' );
+
+		$excluded_post_types = array(
+			'attachment',
+			'nav_menu_item',
+			'page',
+			'post',
+		);
+
+		$post_type_objects = get_post_types(
+			array(
+				'public'             => true,
+				'publicly_queryable' => true,
+			),
+			'objects'
+		);
+
+		foreach ( $post_type_objects as $post_type => $object ) {
+			if ( in_array( $post_type, $excluded_post_types, true ) ) {
+				continue;
+			}
+
+			if ( ! $object instanceof WP_Post_Type || empty( $object->public ) || empty( $object->publicly_queryable ) ) {
+				continue;
+			}
+
+			$emit_type_posts( $post_type, '0.7' );
+		}
+
+		echo '</urlset>';
+	}
+}
+
+/**
+ * Intercepts /sitemap.xml requests and returns XML output only.
+ */
+function theme_maybe_render_sitemap() {
+	if ( (int) get_query_var( 'theme_sitemap' ) !== 1 ) {
+		return;
+	}
+
+	theme_render_sitemap();
+	exit;
+}
+add_action( 'template_redirect', 'theme_maybe_render_sitemap', 0 );
+
+
+
+/**
+ * Builds the minifier endpoint URL for a list of theme-relative assets.
+ *
+ * @param array $files List of files (e.g. /assets/css/all.css).
+ * @return string
+ */
+function wwd_theme_minifier_build_url( $files ) {
+	$normalized_files = array();
+
+	foreach ( (array) $files as $file ) {
+		$file = trim( (string) $file );
+		if ( '' === $file ) {
+			continue;
+		}
+
+		$normalized_files[] = '/' . ltrim( $file, '/' );
+	}
+
+	$base_url = trailingslashit( get_template_directory_uri() ) . 'assets/min/';
+	return add_query_arg( 'f', implode( ',', $normalized_files ), $base_url );
+}
+
+/**
+ * Returns a stable cache-busting version from filemtime, fallback to theme version.
+ *
+ * @param array $files List of files (e.g. /assets/css/all.css).
+ * @return string
+ */
+function wwd_theme_minifier_version( $files ) {
+	$latest_mtime = 0;
+
+	foreach ( (array) $files as $file ) {
+		$relative_file = '/' . ltrim( (string) $file, '/' );
+		$absolute_file = get_template_directory() . $relative_file;
+
+		if ( file_exists( $absolute_file ) ) {
+			$mtime = (int) filemtime( $absolute_file );
+			if ( $mtime > $latest_mtime ) {
+				$latest_mtime = $mtime;
+			}
+		}
+	}
+
+	if ( $latest_mtime > 0 ) {
+		return (string) $latest_mtime;
+	}
+
+	return (string) wp_get_theme()->get( 'Version' );
+}
+
+/**
+ * Checks whether minifier endpoint and all requested files are available.
+ *
+ * @param array $files List of files (e.g. /assets/css/all.css).
+ * @return bool
+ */
+function wwd_theme_can_use_minifier( $files ) {
+	$endpoint = get_template_directory() . '/assets/min/index.php';
+	if ( ! file_exists( $endpoint ) ) {
+		return false;
+	}
+
+	foreach ( (array) $files as $file ) {
+		$relative_file = '/' . ltrim( (string) $file, '/' );
+		$absolute_file = get_template_directory() . $relative_file;
+
+		if ( ! file_exists( $absolute_file ) ) {
+			return false;
+		}
+	}
+
+	return true;
+}
 
 function wwd_website_redesign_enqueue_assets() {
+	$min_css_files = array(
+		'/assets/css/font-awesome/css/font-awesome.min.css',
+		'/assets/css/all.css',
+		'/assets/css/colors.css',
+		'/assets/css/responsive.css',
+	);
+	$min_js_files  = array(
+		'/assets/js/j.js',
+	);
+
+	// Prefer WordPress jQuery and keep local jquery.js out of the minifier bundle.
+	if ( wwd_theme_can_use_minifier( array_merge( $min_css_files, $min_js_files ) ) ) {
+		wp_enqueue_style(
+			'theme-min',
+			esc_url( wwd_theme_minifier_build_url( $min_css_files ) ),
+			array(),
+			wwd_theme_minifier_version( $min_css_files ),
+			'all'
+		);
+
+		wp_enqueue_script( 'jquery' );
+		wp_enqueue_script(
+			'theme-min',
+			esc_url( wwd_theme_minifier_build_url( $min_js_files ) ),
+			array( 'jquery' ),
+			wwd_theme_minifier_version( $min_js_files ),
+			true
+		);
+
+		return;
+	}
 
 	// CSS-Dateien
 	$css_fonts    = 'assets/css/fonts.css';
@@ -117,7 +835,7 @@ function wwd_website_redesign_enqueue_assets() {
     );
 	/**
 	 * JS einbinden
-	 * → falls base.js KEIN jQuery nutzt, einfach 'jquery' entfernen
+	 * â†’ falls base.js KEIN jQuery nutzt, einfach 'jquery' entfernen
 	 */
 	if ( file_exists( get_theme_file_path( $js_gsap ) ) ) {
 		wp_enqueue_script(
@@ -199,6 +917,69 @@ function wwd_website_redesign_enqueue_assets() {
 	}
 }
 add_action( 'wp_enqueue_scripts', 'wwd_website_redesign_enqueue_assets' );
+
+/**
+ * Adds crossorigin only to the minified theme stylesheet handle.
+ *
+ * @param string $html   Generated HTML link tag.
+ * @param string $handle Style handle.
+ * @return string
+ */
+function wwd_theme_min_style_crossorigin( $html, $handle ) {
+	if ( 'theme-min' !== $handle ) {
+		return $html;
+	}
+
+	if ( false !== strpos( $html, ' crossorigin=' ) ) {
+		return $html;
+	}
+
+	if ( false !== strpos( $html, '/>' ) ) {
+		return str_replace( '/>', ' crossorigin="anonymous" />', $html );
+	}
+
+	return str_replace( '>', ' crossorigin="anonymous">', $html );
+}
+add_filter( 'style_loader_tag', 'wwd_theme_min_style_crossorigin', 10, 2 );
+
+/**
+ * Adds defer only to the minified theme script handle.
+ *
+ * @param string $tag    Generated script tag.
+ * @param string $handle Script handle.
+ * @return string
+ */
+function wwd_theme_min_script_defer( $tag, $handle ) {
+	if ( 'theme-min' !== $handle ) {
+		return $tag;
+	}
+
+	if ( false !== strpos( $tag, ' defer' ) || false !== strpos( $tag, ' async' ) ) {
+		return $tag;
+	}
+
+	return str_replace( ' src=', ' defer src=', $tag );
+}
+add_filter( 'script_loader_tag', 'wwd_theme_min_script_defer', 20, 2 );
+
+/**
+ * Disable speculative prefetching on references pages.
+ *
+ * Prevents automatic background document fetches on page load so permission-related
+ * prompts can only happen from explicit user navigation/interaction.
+ */
+function wwd_disable_speculation_rules_on_referenzen( $config ) {
+	if ( is_admin() ) {
+		return $config;
+	}
+
+	if ( is_page( 'referenzen' ) || is_singular( 'referenzen' ) ) {
+		return null;
+	}
+
+	return $config;
+}
+add_filter( 'wp_speculation_rules_configuration', 'wwd_disable_speculation_rules_on_referenzen' );
 
 
 /**
@@ -523,6 +1304,370 @@ function wwd_get_allowed_layouts() {
 		'slider-layout'    => 'assets/_snippets/slider.php',
 	);
 }
+
+/**
+ * Shortcode [layout name="offer-card"] for snippet output in editor content.
+ * Gutenberg usage: add a "Shortcode" block and insert e.g. [layout name="offer-card"].
+ */
+function wwd_layout_shortcode( $atts ) {
+	$atts = shortcode_atts(
+		array(
+			'name' => '',
+		),
+		$atts,
+		'layout'
+	);
+
+	$name = sanitize_key( $atts['name'] );
+	if ( '' === $name ) {
+		return '';
+	}
+
+	// Whitelist only: never allow arbitrary include paths from user input.
+	$allowed = array(
+		'offer-card',
+		'leistungen-cards',
+		'one-img-layout',
+		'two-img-layout',
+		'three-img-layout',
+		'faq',
+		'balken',
+		'slider',
+	);
+
+	if ( ! in_array( $name, $allowed, true ) ) {
+		return '';
+	}
+
+	$file = get_template_directory() . '/assets/_snippets/' . $name . '.php';
+	if ( ! file_exists( $file ) ) {
+		return '';
+	}
+
+	ob_start();
+	include $file;
+
+	return (string) ob_get_clean();
+}
+add_shortcode( 'layout', 'wwd_layout_shortcode' );
+
+/**
+ * Layout block definitions (allowlist + field schema).
+ * Source of truth for allowed snippets inside the dynamic Gutenberg block.
+ */
+function wwd_layout_block_definitions() {
+	return array(
+		'offer-card'       => array(
+			'label'   => 'Offer Card',
+			'snippet' => 'assets/_snippets/offer-card.php',
+			'fields'  => array(
+				array( 'key' => 'title', 'label' => 'Titel', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'price', 'label' => 'Preis', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'price_note', 'label' => 'Preis-Hinweis', 'type' => 'text', 'default' => '' ),
+				array(
+					'key'    => 'bullets',
+					'label'  => 'Bullet Points',
+					'type'   => 'repeater',
+					'max'    => 6,
+					'fields' => array(
+						array( 'key' => 'text', 'label' => 'Punkt', 'type' => 'text', 'default' => '' ),
+					),
+				),
+				array( 'key' => 'cta_label', 'label' => 'CTA Label', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'default' => '' ),
+			),
+		),
+		'leistungen-cards' => array(
+			'label'   => 'Leistungen Cards',
+			'snippet' => 'assets/_snippets/leistungen-cards.php',
+			'fields'  => array(
+				array(
+					'key'    => 'cards',
+					'label'  => 'Cards',
+					'type'   => 'repeater',
+					'max'    => 3,
+					'fields' => array(
+						array( 'key' => 'icon_url', 'label' => 'Icon URL', 'type' => 'url', 'default' => '' ),
+						array( 'key' => 'icon_alt', 'label' => 'Icon Alt', 'type' => 'text', 'default' => '' ),
+						array( 'key' => 'heading', 'label' => 'Heading', 'type' => 'text', 'default' => '' ),
+						array( 'key' => 'text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+					),
+				),
+			),
+		),
+		'one-img-layout'   => array(
+			'label'   => 'One Image Layout',
+			'snippet' => 'assets/_snippets/one-img-layout.php',
+			'fields'  => array(
+				array( 'key' => 'headline', 'label' => 'Headline', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'mini_heading', 'label' => 'Mini Heading', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+				array( 'key' => 'img_1_url', 'label' => 'Bild URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'img_1_alt', 'label' => 'Bild Alt', 'type' => 'text', 'default' => '' ),
+				array(
+					'key'    => 'bottom_items',
+					'label'  => 'Bottom Liste',
+					'type'   => 'repeater',
+					'max'    => 6,
+					'fields' => array(
+						array( 'key' => 'text', 'label' => 'Punkt', 'type' => 'text', 'default' => '' ),
+					),
+				),
+				array( 'key' => 'btn_text_label', 'label' => 'Button unter Text: Label', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'btn_text_url', 'label' => 'Button unter Text: URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'btn_list_label', 'label' => 'Button unter Liste: Label', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'btn_list_url', 'label' => 'Button unter Liste: URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'cta_label', 'label' => 'CTA Label', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'default' => '' ),
+			),
+		),
+		'two-img-layout'   => array(
+			'label'   => 'Two Image Layout',
+			'snippet' => 'assets/_snippets/two-img-layout.php',
+			'fields'  => array(
+				array( 'key' => 'headline', 'label' => 'Headline', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'mini_heading', 'label' => 'Mini Heading', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+				array( 'key' => 'img_1_url', 'label' => 'Bild 1 URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'img_1_alt', 'label' => 'Bild 1 Alt', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'img_2_url', 'label' => 'Bild 2 URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'img_2_alt', 'label' => 'Bild 2 Alt', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'cta_label', 'label' => 'CTA Label', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'default' => '' ),
+			),
+		),
+		'three-img-layout' => array(
+			'label'   => 'Three Image Layout',
+			'snippet' => 'assets/_snippets/three-img-layout.php',
+			'fields'  => array(
+				array( 'key' => 'headline', 'label' => 'Headline', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'mini_heading', 'label' => 'Mini Heading', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+				array( 'key' => 'img_1_url', 'label' => 'Bild 1 URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'img_1_alt', 'label' => 'Bild 1 Alt', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'img_1_text', 'label' => 'Bild 1 Text', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'img_2_url', 'label' => 'Bild 2 URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'img_2_alt', 'label' => 'Bild 2 Alt', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'img_2_text', 'label' => 'Bild 2 Text', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'img_3_url', 'label' => 'Bild 3 URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'img_3_alt', 'label' => 'Bild 3 Alt', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'img_3_text', 'label' => 'Bild 3 Text', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'cta_label', 'label' => 'CTA Label', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'default' => '' ),
+			),
+		),
+		'faq'              => array(
+			'label'   => 'FAQ',
+			'snippet' => 'assets/_snippets/faq.php',
+			'fields'  => array(
+				array( 'key' => 'headline', 'label' => 'Headline', 'type' => 'text', 'default' => '' ),
+				array(
+					'key'    => 'items',
+					'label'  => 'FAQ Items',
+					'type'   => 'repeater',
+					'max'    => 10,
+					'fields' => array(
+						array( 'key' => 'question', 'label' => 'Frage', 'type' => 'text', 'default' => '' ),
+						array( 'key' => 'answer', 'label' => 'Antwort', 'type' => 'textarea', 'default' => '' ),
+					),
+				),
+			),
+		),
+		'balken-layout'    => array(
+			'label'   => 'Balken',
+			'snippet' => 'assets/_snippets/balken.php',
+			'fields'  => array(
+				array( 'key' => 'text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+				array( 'key' => 'button_text', 'label' => 'Button Text', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'button_url', 'label' => 'Button URL', 'type' => 'url', 'default' => '' ),
+			),
+		),
+		'slider-layout'    => array(
+			'label'   => 'Slider',
+			'snippet' => 'assets/_snippets/slider.php',
+			'fields'  => array(
+				array(
+					'key'    => 'slides',
+					'label'  => 'Slides',
+					'type'   => 'repeater',
+					'max'    => 3,
+					'fields' => array(
+						array( 'key' => 'image_url', 'label' => 'Bild URL', 'type' => 'url', 'default' => '' ),
+						array( 'key' => 'image_alt', 'label' => 'Bild Alt', 'type' => 'text', 'default' => '' ),
+						array( 'key' => 'heading', 'label' => 'Heading', 'type' => 'text', 'default' => '' ),
+						array( 'key' => 'text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+						array( 'key' => 'cta_label', 'label' => 'CTA Label', 'type' => 'text', 'default' => 'Zum Projekt' ),
+						array( 'key' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'default' => '' ),
+					),
+				),
+			),
+		),
+	);
+}
+
+function wwd_sanitize_layout_block_field_value( $field, $value ) {
+	$type = isset( $field['type'] ) ? $field['type'] : 'text';
+
+	if ( 'repeater' === $type ) {
+		$items = is_array( $value ) ? $value : array();
+		$max   = isset( $field['max'] ) ? (int) $field['max'] : 10;
+		if ( $max < 1 ) {
+			$max = 1;
+		}
+		$items  = array_slice( $items, 0, $max );
+		$fields = isset( $field['fields'] ) && is_array( $field['fields'] ) ? $field['fields'] : array();
+		$out    = array();
+
+		foreach ( $items as $item ) {
+			$item = is_array( $item ) ? $item : array();
+			$row  = array();
+
+			foreach ( $fields as $subfield ) {
+				if ( empty( $subfield['key'] ) ) {
+					continue;
+				}
+
+				$sub_key       = $subfield['key'];
+				$sub_value_raw = isset( $item[ $sub_key ] ) ? $item[ $sub_key ] : '';
+				$row[ $sub_key ] = wwd_sanitize_layout_block_field_value( $subfield, $sub_value_raw );
+			}
+
+			$out[] = $row;
+		}
+
+		return $out;
+	}
+
+	if ( 'url' === $type ) {
+		return esc_url_raw( (string) $value );
+	}
+
+	if ( 'textarea' === $type ) {
+		return wp_kses_post( (string) $value );
+	}
+
+	return sanitize_text_field( (string) $value );
+}
+
+function wwd_sanitize_layout_block_data( $layout, $raw_data ) {
+	$definitions = wwd_layout_block_definitions();
+	if ( ! isset( $definitions[ $layout ] ) ) {
+		return array();
+	}
+
+	$raw_data = is_array( $raw_data ) ? $raw_data : array();
+	$fields   = isset( $definitions[ $layout ]['fields'] ) ? $definitions[ $layout ]['fields'] : array();
+	$data     = array();
+
+	foreach ( $fields as $field ) {
+		if ( empty( $field['key'] ) ) {
+			continue;
+		}
+
+		$key       = $field['key'];
+		$default   = isset( $field['default'] ) ? $field['default'] : ( 'repeater' === $field['type'] ? array() : '' );
+		$value_raw = isset( $raw_data[ $key ] ) ? $raw_data[ $key ] : $default;
+		$data[ $key ] = wwd_sanitize_layout_block_field_value( $field, $value_raw );
+	}
+
+	return $data;
+}
+
+function wwd_render_layout_block( $attributes ) {
+	$definitions = wwd_layout_block_definitions();
+	$layout_raw  = isset( $attributes['layout'] ) ? (string) $attributes['layout'] : '';
+	if ( '' === trim( $layout_raw ) ) {
+		return '';
+	}
+
+	$layout = sanitize_key( $layout_raw );
+
+	if ( '' === $layout || ! isset( $definitions[ $layout ] ) ) {
+		return '';
+	}
+
+	$snippet_rel_path = isset( $definitions[ $layout ]['snippet'] ) ? (string) $definitions[ $layout ]['snippet'] : '';
+	if ( '' === $snippet_rel_path ) {
+		return '';
+	}
+
+	$file = get_template_directory() . '/' . ltrim( $snippet_rel_path, '/' );
+	if ( ! file_exists( $file ) ) {
+		return '';
+	}
+
+	$raw_data    = isset( $attributes['data'] ) ? $attributes['data'] : array();
+	$layout_data = wwd_sanitize_layout_block_data( $layout, $raw_data );
+
+	// Legacy snippet compatibility variables.
+	$post_id = get_the_ID();
+	$meta    = array(
+		'mini_heading' => isset( $layout_data['mini_heading'] ) ? $layout_data['mini_heading'] : '',
+		'headline'     => isset( $layout_data['headline'] ) ? $layout_data['headline'] : '',
+		'text'         => isset( $layout_data['text'] ) ? $layout_data['text'] : '',
+		'cta_label'    => isset( $layout_data['cta_label'] ) ? $layout_data['cta_label'] : '',
+		'cta_url'      => isset( $layout_data['cta_url'] ) ? $layout_data['cta_url'] : '',
+		'img_1_id'     => 0,
+		'img_2_id'     => 0,
+		'img_3_id'     => 0,
+	);
+
+	ob_start();
+	include $file;
+
+	return (string) ob_get_clean();
+}
+
+function wwd_register_layout_block() {
+	if ( ! function_exists( 'register_block_type' ) ) {
+		return;
+	}
+
+	register_block_type(
+		'theme/layout',
+		array(
+			'api_version'     => 2,
+			'render_callback' => 'wwd_render_layout_block',
+			'attributes'      => array(
+				'layout' => array(
+					'type'    => 'string',
+					'default' => '',
+				),
+				'data'   => array(
+					'type'    => 'object',
+					'default' => array(),
+				),
+			),
+		)
+	);
+}
+add_action( 'init', 'wwd_register_layout_block' );
+
+function wwd_enqueue_layout_block_editor_assets() {
+	$script_rel_path = 'assets/js/blocks/layout-block.js';
+	$script_path     = get_theme_file_path( $script_rel_path );
+
+	if ( ! file_exists( $script_path ) ) {
+		return;
+	}
+
+	wp_enqueue_script(
+		'wwd-layout-block',
+		get_theme_file_uri( $script_rel_path ),
+		array( 'wp-blocks', 'wp-element', 'wp-components', 'wp-block-editor', 'wp-editor', 'wp-hooks', 'wp-data' ),
+		filemtime( $script_path ),
+		true
+	);
+
+	wp_localize_script(
+		'wwd-layout-block',
+		'wwdLayoutBlockData',
+		array(
+			'definitions' => wwd_layout_block_definitions(),
+		)
+	);
+}
+add_action( 'enqueue_block_editor_assets', 'wwd_enqueue_layout_block_editor_assets' );
 
 function theme_get_selected_layout( $post_id ) {
 	$layout_key = '_layout_template';
@@ -1457,6 +2602,185 @@ function wwd_save_one_img_bottom_texts_meta( $post_id ) {
 add_action( 'save_post', 'wwd_save_one_img_bottom_texts_meta' );
 
 /**
+ * Meta box for one-img layout CTA.
+ */
+function wwd_add_one_img_cta_metaboxes( $post_type, $post ) {
+	if ( ! $post ) {
+		return;
+	}
+	$allowed_post_types = array_merge( array( 'page' ), wwd_get_unterseiten_post_types() );
+	if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$post_id = 0;
+	if ( isset( $post->ID ) ) {
+		$post_id = (int) $post->ID;
+	} elseif ( isset( $_GET['post'] ) ) {
+		$post_id = (int) $_GET['post'];
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = (int) $_POST['post_ID'];
+	}
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = get_post_meta( $post_id, '_layout_template', true );
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'one-img-layout' !== $layout ) {
+		return;
+	}
+
+	add_meta_box(
+		'wwd_one_img_cta_fields',
+		'One Img Layout - Buttons',
+		'wwd_render_one_img_cta_metabox',
+		$post_type,
+		'normal',
+		'high'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_one_img_cta_metaboxes', 10, 2 );
+
+function wwd_render_one_img_cta_metabox( $post ) {
+	$cta_text_url   = get_post_meta( $post->ID, '_one_img_btn_text_url', true );
+	$cta_text_label = get_post_meta( $post->ID, '_one_img_btn_text_label', true );
+	$cta_list_url   = get_post_meta( $post->ID, '_one_img_btn_list_url', true );
+	$cta_list_label = get_post_meta( $post->ID, '_one_img_btn_list_label', true );
+
+	wp_nonce_field( 'one_img_buttons_save', 'one_img_buttons_nonce' );
+	?>
+	<p>
+		<strong><?php echo esc_html( 'Button unter Text' ); ?></strong>
+	</p>
+	<p>
+		<label for="one-img-btn-text-label"><strong><?php echo esc_html( 'Label' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="one-img-btn-text-label"
+		name="one_img_btn_text_label"
+		value="<?php echo esc_attr( $cta_text_label ); ?>"
+		class="widefat"
+	/>
+
+	<p>
+		<label for="one-img-btn-text-url"><strong><?php echo esc_html( 'URL' ); ?></strong></label>
+	</p>
+	<input
+		type="url"
+		id="one-img-btn-text-url"
+		name="one_img_btn_text_url"
+		value="<?php echo esc_attr( $cta_text_url ); ?>"
+		class="widefat"
+	/>
+
+	<hr />
+
+	<p>
+		<strong><?php echo esc_html( 'Button unter Liste' ); ?></strong>
+	</p>
+	<p>
+		<label for="one-img-btn-list-label"><strong><?php echo esc_html( 'Label' ); ?></strong></label>
+	</p>
+	<input
+		type="text"
+		id="one-img-btn-list-label"
+		name="one_img_btn_list_label"
+		value="<?php echo esc_attr( $cta_list_label ); ?>"
+		class="widefat"
+	/>
+
+	<p>
+		<label for="one-img-btn-list-url"><strong><?php echo esc_html( 'URL' ); ?></strong></label>
+	</p>
+	<input
+		type="url"
+		id="one-img-btn-list-url"
+		name="one_img_btn_list_url"
+		value="<?php echo esc_attr( $cta_list_url ); ?>"
+		class="widefat"
+	/>
+	<?php
+}
+
+function wwd_save_one_img_cta_meta( $post_id ) {
+	if ( ! isset( $_POST['one_img_buttons_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( wp_unslash( $_POST['one_img_buttons_nonce'] ), 'one_img_buttons_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	$allowed_post_types = array_merge( array( 'page' ), wwd_get_unterseiten_post_types() );
+	if ( ! in_array( get_post_type( $post_id ), $allowed_post_types, true ) ) {
+		return;
+	}
+
+	$allowed_layouts = wwd_get_allowed_layouts();
+	$layout          = isset( $_POST['wwd_layout_template'] ) ? sanitize_key( wp_unslash( $_POST['wwd_layout_template'] ) ) : '';
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = get_post_meta( $post_id, '_layout_template', true );
+	}
+	if ( empty( $layout ) || ! isset( $allowed_layouts[ $layout ] ) ) {
+		$layout = 'two-img-layout';
+	}
+	if ( 'one-img-layout' !== $layout ) {
+		return;
+	}
+
+	$cta_text_url   = isset( $_POST['one_img_btn_text_url'] ) ? esc_url_raw( wp_unslash( $_POST['one_img_btn_text_url'] ) ) : '';
+	$cta_text_label = isset( $_POST['one_img_btn_text_label'] ) ? sanitize_text_field( wp_unslash( $_POST['one_img_btn_text_label'] ) ) : '';
+	$cta_list_url   = isset( $_POST['one_img_btn_list_url'] ) ? esc_url_raw( wp_unslash( $_POST['one_img_btn_list_url'] ) ) : '';
+	$cta_list_label = isset( $_POST['one_img_btn_list_label'] ) ? sanitize_text_field( wp_unslash( $_POST['one_img_btn_list_label'] ) ) : '';
+
+	if ( '' === $cta_text_url ) {
+		delete_post_meta( $post_id, '_one_img_btn_text_url' );
+	} else {
+		update_post_meta( $post_id, '_one_img_btn_text_url', $cta_text_url );
+	}
+
+	if ( '' === $cta_text_label ) {
+		delete_post_meta( $post_id, '_one_img_btn_text_label' );
+	} else {
+		update_post_meta( $post_id, '_one_img_btn_text_label', $cta_text_label );
+	}
+
+	if ( '' === $cta_list_url ) {
+		delete_post_meta( $post_id, '_one_img_btn_list_url' );
+	} else {
+		update_post_meta( $post_id, '_one_img_btn_list_url', $cta_list_url );
+	}
+
+	if ( '' === $cta_list_label ) {
+		delete_post_meta( $post_id, '_one_img_btn_list_label' );
+	} else {
+		update_post_meta( $post_id, '_one_img_btn_list_label', $cta_list_label );
+	}
+
+	// Legacy cleanup after migration.
+	delete_post_meta( $post_id, '_one_img_cta_text_url' );
+	delete_post_meta( $post_id, '_one_img_cta_text_label' );
+	delete_post_meta( $post_id, '_one_img_cta_list_url' );
+	delete_post_meta( $post_id, '_one_img_cta_list_label' );
+	delete_post_meta( $post_id, '_one_img_cta_url' );
+	delete_post_meta( $post_id, '_one_img_cta_label' );
+}
+add_action( 'save_post', 'wwd_save_one_img_cta_meta' );
+
+/**
  * Meta box for Leistungen Cards layout (up to 3 cards).
  */
 function wwd_add_leistungen_cards_metaboxes( $post_type, $post ) {
@@ -1969,6 +3293,7 @@ function wwd_render_slider_layout_metabox( $post ) {
 		$img_id  = absint( get_post_meta( $post->ID, "_slider_slide_{$i}_image", true ) );
 		$heading = get_post_meta( $post->ID, "_slider_slide_{$i}_heading", true );
 		$text    = get_post_meta( $post->ID, "_slider_slide_{$i}_text", true );
+		$url     = get_post_meta( $post->ID, "_slider_slide_{$i}_url", true );
 
 		$preview_url = $img_id ? wp_get_attachment_image_url( $img_id, 'medium' ) : '';
 		$input_id    = "wwd-slider-slide-{$i}-image";
@@ -2017,6 +3342,17 @@ function wwd_render_slider_layout_metabox( $post ) {
 			class="widefat"
 			required
 		><?php echo esc_textarea( $text ); ?></textarea>
+
+		<p>
+			<label for="<?php echo esc_attr( "wwd-slider-slide-{$i}-url" ); ?>"><strong><?php echo esc_html( 'Link (URL)' ); ?></strong></label>
+		</p>
+		<input
+			type="url"
+			id="<?php echo esc_attr( "wwd-slider-slide-{$i}-url" ); ?>"
+			name="<?php echo esc_attr( "slider_slide_{$i}_url" ); ?>"
+			value="<?php echo esc_attr( $url ); ?>"
+			class="widefat"
+		/>
 		<?php
 	}
 }
@@ -2056,6 +3392,7 @@ function wwd_save_slider_layout_meta( $post_id ) {
 		$img_id  = isset( $_POST[ "slider_slide_{$i}_image" ] ) ? absint( $_POST[ "slider_slide_{$i}_image" ] ) : 0;
 		$heading = isset( $_POST[ "slider_slide_{$i}_heading" ] ) ? sanitize_text_field( wp_unslash( $_POST[ "slider_slide_{$i}_heading" ] ) ) : '';
 		$text    = isset( $_POST[ "slider_slide_{$i}_text" ] ) ? sanitize_textarea_field( wp_unslash( $_POST[ "slider_slide_{$i}_text" ] ) ) : '';
+		$url     = isset( $_POST[ "slider_slide_{$i}_url" ] ) ? esc_url_raw( wp_unslash( $_POST[ "slider_slide_{$i}_url" ] ) ) : '';
 
 		if ( $img_id <= 0 || '' === $heading || '' === $text ) {
 			$complete = false;
@@ -2065,6 +3402,7 @@ function wwd_save_slider_layout_meta( $post_id ) {
 			"_slider_slide_{$i}_image"   => $img_id,
 			"_slider_slide_{$i}_heading" => $heading,
 			"_slider_slide_{$i}_text"    => $text,
+			"_slider_slide_{$i}_url"     => $url,
 		);
 
 		foreach ( $meta_map as $meta_key => $value ) {
@@ -2487,11 +3825,113 @@ function wwd_get_news_query() {
 	return new WP_Query(
 		array(
 			'post_type'      => 'news',
-			'posts_per_page' => 4,
 			'orderby'        => 'date',
 			'order'          => 'DESC',
 		)
 	);
+}
+
+if ( ! function_exists( 'theme_get_breadcrumb_items' ) ) {
+	/**
+	 * Returns normalized breadcrumb items for schema output.
+	 *
+	 * @return array<int,array{name:string,url:string}>
+	 */
+	function theme_get_breadcrumb_items() {
+		$items = array(
+			array(
+				'name' => wp_strip_all_tags( get_bloginfo( 'name' ) ),
+				'url'  => esc_url_raw( home_url( '/' ) ),
+			),
+		);
+
+		if ( is_front_page() ) {
+			return $items;
+		}
+
+		if ( is_page() ) {
+			$page_id = get_queried_object_id();
+			if ( $page_id ) {
+				$parents = array_reverse( get_post_ancestors( $page_id ) );
+				foreach ( $parents as $parent_id ) {
+					$items[] = array(
+						'name' => wp_strip_all_tags( get_the_title( $parent_id ) ),
+						'url'  => esc_url_raw( get_permalink( $parent_id ) ),
+					);
+				}
+
+				$items[] = array(
+					'name' => wp_strip_all_tags( get_the_title( $page_id ) ),
+					'url'  => esc_url_raw( get_permalink( $page_id ) ),
+				);
+			}
+
+			return $items;
+		}
+
+		if ( is_singular() ) {
+			$post_id = get_queried_object_id();
+			if ( ! $post_id ) {
+				return $items;
+			}
+
+			$post_type = get_post_type( $post_id );
+
+			if ( 'news' === $post_type ) {
+				$news_page = get_page_by_path( 'news' );
+				if ( $news_page instanceof WP_Post ) {
+					$items[] = array(
+						'name' => wp_strip_all_tags( get_the_title( $news_page->ID ) ),
+						'url'  => esc_url_raw( get_permalink( $news_page->ID ) ),
+					);
+				}
+			} elseif ( 'referenzen' === $post_type ) {
+				$referenzen_page = get_page_by_path( 'referenzen' );
+				if ( $referenzen_page instanceof WP_Post ) {
+					$items[] = array(
+						'name' => wp_strip_all_tags( get_the_title( $referenzen_page->ID ) ),
+						'url'  => esc_url_raw( get_permalink( $referenzen_page->ID ) ),
+					);
+				}
+			} elseif ( $post_type ) {
+				$post_type_object = get_post_type_object( $post_type );
+				if ( $post_type_object && ! empty( $post_type_object->has_archive ) ) {
+					$archive_url = get_post_type_archive_link( $post_type );
+					if ( $archive_url ) {
+						$items[] = array(
+							'name' => wp_strip_all_tags( $post_type_object->labels->name ),
+							'url'  => esc_url_raw( $archive_url ),
+						);
+					}
+				}
+			}
+
+			$items[] = array(
+				'name' => wp_strip_all_tags( get_the_title( $post_id ) ),
+				'url'  => esc_url_raw( get_permalink( $post_id ) ),
+			);
+
+			return $items;
+		}
+
+		if ( is_post_type_archive() ) {
+			$post_type = get_query_var( 'post_type' );
+			$post_type = is_array( $post_type ) ? reset( $post_type ) : $post_type;
+
+			if ( is_string( $post_type ) && '' !== $post_type ) {
+				$post_type_object = get_post_type_object( $post_type );
+				$archive_url      = get_post_type_archive_link( $post_type );
+				if ( $post_type_object && $archive_url ) {
+					$items[] = array(
+						'name' => wp_strip_all_tags( $post_type_object->labels->name ),
+						'url'  => esc_url_raw( $archive_url ),
+					);
+				}
+			}
+		}
+
+		return $items;
+	}
 }
 
 /**
@@ -2546,7 +3986,7 @@ function wwd_add_nav_card_link_metabox() {
 		'wwd_nav_card_link',
 		'Card Link (URL)',
 		'wwd_render_nav_card_link_metabox',
-		array( 'nav_dienstleistungen', 'referenzen' ),
+		array( 'nav_dienstleistungen' ),
 		'side',
 		'default'
 	);
@@ -2594,7 +4034,66 @@ function wwd_save_nav_card_link_metabox( $post_id ) {
 	}
 }
 add_action( 'save_post_nav_dienstleistungen', 'wwd_save_nav_card_link_metabox' );
-add_action( 'save_post_referenzen', 'wwd_save_nav_card_link_metabox' );
+
+/**
+ * Meta box for slider slide button links.
+ */
+function wwd_add_slider_button_link_metabox() {
+	add_meta_box(
+		'wwd_slider_button_link',
+		'Button Link (URL)',
+		'wwd_render_slider_button_link_metabox',
+		array( 'slider_slide' ),
+		'side',
+		'default'
+	);
+}
+add_action( 'add_meta_boxes', 'wwd_add_slider_button_link_metabox' );
+
+function wwd_render_slider_button_link_metabox( $post ) {
+	$link = get_post_meta( $post->ID, WWD_SLIDER_BUTTON_LINK_META_KEY, true );
+	wp_nonce_field( 'wwd_slider_button_link_save', 'wwd_slider_button_link_nonce' );
+	?>
+	<p>
+		<label for="wwd-slider-button-link"><?php echo esc_html( 'Button Link (URL)' ); ?></label>
+	</p>
+	<input
+		type="url"
+		id="wwd-slider-button-link"
+		name="wwd_slider_button_link"
+		value="<?php echo esc_attr( $link ); ?>"
+		class="widefat"
+		placeholder="<?php echo esc_attr( 'https://example.com' ); ?>"
+	/>
+	<?php
+}
+
+function wwd_save_slider_button_link_metabox( $post_id ) {
+	if ( ! isset( $_POST['wwd_slider_button_link_nonce'] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( $_POST['wwd_slider_button_link_nonce'], 'wwd_slider_button_link_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	if ( isset( $_POST['wwd_slider_button_link'] ) ) {
+		$link = esc_url_raw( wp_unslash( $_POST['wwd_slider_button_link'] ) );
+		if ( '' === $link ) {
+			delete_post_meta( $post_id, WWD_SLIDER_BUTTON_LINK_META_KEY );
+		} else {
+			update_post_meta( $post_id, WWD_SLIDER_BUTTON_LINK_META_KEY, $link );
+		}
+	}
+}
+add_action( 'save_post_slider_slide', 'wwd_save_slider_button_link_metabox' );
 
 function wwd_add_referenzen_kunde_image_metabox() {
 	add_meta_box(
@@ -2666,7 +4165,7 @@ add_action( 'save_post_referenzen', 'wwd_save_referenzen_kunde_image_metabox' );
 function wwd_add_referenzen_card_link_metabox() {
 	add_meta_box(
 		'wwd_referenzen_card_link',
-		'Card Link URL',
+		'Card Link',
 		'wwd_render_referenzen_card_link_metabox',
 		'referenzen',
 		'side',
@@ -2680,7 +4179,7 @@ function wwd_render_referenzen_card_link_metabox( $post ) {
 	wp_nonce_field( 'referenzen_card_link_save', 'referenzen_card_link_nonce' );
 	?>
 	<p>
-		<label for="wwd-referenzen-card-link"><?php echo esc_html( 'Card Link URL' ); ?></label>
+		<label for="wwd-referenzen-card-link"><?php echo esc_html( 'Card Link' ); ?></label>
 	</p>
 	<input
 		type="url"
@@ -2931,6 +4430,7 @@ function wwd_seitenbilder_callback() {
 		'leistungen' => 'leistungen',
         'kunden' => 'Kunden Hero',
         'ki-integration' => 'KI Integration',
+		'website-check' => 'Website Check',
         'news' => 'News Hero',
         'ueber-uns' => 'Ueber uns Hero',
         'kontakt' => 'Kontakt Hero',
@@ -2962,5 +4462,6 @@ function wwd_seitenbilder_callback() {
     submit_button('Bilder speichern');
     echo '</form></div>';
 }
+
 
 

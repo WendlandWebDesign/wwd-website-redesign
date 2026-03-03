@@ -93,18 +93,20 @@ body.is-nav-open .site-overlay{
     position: fixed;
     top: 0;
     right: 0;
-    transform: translateX(100%);
-    transition: transform .5s ease;
+    opacity: 0;
+    transition: opacity .5s ease;
     width: 400px;
     max-width: 100%;
     height: 100svh;
     background-color: var(--dark);
-    z-index: 100;
+    transform: translateY(-100%);
     overflow-y: auto;
     overflow-x: hidden;
 }
 .nav-contact-holder.active{
-    transform: translateX(0);
+    transform: translateY(0);
+    opacity: 1;
+    z-index: 110;
 }
 .nav-contact{
     width: 100%;
@@ -144,6 +146,10 @@ body.is-nav-open .site-overlay{
 }
 .nav-contacts a{
     width: max-content;
+	color: var(--light);
+	font-family: var(--font-body);
+    font-size: calc(.9rem + 0.2vw);
+    line-height: 1.7;
 }
 .nav-contacts li::after{
     content: "";
@@ -355,6 +361,7 @@ body.is-nav-open .menu .burger .bar{
     justify-content: space-between;
     padding: 14px;
     gap: 30px;
+	user-select: none;
 }
 .expand-right.active{
     background-color: var(--card-clr);
@@ -438,6 +445,105 @@ body.is-nav-open .menu .burger .bar{
     min-height: 0;
 }
 
+.nav-contact-btn {
+	padding: 8px 20px;
+    position: relative;
+    overflow: hidden;
+    background: var(--ac-clr);
+	box-shadow: 0 0 10px var(--ac-clr);
+    outline: 0;
+    border: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    width: max-content;
+	transition: background 2.5s;  
+}
+
+.nav-contact-btn:hover {
+	background: white !important;
+	box-shadow: none;
+	transition: .4s;  
+}
+
+.nav-contact-btn p{
+    display: flex;
+    align-items: center;
+    font-size: .9rem;
+}
+.nav-contact-btn p img{
+    margin-right: 5px;
+    width: 20px !important;
+    height: auto !important;
+}
+.nav-contact-btn p .icon--arrow-white{
+    margin-right: 5px;
+    width: 20px;
+    height: auto;
+}
+.nav-contact-btn p,
+.nav-contact-btn .icon--arrow-white{
+    transition: color 0.25s ease, fill 0.25s ease;
+}
+
+.nav-contact-btn__char{
+    display: inline-block;
+}
+
+
+.nav-contact-btn__border{
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 1;
+}
+.nav-contact-btn__svg{
+    width: 100%;
+    height: 100%;
+    display: block;
+    shape-rendering: geometricPrecision;
+}
+.nav-contact-btn__path{
+    fill: none;
+    stroke: transparent !important;
+    stroke-width: 0 !important;
+    vector-effect: non-scaling-stroke;
+}
+.nav-contact-btn__seg{
+    fill: none;
+    stroke: var(--ac-clr);
+    stroke-width: 3.5px;
+    vector-effect: non-scaling-stroke;
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+    stroke-miterlimit: 6;
+    shape-rendering: geometricPrecision;
+}
+
+
+.list-left::-webkit-scrollbar,
+.list-right-content-wrapper::-webkit-scrollbar{
+  	width: 10px;
+}
+.list-left::-webkit-scrollbar-track,
+.list-right-content-wrapper::-webkit-scrollbar-track{
+	background: transparent;
+}
+.list-left::-webkit-scrollbar-thumb,
+.list-right-content-wrapper::-webkit-scrollbar-thumb{
+	background: var(--heading-clr);
+	border-radius: 999px;
+}
+
+.list-left,
+.list-right-content-wrapper{
+  scrollbar-width: thin;
+  scrollbar-color: var(--heading-clr) transparent;
+}
+
+
 
 .right-buttons{
     width: 100%;
@@ -475,6 +581,10 @@ body.is-nav-open .menu .burger .bar{
     overflow: hidden;
     position: relative;
     cursor: pointer;
+}
+/* Referenzen cards are anchors; make width behave like block-based news cards. */
+.list-right-content[data-nav-panel="referenzen"] .nav-card{
+    display: block;
 }
 .nav-card .card-img-holder{
     width: 100%;
@@ -788,6 +898,9 @@ footer .bottom a:hover::after{
     width: 100%;
 }
 
+footer .cookies a{
+    color: var(--txt) !important;
+}
 
 @media(max-width: 700px){
     footer .top{

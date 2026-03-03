@@ -1,9 +1,37 @@
 <?php
-$post_id = get_the_ID();
-$cards   = get_post_meta( $post_id, 'offer_cards', true );
+$cards = array();
 
-if ( ! is_array( $cards ) ) {
-	$cards = array();
+if ( isset( $layout_data ) && is_array( $layout_data ) && ! empty( $layout_data ) ) {
+	$block_bullets = array();
+	if ( isset( $layout_data['bullets'] ) && is_array( $layout_data['bullets'] ) ) {
+		foreach ( array_slice( $layout_data['bullets'], 0, 6 ) as $bullet_item ) {
+			if ( is_array( $bullet_item ) ) {
+				$bullet_item = isset( $bullet_item['text'] ) ? (string) $bullet_item['text'] : '';
+			} else {
+				$bullet_item = (string) $bullet_item;
+			}
+			$bullet_item = trim( $bullet_item );
+			if ( '' !== $bullet_item ) {
+				$block_bullets[] = $bullet_item;
+			}
+		}
+	}
+
+	$cards[] = array(
+		'title'      => isset( $layout_data['title'] ) ? (string) $layout_data['title'] : '',
+		'price'      => isset( $layout_data['price'] ) ? (string) $layout_data['price'] : '',
+		'price_note' => isset( $layout_data['price_note'] ) ? (string) $layout_data['price_note'] : '',
+		'bullets'    => $block_bullets,
+		'cta_url'    => isset( $layout_data['cta_url'] ) ? (string) $layout_data['cta_url'] : '',
+		'cta_label'  => isset( $layout_data['cta_label'] ) ? (string) $layout_data['cta_label'] : '',
+	);
+} else {
+	$post_id = get_the_ID();
+	$cards   = get_post_meta( $post_id, 'offer_cards', true );
+
+	if ( ! is_array( $cards ) ) {
+		$cards = array();
+	}
 }
 ?>
 

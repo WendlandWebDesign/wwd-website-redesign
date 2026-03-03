@@ -2,24 +2,49 @@
 $post_id = get_the_ID();
 $cards   = array();
 
-for ( $i = 1; $i <= 3; $i++ ) {
-	$icon_id  = absint( get_post_meta( $post_id, "_leistungen_card_{$i}_icon", true ) );
-	$heading  = get_post_meta( $post_id, "_leistungen_card_{$i}_heading", true );
-	$text     = get_post_meta( $post_id, "_leistungen_card_{$i}_text", true );
-	$icon_url = $icon_id ? wp_get_attachment_image_url( $icon_id, 'full' ) : '';
-	$icon_alt = $icon_id ? get_post_meta( $icon_id, '_wp_attachment_image_alt', true ) : '';
+if ( isset( $layout_data ) && is_array( $layout_data ) && isset( $layout_data['cards'] ) && is_array( $layout_data['cards'] ) ) {
+	foreach ( array_slice( $layout_data['cards'], 0, 3 ) as $card ) {
+		if ( ! is_array( $card ) ) {
+			continue;
+		}
 
-	if ( ! $icon_alt ) {
-		$icon_alt = $heading ? $heading : get_the_title( $post_id );
+		$heading  = isset( $card['heading'] ) ? (string) $card['heading'] : '';
+		$text     = isset( $card['text'] ) ? (string) $card['text'] : '';
+		$icon_url = isset( $card['icon_url'] ) ? (string) $card['icon_url'] : '';
+		$icon_alt = isset( $card['icon_alt'] ) ? (string) $card['icon_alt'] : '';
+
+		if ( ! $icon_alt ) {
+			$icon_alt = $heading ? $heading : get_the_title( $post_id );
+		}
+
+		$cards[] = array(
+			'icon_url' => $icon_url,
+			'icon_alt' => $icon_alt,
+			'heading'  => $heading,
+			'text'     => $text,
+			'has_data' => ( $heading || $text || $icon_url ),
+		);
 	}
+} else {
+	for ( $i = 1; $i <= 3; $i++ ) {
+		$icon_id  = absint( get_post_meta( $post_id, "_leistungen_card_{$i}_icon", true ) );
+		$heading  = get_post_meta( $post_id, "_leistungen_card_{$i}_heading", true );
+		$text     = get_post_meta( $post_id, "_leistungen_card_{$i}_text", true );
+		$icon_url = $icon_id ? wp_get_attachment_image_url( $icon_id, 'full' ) : '';
+		$icon_alt = $icon_id ? get_post_meta( $icon_id, '_wp_attachment_image_alt', true ) : '';
 
-	$cards[] = array(
-		'icon_url' => $icon_url,
-		'icon_alt' => $icon_alt,
-		'heading'  => $heading,
-		'text'     => $text,
-		'has_data' => ( $heading || $text || $icon_url ),
-	);
+		if ( ! $icon_alt ) {
+			$icon_alt = $heading ? $heading : get_the_title( $post_id );
+		}
+
+		$cards[] = array(
+			'icon_url' => $icon_url,
+			'icon_alt' => $icon_alt,
+			'heading'  => $heading,
+			'text'     => $text,
+			'has_data' => ( $heading || $text || $icon_url ),
+		);
+	}
 }
 ?>
 

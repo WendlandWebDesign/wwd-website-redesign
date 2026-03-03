@@ -1,8 +1,3 @@
-<script>
-  document.documentElement.classList.add('js');
-</script>
-
-
 <?php
 get_header();
 ?>
@@ -10,20 +5,20 @@ get_header();
 
 <main>
     <div class="home-hero observe-nav">
-        <img class="hero-img" src="<?php echo esc_url(get_option('home-img')); ?>" alt="hero image">
+        <img class="hero-img" src="<?php echo esc_url(get_option('home-img')); ?>" alt="hero image" fetchpriority="high" decoding="async" loading="eager">
         <div class="home-hero-inner mw">
-            <h2 class="light home-hero__headline">
+            <h1 class="light home-hero__headline">
                 <span class="hero-line hero-line--1">Professionelles <span class="ac">Webdesign.</span></span>
                 <span class="hero-line hero-line--2">Klar umgesetzt.</span>
-            </h2>
-            <h1 class="light home-hero__title" aria-label="Wendland Web Design">
+            </h1>
+            <h2 class="light home-hero__title" aria-label="Wendland Web Design">
                 <span class="typed">
                     <span class="char blue">W</span><span class="rest">endland</span><span class="space"> </span>
                     <span class="char blue">W</span><span class="rest">eb</span><span class="space"> </span>
                     <span class="char blue">D</span><span class="rest">esign</span>
                 </span>
                 <span class="cursor">|</span>
-            </h1>
+            </h2>
             <button onclick="window.location.href='<?php echo esc_url( home_url( '/kontakt/' ) ); ?>'" class="btn light" data-hero-snake-load="1">
                 <span class="btn__border" aria-hidden="true">
                     <svg class="btn__svg" viewBox="0 0 100 40" preserveAspectRatio="none">

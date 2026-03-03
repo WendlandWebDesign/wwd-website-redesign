@@ -1,20 +1,42 @@
 <?php
 $post_id      = get_the_ID();
-$faq_headline = trim( (string) get_post_meta( $post_id, 'faq_headline', true ) );
 $faq_items    = array();
+$faq_headline = trim( (string) get_post_meta( $post_id, 'faq_headline', true ) );
 
-for ( $i = 1; $i <= 10; $i++ ) {
-	$question = trim( (string) get_post_meta( $post_id, 'faq_q_' . $i, true ) );
-	$answer   = trim( (string) get_post_meta( $post_id, 'faq_a_' . $i, true ) );
+if ( isset( $layout_data ) && is_array( $layout_data ) && ! empty( $layout_data ) ) {
+	$faq_headline = isset( $layout_data['headline'] ) ? trim( (string) $layout_data['headline'] ) : $faq_headline;
+	$items        = isset( $layout_data['items'] ) && is_array( $layout_data['items'] ) ? $layout_data['items'] : array();
 
-	if ( '' === $question || '' === $answer ) {
-		continue;
+	foreach ( array_slice( $items, 0, 10 ) as $item ) {
+		if ( ! is_array( $item ) ) {
+			continue;
+		}
+
+		$question = isset( $item['question'] ) ? trim( (string) $item['question'] ) : '';
+		$answer   = isset( $item['answer'] ) ? trim( (string) $item['answer'] ) : '';
+		if ( '' === $question || '' === $answer ) {
+			continue;
+		}
+
+		$faq_items[] = array(
+			'question' => $question,
+			'answer'   => $answer,
+		);
 	}
+} else {
+	for ( $i = 1; $i <= 10; $i++ ) {
+		$question = trim( (string) get_post_meta( $post_id, 'faq_q_' . $i, true ) );
+		$answer   = trim( (string) get_post_meta( $post_id, 'faq_a_' . $i, true ) );
 
-	$faq_items[] = array(
-		'question' => $question,
-		'answer'   => $answer,
-	);
+		if ( '' === $question || '' === $answer ) {
+			continue;
+		}
+
+		$faq_items[] = array(
+			'question' => $question,
+			'answer'   => $answer,
+		);
+	}
 }
 
 if ( empty( $faq_items ) ) {

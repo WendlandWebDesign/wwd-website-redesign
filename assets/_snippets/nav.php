@@ -13,16 +13,7 @@
         </a>
         <div class="nav-right">
             <img class="icon icon--phone nav-contact-btn-mobile" onclick="" src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/anfrage-blue.svg' ); ?>" alt="" aria-hidden="true">
-            <button class="btn light nav-contact-btn">
-                <span class="btn__border" aria-hidden="true">
-                    <svg class="btn__svg" viewBox="0 0 100 40" preserveAspectRatio="none">
-                        <path class="btn__path" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-                        <path class="btn__seg btn__seg--1" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-                        <path class="btn__seg btn__seg--2" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-                        <path class="btn__seg btn__seg--3" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-                        <path class="btn__seg btn__seg--4" vector-effect="non-scaling-stroke" d="M2,2 H98 Q100,2 100,4 V36 Q100,38 98,38 H2 Q0,38 0,36 V4 Q0,2 2,2 Z"/>
-                    </svg>
-                </span>
+            <button class="light nav-contact-btn btn">
                 <p><?php echo wwd_inline_svg( 'arrow-white.svg', array( 'class' => 'icon--arrow-white', 'aria_hidden' => true ) ); ?>Anfrage</p>
             </button>
         </div>
@@ -36,7 +27,7 @@
                     </div>
                 </div>
                 <div class="img-holder">
-                    <img class="nav-contact-img" src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/16-10-waben.jpg' ); ?>" alt="">
+                    <img class="nav-contact-img" src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/16-10-waben.webp' ); ?>" alt="">
                     <div class="img-transition-bottom"></div>
                 </div>
                 <ul class="nav-contacts">
@@ -51,6 +42,10 @@
                     <li onclick="window.location.href='tel:+4915238976827'">
                         <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/phone-thin-blue.svg' ); ?>" alt="">
                         <p class="light mini-heading" href="">0152 389 768 27</p>
+                    </li>
+                    <li onclick="window.location.href='<?php echo esc_url( home_url( '/website-check/' ) ); ?>'">
+                        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/icons/checkmark.svg' ); ?>" alt="">
+                        <p class="light mini-heading" href="">kostenloser Website Check</p>
                     </li>
                 </ul>
             </div>
@@ -114,7 +109,17 @@
                                                 <div class="card-img-holder">
                                                     <?php
                                                     if ( has_post_thumbnail() ) {
-                                                        echo wp_get_attachment_image( get_post_thumbnail_id(), 'medium', false, array( 'class' => 'card-img' ) );
+                                                        echo wp_get_attachment_image(
+                                                            get_post_thumbnail_id(),
+                                                            'news_nav_card',
+                                                            false,
+                                                            array(
+                                                                'class'    => 'card-img',
+                                                                'sizes'    => '(max-width: 640px) 80vw, 400px',
+                                                                'loading'  => 'lazy',
+                                                                'decoding' => 'async',
+                                                            )
+                                                        );
                                                     } else {
                                                         ?>
                                                         <div class="nav-card__placeholder"></div>
@@ -151,24 +156,34 @@
                                         array(
                                             'post_type'      => 'referenzen',
                                             'posts_per_page' => 4,
-                                            'orderby'        => 'date',
-                                            'order'          => 'DESC',
+                                            'post_status'    => 'publish',
+                                            'orderby'        => 'menu_order',
+                                            'order'          => 'ASC',
                                         )
                                     );
                                     if ( $referenzen_query->have_posts() ) :
                                         while ( $referenzen_query->have_posts() ) :
                                             $referenzen_query->the_post();
-                                            $card_link = get_post_meta( get_the_ID(), '_nav_card_link', true );
-                                            $onclick_attr = '';
-                                            if ( ! empty( $card_link ) ) {
-                                                $onclick_attr = ' onclick="window.location.href=\'' . esc_url( $card_link ) . '\';"';
+                                            $card_link = get_post_meta( get_the_ID(), 'referenzen_card_link_url', true );
+                                            if ( '' === $card_link ) {
+                                                $card_link = get_permalink();
                                             }
                                             ?>
-                                            <div class="nav-card nav-card--clickable js-right-card"<?php echo $onclick_attr; ?> role="link" tabindex="0">
+                                            <a class="nav-card nav-card--clickable js-right-card" href="<?php echo esc_url( $card_link ); ?>">
                                                 <div class="card-img-holder">
                                                     <?php
                                                     if ( has_post_thumbnail() ) {
-                                                        echo wp_get_attachment_image( get_post_thumbnail_id(), 'medium', false, array( 'class' => 'card-img' ) );
+                                                        echo wp_get_attachment_image(
+                                                            get_post_thumbnail_id(),
+                                                            'news_nav_card',
+                                                            false,
+                                                            array(
+                                                                'class'    => 'card-img',
+                                                                'sizes'    => '(max-width: 640px) 80vw, 400px',
+                                                                'loading'  => 'lazy',
+                                                                'decoding' => 'async',
+                                                            )
+                                                        );
                                                     } else {
                                                         ?>
                                                         <div class="nav-card__placeholder nav-card__placeholder--light"></div>
@@ -176,8 +191,8 @@
                                                     }
                                                     ?>
                                                 </div>
-                                                <p class="light nav-card__text-row"><?php echo esc_html( get_the_title() ); ?> <?php echo wwd_inline_svg( 'corner-arrow-light.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
-                                            </div>
+                                                <p class="light nav-card__text-row"><?php echo esc_html( get_the_title() ); ?> </p>
+                                            </a>
                                             <?php
                                         endwhile;
                                         wp_reset_postdata();
@@ -199,6 +214,15 @@
                                 </div>
                                 <div class="right-cards">
                                     <?php
+									$news_query = new WP_Query(
+                                        array(
+                                            'post_type'      => 'news',
+                                            'posts_per_page' => 4,
+                                            'post_status'    => 'publish',
+                                            'orderby'        => 'menu_order',
+                                            'order'          => 'ASC',
+                                        )
+                                    );
                                     $news_query = wwd_get_news_query();
                                     if ( $news_query->have_posts() ) :
                                         while ( $news_query->have_posts() ) :
@@ -208,7 +232,17 @@
                                                 <div class="card-img-holder">
                                                     <?php
                                                     if ( has_post_thumbnail() ) {
-                                                        echo wp_get_attachment_image( get_post_thumbnail_id(), 'medium', false, array( 'class' => 'card-img' ) );
+                                                        echo wp_get_attachment_image(
+                                                            get_post_thumbnail_id(),
+                                                            'news_nav_card',
+                                                            false,
+                                                            array(
+                                                                'class'    => 'card-img',
+                                                                'sizes'    => '(max-width: 640px) 80vw, 400px',
+                                                                'loading'  => 'lazy',
+                                                                'decoding' => 'async',
+                                                            )
+                                                        );
                                                     } else {
                                                         ?>
                                                         <div class="nav-card__placeholder"></div>
@@ -216,7 +250,7 @@
                                                     }
                                                     ?>
                                                 </div>
-                                                <p class="light nav-card__text-row"><?php echo esc_html( get_the_title() ); ?> <?php echo wwd_inline_svg( 'corner-arrow-light.svg', array( 'class' => 'corner-arrow', 'aria_hidden' => true ) ); ?></p>
+                                                <p class="light nav-card__text-row"><?php echo esc_html( get_the_title() ); ?></p>
                                             </div>
                                             <?php
                                         endwhile;

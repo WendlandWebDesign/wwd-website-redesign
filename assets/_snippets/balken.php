@@ -3,6 +3,12 @@ $text     = trim( (string) get_post_meta( get_the_ID(), 'balken_text', true ) );
 $btn_text = trim( (string) get_post_meta( get_the_ID(), 'balken_button_text', true ) );
 $btn_url  = trim( (string) get_post_meta( get_the_ID(), 'balken_button_url', true ) );
 
+if ( isset( $layout_data ) && is_array( $layout_data ) && ! empty( $layout_data ) ) {
+	$text     = isset( $layout_data['text'] ) ? trim( (string) $layout_data['text'] ) : $text;
+	$btn_text = isset( $layout_data['button_text'] ) ? trim( (string) $layout_data['button_text'] ) : $btn_text;
+	$btn_url  = isset( $layout_data['button_url'] ) ? trim( (string) $layout_data['button_url'] ) : $btn_url;
+}
+
 $final_url = '' !== $btn_url ? $btn_url : home_url( '/kontakt/' );
 ?>
 <div class="balken-layout">
