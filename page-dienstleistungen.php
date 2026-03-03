@@ -6,6 +6,12 @@ get_header();
 
 <main>
     <?php
+        /*
+         * Dynamische Bereiche:
+         * - Hero-Bereich ueber Option "leistungen" und statischen Seitentitel.
+         * - Inhaltsmodule ueber CPT "dienstleistungen" inkl. Layout-Snippet-Auswahl.
+         * - Datenmapping je Modul ueber _section_*, _cta_* und _img_* Meta-Felder.
+         */
         $heroImgSrc = esc_url(get_option('leistungen'));
         $heroTxt = "Unsere Leistungen";
 

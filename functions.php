@@ -10,6 +10,32 @@ function auto_theme_support() {
 	add_theme_support( 'title-tag' );
 }add_action('after_setup_theme','auto_theme_support');
 
+// WP admin
+function mein_login_logo() {
+    echo '<style type="text/css">
+        #login h1 a {
+            background-image: url(https://wendlandwebdesign.de/wp-content/themes/wwd-website-redesign/assets/icons/logo.svg);
+            height: 100px;
+            width: 300px;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+    </style>';
+}
+add_action('login_enqueue_scripts', 'mein_login_logo');
+
+function mein_login_logo_url() {
+    return home_url(); 
+}
+add_filter('login_headerurl', 'mein_login_logo_url');
+
+function mein_login_logo_title() {
+    return get_bloginfo('name');
+}
+add_filter('login_headertext', 'mein_login_logo_title');
+
+
+
 /* Google Analytics */
 
 add_action('wp_head', function () {
@@ -1123,6 +1149,38 @@ function wwd_register_cpts() {
 			'menu_pos'     => 24,
 			'rewrite_slug' => 'website-check',
 		),
+		'seo_agentur' => array(
+			'singular'     => 'SEO-Agentur Inhalt',
+			'plural'       => 'SEO-Agentur Inhalte',
+			'menu_icon'    => 'dashicons-chart-area',
+			'menu_pos'     => 27,
+			'rewrite_slug' => 'seo-agentur',
+			'supports'     => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'page-attributes' ),
+		),
+		'vereinswebsites' => array(
+			'singular'     => 'Vereinswebsite Inhalt',
+			'plural'       => 'Vereinswebsite Inhalte',
+			'menu_icon'    => 'dashicons-groups',
+			'menu_pos'     => 28,
+			'rewrite_slug' => 'vereinswebsites',
+			'supports'     => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'page-attributes' ),
+		),
+		'webdesign_agentur' => array(
+			'singular'     => 'Webdesign-Agentur Inhalt',
+			'plural'       => 'Webdesign-Agentur Inhalte',
+			'menu_icon'    => 'dashicons-art',
+			'menu_pos'     => 29,
+			'rewrite_slug' => 'webdesign-agentur',
+			'supports'     => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'page-attributes' ),
+		),
+		'wordpress_agentur' => array(
+			'singular'     => 'WordPress-Agentur Inhalt',
+			'plural'       => 'WordPress-Agentur Inhalte',
+			'menu_icon'    => 'dashicons-wordpress',
+			'menu_pos'     => 30,
+			'rewrite_slug' => 'wordpress-agentur',
+			'supports'     => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'page-attributes' ),
+		),
 	);
 
 	foreach ( $unterseiten_cpts as $slug => $config ) {
@@ -1145,7 +1203,7 @@ function wwd_register_cpts() {
 				'has_archive'  => false,
 				'hierarchical' => false,
 				// "page-attributes" aktiviert das Feld "Reihenfolge" (menu_order) im Editor.
-				'supports'     => array( 'title', 'editor', 'revisions', 'page-attributes' ),
+				'supports'     => isset( $config['supports'] ) && is_array( $config['supports'] ) ? $config['supports'] : array( 'title', 'editor', 'revisions', 'page-attributes' ),
 				'menu_position'=> $config['menu_pos'],
 				'menu_icon'    => $config['menu_icon'],
 				// Hinweis: Falls es bereits Pages mit denselben Slugs gibt, kann es Konflikte geben.
@@ -1692,7 +1750,17 @@ function theme_is_offer_card_layout( $post_id ) {
  * Unterseiten Meta Boxes (Layout-Auswahl + Inhalte).
  */
 function wwd_get_unterseiten_post_types() {
-	return array( 'home', 'dienstleistungen', 'ki-integration', 'ueber-uns', 'website_check' );
+	return array(
+		'home',
+		'dienstleistungen',
+		'ki-integration',
+		'ueber-uns',
+		'website_check',
+		'seo_agentur',
+		'vereinswebsites',
+		'webdesign_agentur',
+		'wordpress_agentur',
+	);
 }
 
 function wwd_add_unterseiten_metaboxes() {
@@ -4462,6 +4530,5 @@ function wwd_seitenbilder_callback() {
     submit_button('Bilder speichern');
     echo '</form></div>';
 }
-
 
 
