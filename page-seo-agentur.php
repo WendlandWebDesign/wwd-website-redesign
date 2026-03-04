@@ -11,7 +11,7 @@ get_header();
 	 * - Layout-/Inhalts-Mapping nutzt bestehende Unterseiten-Felder und faellt auf Standardfelder
 	 *   (post_title, post_excerpt, featured_image) zurueck.
 	 */
-	$heroImgSrc = esc_url( get_option( 'leistungen' ) );
+	$heroImgSrc = esc_url( get_option( 'seo-agentur' ) );
 	$heroTxt    = get_the_title();
 
 	if ( '' === (string) $heroTxt ) {

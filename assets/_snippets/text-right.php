@@ -23,26 +23,26 @@ if ( ! $image_alt ) {
 ?>
 
 <div class="two-img-layout-holder">
-	<div class="two-img-layout text-left-layout mw">
+	<div class="two-img-layout text-right-layout mw">
+		<?php if ( $image_url ) : ?>
+			<div class="text-right-layout__media">
+				<div class="text-right-layout__img-holder">
+					<img class="text-right-layout__img" src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $image_alt ); ?>" loading="lazy" decoding="async">
+				</div>
+			</div>
+		<?php endif; ?>
 		<?php if ( $accent || $heading || $text ) : ?>
-			<div class="txt-holder text-left-layout__text reveal">
+			<div class="txt-holder text-right-layout__text reveal">
 				<?php if ( $accent ) : ?>
 					<p class="ac"><?php echo esc_html( $accent ); ?></p>
 				<?php endif; ?>
-				<div class="text-left-layout__copy">
+				<div class="text-right-layout__copy">
 					<?php if ( $heading ) : ?>
 						<p class="mini-heading light"><?php echo esc_html( $heading ); ?></p>
 					<?php endif; ?>
 					<?php if ( $text ) : ?>
 						<p class="light"><?php echo wp_kses_post( $text ); ?></p>
 					<?php endif; ?>
-				</div>
-			</div>
-		<?php endif; ?>
-		<?php if ( $image_url ) : ?>
-			<div class="text-left-layout__media">
-				<div class="text-left-layout__img-holder">
-					<img class="text-left-layout__img" src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $image_alt ); ?>" loading="lazy" decoding="async">
 				</div>
 			</div>
 		<?php endif; ?>

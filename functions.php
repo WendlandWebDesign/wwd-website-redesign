@@ -1157,12 +1157,12 @@ function wwd_register_cpts() {
 			'rewrite_slug' => 'seo-agentur',
 			'supports'     => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'page-attributes' ),
 		),
-		'vereinswebsites' => array(
-			'singular'     => 'Vereinswebsite Inhalt',
-			'plural'       => 'Vereinswebsite Inhalte',
+		'one_pager' => array(
+			'singular'     => 'One Pager Inhalt',
+			'plural'       => 'One Pager Inhalte',
 			'menu_icon'    => 'dashicons-groups',
 			'menu_pos'     => 28,
-			'rewrite_slug' => 'vereinswebsites',
+			'rewrite_slug' => 'one-pager',
 			'supports'     => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'page-attributes' ),
 		),
 		'webdesign_agentur' => array(
@@ -1359,6 +1359,7 @@ function wwd_get_allowed_layouts() {
 		'two-img-layout'   => 'assets/_snippets/two-img-layout.php',
 		'one-img-layout'   => 'assets/_snippets/one-img-layout.php',
 		'text-left'        => 'assets/_snippets/text-left.php',
+		'text-right'       => 'assets/_snippets/text-right.php',
 		'balken-layout'    => 'assets/_snippets/balken.php',
 		'slider-layout'    => 'assets/_snippets/slider.php',
 	);
@@ -1390,6 +1391,7 @@ function wwd_layout_shortcode( $atts ) {
 		'two-img-layout',
 		'three-img-layout',
 		'text-left',
+		'text-right',
 		'faq',
 		'balken',
 		'slider',
@@ -1484,6 +1486,17 @@ function wwd_layout_block_definitions() {
 		'text-left'        => array(
 			'label'   => 'Text Left',
 			'snippet' => 'assets/_snippets/text-left.php',
+			'fields'  => array(
+				array( 'key' => 'text_left_accent', 'label' => 'Accent', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'text_left_heading', 'label' => 'Mini Heading', 'type' => 'text', 'default' => '' ),
+				array( 'key' => 'text_left_text', 'label' => 'Text', 'type' => 'textarea', 'default' => '' ),
+				array( 'key' => 'text_left_image_url', 'label' => 'Bild URL', 'type' => 'url', 'default' => '' ),
+				array( 'key' => 'text_left_image_alt', 'label' => 'Bild Alt', 'type' => 'text', 'default' => '' ),
+			),
+		),
+		'text-right'       => array(
+			'label'   => 'Text Right',
+			'snippet' => 'assets/_snippets/text-right.php',
 			'fields'  => array(
 				array( 'key' => 'text_left_accent', 'label' => 'Accent', 'type' => 'text', 'default' => '' ),
 				array( 'key' => 'text_left_heading', 'label' => 'Mini Heading', 'type' => 'text', 'default' => '' ),
@@ -1770,7 +1783,7 @@ function wwd_get_unterseiten_post_types() {
 		'ueber-uns',
 		'website_check',
 		'seo_agentur',
-		'vereinswebsites',
+		'one_pager',
 		'webdesign_agentur',
 		'wordpress_agentur',
 	);
@@ -1874,6 +1887,7 @@ function wwd_render_layout_template_metabox( $post ) {
 		<option value="faq" <?php selected( $current, 'faq' ); ?>><?php echo esc_html( 'FAQ' ); ?></option>
 		<option value="one-img-layout" <?php selected( $current, 'one-img-layout' ); ?>><?php echo esc_html( 'One-Image Layout' ); ?></option>
 		<option value="text-left" <?php selected( $current, 'text-left' ); ?>><?php echo esc_html( 'Text Left' ); ?></option>
+		<option value="text-right" <?php selected( $current, 'text-right' ); ?>><?php echo esc_html( 'Text Right' ); ?></option>
 		<option value="two-img-layout" <?php selected( $current, 'two-img-layout' ); ?>><?php echo esc_html( 'Two-Image Layout' ); ?></option>
 		<option value="three-img-layout" <?php selected( $current, 'three-img-layout' ); ?>><?php echo esc_html( 'Three-Image Layout' ); ?></option>
 		<option value="balken-layout" <?php selected( $current, 'balken-layout' ); ?>><?php echo esc_html( 'Balken' ); ?></option>
@@ -1901,7 +1915,7 @@ function wwd_render_unterseiten_content_metabox( $post ) {
 
 	wp_nonce_field( 'wwd_unterseiten_content_save', 'wwd_unterseiten_content_nonce' );
 
-	if ( 'text-left' === $layout ) {
+	if ( in_array( $layout, array( 'text-left', 'text-right' ), true ) ) {
 		$text_left_accent  = get_post_meta( $post->ID, 'text_left_accent', true );
 		$text_left_heading = get_post_meta( $post->ID, 'text_left_heading', true );
 		$text_left_text    = get_post_meta( $post->ID, 'text_left_text', true );
@@ -2120,7 +2134,7 @@ function wwd_save_unterseiten_meta( $post_id ) {
 		}
 	}
 
-	if ( 'text-left' === $layout ) {
+	if ( in_array( $layout, array( 'text-left', 'text-right' ), true ) ) {
 		$text_left_accent  = isset( $_POST['wwd_text_left_accent'] ) ? sanitize_text_field( wp_unslash( $_POST['wwd_text_left_accent'] ) ) : '';
 		$text_left_heading = isset( $_POST['wwd_text_left_heading'] ) ? sanitize_text_field( wp_unslash( $_POST['wwd_text_left_heading'] ) ) : '';
 		$text_left_text    = isset( $_POST['wwd_text_left_text'] ) ? wp_kses_post( wp_unslash( $_POST['wwd_text_left_text'] ) ) : '';
@@ -4607,6 +4621,10 @@ function wwd_seitenbilder_callback() {
         'news' => 'News Hero',
         'ueber-uns' => 'Ueber uns Hero',
         'kontakt' => 'Kontakt Hero',
+		'web-agentur' => 'Web-Agentur Hero',
+		'seo-agentur' => 'SEO-Agentur Hero',
+		'wordpress-agentur' => 'WordPress-Agentur Hero',
+		'one-pager' => 'One Pager Hero',
     ];
 
     // Speichern
@@ -4635,3 +4653,4 @@ function wwd_seitenbilder_callback() {
     submit_button('Bilder speichern');
     echo '</form></div>';
 }
+

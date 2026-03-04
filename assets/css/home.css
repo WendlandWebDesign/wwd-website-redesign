@@ -203,6 +203,10 @@
     grid-template-columns: repeat(3, 1fr);
     width: 300%;
     transition: all .5s ease-in-out;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 .slide{
     width: 100%;
@@ -233,6 +237,9 @@
     object-fit: cover;
     object-position: center;
     min-height: 100%;
+    -webkit-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
 }
 .slide .left .img-transition-right{
     position: absolute;

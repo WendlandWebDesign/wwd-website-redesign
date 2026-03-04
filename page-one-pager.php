@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 get_header();
 ?>
 
@@ -7,15 +7,15 @@ get_header();
 	/*
 	 * Dynamische Bereiche:
 	 * - Hero-Headline aus dem Seitentitel, Hero-Bild aus Option "leistungen".
-	 * - Alle Inhaltsmodule kommen aus CPT-Posts vom Typ "vereinswebsites".
+	 * - Alle Inhaltsmodule kommen aus CPT-Posts vom Typ "one_pager".
 	 * - Layout-/Inhalts-Mapping nutzt bestehende Unterseiten-Felder und faellt auf Standardfelder
 	 *   (post_title, post_excerpt, featured_image) zurueck.
 	 */
-	$heroImgSrc = esc_url( get_option( 'leistungen' ) );
+	$heroImgSrc = esc_url( get_option( 'one-pager' ) );
 	$heroTxt    = get_the_title();
 
 	if ( '' === (string) $heroTxt ) {
-		$heroTxt = 'Vereinswebsites';
+		$heroTxt = 'One Pager';
 	}
 	?>
 
@@ -25,9 +25,9 @@ get_header();
 	$allowed_layouts = function_exists( 'wwd_get_allowed_layouts' ) ? wwd_get_allowed_layouts() : array();
 	$default_layout  = 'two-img-layout';
 
-	$vereinswebsites_query = new WP_Query(
+	$one_pager_query = new WP_Query(
 		array(
-			'post_type'      => 'vereinswebsites',
+			'post_type'      => 'one_pager',
 			'posts_per_page' => -1,
 			'orderby'        => array(
 				'menu_order' => 'ASC',
@@ -37,9 +37,9 @@ get_header();
 		)
 	);
 
-	if ( $vereinswebsites_query->have_posts() ) :
-		while ( $vereinswebsites_query->have_posts() ) :
-			$vereinswebsites_query->the_post();
+	if ( $one_pager_query->have_posts() ) :
+		while ( $one_pager_query->have_posts() ) :
+			$one_pager_query->the_post();
 			$post_id = get_the_ID();
 			$layout  = get_post_meta( $post_id, '_layout_template', true );
 
@@ -82,10 +82,11 @@ get_header();
 		endwhile;
 		wp_reset_postdata();
 	else :
-		echo "\n<!-- Kein CPT-Inhalt fuer vereinswebsites vorhanden. -->\n";
+		echo "\n<!-- Kein CPT-Inhalt fuer one_pager vorhanden. -->\n";
 	endif;
 	?>
 </main>
 
 <?php
 get_footer();
+
