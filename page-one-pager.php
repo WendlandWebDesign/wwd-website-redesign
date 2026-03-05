@@ -2,11 +2,11 @@
 get_header();
 if ( is_page_template( 'page-one-pager.php' ) ) {
 	// Hardcoded Offer-Werte (zentral editierbar).
-	$offer_price        = '199.00';
+	$offer_price        = '890.00';
 	$offer_currency     = 'EUR';
 	$offer_availability = 'https://schema.org/InStock';
 	$offer_condition    = 'https://schema.org/NewCondition';
-	$offer_description  = '...kurze Beschreibung des Angebots...';
+	$offer_description  = 'Professioneller One Pager zur Aufwertung ihrer Online-Präsenz - Ab 890€.';
 	$offer_valid_from   = '2026-03-05T00:00:00+01:00';
 
 	$page_id       = get_queried_object_id();
