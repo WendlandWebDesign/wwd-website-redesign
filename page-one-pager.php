@@ -1,46 +1,207 @@
 ﻿<?php
 get_header();
 if ( is_page_template( 'page-one-pager.php' ) ) {
-	// Hardcoded Offer-Werte (zentral editierbar).
-	$offer_price        = '890.00';
-	$offer_currency     = 'EUR';
-	$offer_availability = 'https://schema.org/InStock';
-	$offer_condition    = 'https://schema.org/NewCondition';
-	$offer_description  = 'Professioneller One Pager zur Aufwertung ihrer Online-Präsenz - Ab 890€.';
-	$offer_valid_from   = '2026-03-05T00:00:00+01:00';
+	$page_id          = get_queried_object_id();
+	$page_url         = $page_id ? (string) get_permalink( $page_id ) : '';
+	$page_title       = $page_id ? wp_strip_all_tags( (string) get_the_title( $page_id ) ) : '';
+	$page_excerpt_raw = $page_id ? (string) get_the_excerpt( $page_id ) : '';
+	$page_excerpt     = trim( wp_strip_all_tags( $page_excerpt_raw ) );
+	$page_image_url   = $page_id ? (string) get_the_post_thumbnail_url( $page_id, 'full' ) : '';
+	$site_name        = trim( wp_strip_all_tags( (string) get_bloginfo( 'name' ) ) );
+	$site_url         = (string) home_url( '/' );
 
-	$page_id       = get_queried_object_id();
-	$offer_url     = get_permalink( $page_id );
-	$offer_name    = get_the_title( $page_id );
-	$offer_image   = get_the_post_thumbnail_url( $page_id, 'full' );
-	$excerpt_plain = wp_strip_all_tags( (string) get_the_excerpt( $page_id ) );
-	$description   = '' !== trim( $offer_description ) ? $offer_description : $excerpt_plain;
+	if ( '' === $page_excerpt && $page_id ) {
+		$page_content_plain = wp_strip_all_tags( (string) get_post_field( 'post_content', $page_id ) );
+		$page_excerpt       = '' !== trim( $page_content_plain ) ? wp_trim_words( $page_content_plain, 30, '...' ) : '';
+	}
 
-	$schema = array(
-		'@context'      => 'https://schema.org',
-		'@type'         => 'Offer',
-		'url'           => $offer_url,
-		'name'          => $offer_name,
-		'description'   => $description,
-		'price'         => $offer_price,
-		'priceCurrency' => $offer_currency,
-		'availability'  => $offer_availability,
-		'itemCondition' => $offer_condition,
-		'seller'        => array(
+	/*
+	 * JSON-LD: zentral editierbare Variablen fuer One-Pager.
+	 * Nur Plain-Text pflegen (kein HTML).
+	 */
+	$service_name_edit        = 'One Pager';
+	$service_description_edit = '';
+	$schema_area_served = array(
+							array('@type' => 'Place', 'name' => 'Wendland'),
+							array('@type' => 'AdministrativeArea', 'name' => 'Landkreis Lüchow-Dannenberg'),
+							array('@type' => 'AdministrativeArea', 'name' => 'Niedersachsen'),
+							);
+	$offer_name_edit        = '';
+	$offer_description_edit = 'Professioneller One Pager zur Aufwertung Ihrer Online-Praesenz - ab 890 EUR.';
+	$offer_price            = '890.00'; // "Ab"-Preis.
+	$offer_currency         = 'EUR';
+	$offer_availability     = 'https://schema.org/InStock';
+	$offer_condition        = 'https://schema.org/NewCondition';
+	$offer_valid_from       = ''; // Optional ISO 8601, z. B. '2026-03-05T00:00:00+01:00'.
+
+	// FAQ nur auf true setzen, wenn dieselben FAQs sichtbar im Seiteninhalt ausgegeben werden.
+	$has_visible_faq_section = true;
+	$faqs = array(
+
+	array(
+		'q' => 'Was ist ein Onepager?',
+		'a' => 'Ein Onepager ist eine Website, bei der alle Inhalte auf einer einzigen Seite dargestellt werden. Besucher navigieren durch Scrollen oder über Ankerpunkte zu den einzelnen Abschnitten wie Leistungen, Informationen oder Kontakt.',
+	),
+
+	array(
+		'q' => 'Für wen eignet sich ein Onepager?',
+		'a' => 'Ein Onepager eignet sich besonders für kleinere Unternehmen, Selbstständige oder Projekte mit überschaubarem Inhalt. Wenn nur wenige Leistungen oder Informationen präsentiert werden sollen, bietet ein Onepager eine kompakte und übersichtliche Lösung.',
+	),
+
+	array(
+		'q' => 'Was unterscheidet einen Onepager von einer individuellen Website?',
+		'a' => 'Ein Onepager besteht aus einer einzelnen Seite mit klar strukturierten Abschnitten. Eine individuelle Website hingegen umfasst mehrere Unterseiten und bietet mehr Platz für Inhalte, Leistungen oder komplexere Strukturen.',
+	),
+
+	array(
+		'q' => 'Kann ein Onepager später erweitert werden?',
+		'a' => 'Ja, ein Onepager kann jederzeit erweitert werden. Wenn dein Unternehmen wächst oder mehr Inhalte benötigt werden, kann die Website später problemlos zu einer klassischen Website mit mehreren Unterseiten ausgebaut werden.',
+	),
+
+	array(
+		'q' => 'Ist ein Onepager auch für Google geeignet?',
+		'a' => 'Auch Onepager können für Suchmaschinen optimiert werden. Allerdings bietet eine Website mit mehreren Unterseiten meist mehr Möglichkeiten für umfangreiche Inhalte und Suchmaschinenoptimierung.',
+	),
+
+);
+
+	$service_name        = '' !== trim( $service_name_edit ) ? wp_strip_all_tags( (string) $service_name_edit ) : $page_title;
+	$service_description = '' !== trim( $service_description_edit ) ? wp_strip_all_tags( (string) $service_description_edit ) : $page_excerpt;
+	$offer_name          = '' !== trim( $offer_name_edit ) ? wp_strip_all_tags( (string) $offer_name_edit ) : $page_title;
+	$offer_description   = '' !== trim( $offer_description_edit ) ? wp_strip_all_tags( (string) $offer_description_edit ) : $page_excerpt;
+
+	$service_schema = array(
+		'@type'       => 'Service',
+		'name'        => $service_name,
+		'description' => $service_description,
+		'url'         => $page_url,
+		'provider'    => array(
 			'@type' => 'Organization',
-			'name'  => get_bloginfo( 'name' ),
+			'name'  => $site_name,
+			'url'   => $site_url,
 		),
 	);
 
-	if ( ! empty( $offer_image ) ) {
-		$schema['image'] = $offer_image;
+	if ( is_array( $service_area_served ) ) {
+		$area_served_clean = array_values(
+			array_filter(
+				array_map(
+					static function ( $item ) {
+						return trim( wp_strip_all_tags( (string) $item ) );
+					},
+					$service_area_served
+				)
+			)
+		);
+		if ( ! empty( $area_served_clean ) ) {
+			$service_schema['areaServed'] = $area_served_clean;
+		}
+	} else {
+		$area_served_clean = trim( wp_strip_all_tags( (string) $service_area_served ) );
+		if ( '' !== $area_served_clean ) {
+			$service_schema['areaServed'] = $area_served_clean;
+		}
 	}
 
-	if ( ! empty( $offer_valid_from ) ) {
-		$schema['validFrom'] = $offer_valid_from;
+	if ( '' !== trim( $page_image_url ) ) {
+		$service_schema['image'] = array( $page_image_url );
 	}
 
-	echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>';
+	if ( '' !== trim( (string) $offer_price ) ) {
+		$service_offer = array(
+			'@type'         => 'Offer',
+			'price'         => (string) $offer_price,
+			'priceCurrency' => '' !== trim( (string) $offer_currency ) ? (string) $offer_currency : 'EUR',
+			'url'           => $page_url,
+		);
+		if ( '' !== trim( (string) $offer_availability ) ) {
+			$service_offer['availability'] = (string) $offer_availability;
+		}
+		$service_schema['offers'] = $service_offer;
+	}
+
+	$offer_schema = array(
+		'@type'    => 'Offer',
+		'url'      => $page_url,
+		'name'     => $offer_name,
+		'seller'   => array(
+			'@type' => 'Organization',
+			'name'  => $site_name,
+		),
+	);
+
+	if ( '' !== $offer_description ) {
+		$offer_schema['description'] = $offer_description;
+	}
+	if ( '' !== trim( $page_image_url ) ) {
+		$offer_schema['image'] = array( $page_image_url );
+	}
+	if ( '' !== trim( (string) $offer_price ) ) {
+		$offer_schema['price']         = (string) $offer_price;
+		$offer_schema['priceCurrency'] = '' !== trim( (string) $offer_currency ) ? (string) $offer_currency : 'EUR';
+	}
+	if ( '' !== trim( (string) $offer_availability ) ) {
+		$offer_schema['availability'] = (string) $offer_availability;
+	}
+	if ( '' !== trim( (string) $offer_condition ) ) {
+		$offer_schema['itemCondition'] = (string) $offer_condition;
+	}
+	if ( '' !== trim( (string) $offer_valid_from ) ) {
+		$offer_schema['validFrom'] = (string) $offer_valid_from;
+	}
+
+	$json_ld_graph = array();
+
+	if ( '' !== trim( (string) $offer_schema['name'] ) && '' !== trim( (string) $offer_schema['url'] ) ) {
+		$json_ld_graph[] = $offer_schema;
+	}
+	if ( '' !== trim( (string) $service_schema['name'] ) && '' !== trim( (string) $service_schema['url'] ) ) {
+		$json_ld_graph[] = $service_schema;
+	}
+
+	if ( $has_visible_faq_section && ! empty( $faqs ) ) {
+		$faq_entities = array();
+
+		foreach ( $faqs as $faq ) {
+			$question = isset( $faq['q'] ) ? trim( wp_strip_all_tags( (string) $faq['q'] ) ) : '';
+			$answer   = isset( $faq['a'] ) ? trim( wp_strip_all_tags( (string) $faq['a'] ) ) : '';
+
+			if ( '' === $question || '' === $answer ) {
+				continue;
+			}
+
+			$faq_entities[] = array(
+				'@type'          => 'Question',
+				'name'           => $question,
+				'acceptedAnswer' => array(
+					'@type' => 'Answer',
+					'text'  => $answer,
+				),
+			);
+		}
+
+		if ( ! empty( $faq_entities ) ) {
+			$json_ld_graph[] = array(
+				'@type'      => 'FAQPage',
+				'mainEntity' => $faq_entities,
+			);
+		}
+	}
+
+	if ( ! empty( $json_ld_graph ) ) {
+		?>
+<script type="application/ld+json">
+<?php
+$output = array(
+	'@context' => 'https://schema.org',
+	'@graph'   => $json_ld_graph,
+);
+
+echo wp_json_encode( $output, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+?>
+</script>
+		<?php
+	}
 }
 ?>
 
