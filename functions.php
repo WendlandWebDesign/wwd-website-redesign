@@ -131,6 +131,10 @@ add_filter('wp_sitemaps_posts_query_args', function ($args, $post_type) {
         'kontakt',
         'impressum',
         'datenschutzerklaerung',
+		'webdesign-agentur',
+		'seo-agentur',
+		'wordpress-agentur',
+		'one-pager',
     ];
 
     $ids = [];

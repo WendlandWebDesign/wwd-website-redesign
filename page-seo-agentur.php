@@ -12,7 +12,7 @@ get_header();
 	 *   (post_title, post_excerpt, featured_image) zurueck.
 	 */
 	$heroImgSrc = esc_url( get_option( 'seo-agentur' ) );
-	$heroTxt    = get_the_title();
+	$heroTxt    = 'SEO Agentur'; // Fallback-Text, falls kein Titel gesetzt ist
 
 	if ( '' === (string) $heroTxt ) {
 		$heroTxt = 'SEO Agentur';
