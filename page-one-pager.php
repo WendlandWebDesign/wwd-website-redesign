@@ -1,5 +1,47 @@
 ﻿<?php
 get_header();
+if ( is_page_template( 'page-one-pager.php' ) ) {
+	// Hardcoded Offer-Werte (zentral editierbar).
+	$offer_price        = '199.00';
+	$offer_currency     = 'EUR';
+	$offer_availability = 'https://schema.org/InStock';
+	$offer_condition    = 'https://schema.org/NewCondition';
+	$offer_description  = '...kurze Beschreibung des Angebots...';
+	$offer_valid_from   = '2026-03-05T00:00:00+01:00';
+
+	$page_id       = get_queried_object_id();
+	$offer_url     = get_permalink( $page_id );
+	$offer_name    = get_the_title( $page_id );
+	$offer_image   = get_the_post_thumbnail_url( $page_id, 'full' );
+	$excerpt_plain = wp_strip_all_tags( (string) get_the_excerpt( $page_id ) );
+	$description   = '' !== trim( $offer_description ) ? $offer_description : $excerpt_plain;
+
+	$schema = array(
+		'@context'      => 'https://schema.org',
+		'@type'         => 'Offer',
+		'url'           => $offer_url,
+		'name'          => $offer_name,
+		'description'   => $description,
+		'price'         => $offer_price,
+		'priceCurrency' => $offer_currency,
+		'availability'  => $offer_availability,
+		'itemCondition' => $offer_condition,
+		'seller'        => array(
+			'@type' => 'Organization',
+			'name'  => get_bloginfo( 'name' ),
+		),
+	);
+
+	if ( ! empty( $offer_image ) ) {
+		$schema['image'] = $offer_image;
+	}
+
+	if ( ! empty( $offer_valid_from ) ) {
+		$schema['validFrom'] = $offer_valid_from;
+	}
+
+	echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>';
+}
 ?>
 
 <main>
