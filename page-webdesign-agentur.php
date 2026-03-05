@@ -22,10 +22,13 @@ if ( '' === trim( $page_excerpt ) ) {
 $schema_service_name        = 'Webdesign & Webentwicklung';
 $schema_service_description = 'Individuelles Webdesign für Unternehmen – konzipiert für Performance, Conversion und einfache Pflege mit WordPress.';
 $schema_area_served = array(
-						array('@type' => 'Place', 'name' => 'Wendland'),
-						array('@type' => 'AdministrativeArea', 'name' => 'Landkreis Lüchow-Dannenberg'),
-						array('@type' => 'AdministrativeArea', 'name' => 'Niedersachsen'),
-						);
+	array('@type' => 'Place', 'name' => 'Wendland'),
+	array('@type' => 'AdministrativeArea', 'name' => 'Landkreis Lüchow-Dannenberg'),
+	array('@type' => 'AdministrativeArea', 'name' => 'Lüneburg'),
+	array('@type' => 'AdministrativeArea', 'name' => 'Uelzen'),
+	array('@type' => 'AdministrativeArea', 'name' => 'Niedersachsen'),
+	array('@type' => 'Country', 'name' => 'Deutschland'),
+);
 $schema_offer_price         = ''; // Optional, z.B. '1490.00' (nur Zahlenformat als String).
 $schema_offer_currency      = 'EUR'; // Nur relevant, wenn Preis gesetzt ist.
 

@@ -1,5 +1,136 @@
 <?php
 get_header();
+
+$page_id       = get_queried_object_id();
+$page_url      = get_permalink( $page_id );
+$page_title    = get_the_title( $page_id );
+$page_image    = get_the_post_thumbnail_url( get_the_ID(), 'full' );
+$excerpt_plain = wp_strip_all_tags( (string) get_the_excerpt( $page_id ) );
+
+if ( empty( $page_image ) && $page_id ) {
+	$page_image = get_the_post_thumbnail_url( $page_id, 'full' );
+}
+
+if ( '' === trim( $excerpt_plain ) ) {
+	$page_content_plain = wp_strip_all_tags( (string) get_post_field( 'post_content', $page_id ) );
+	$excerpt_plain      = '' !== trim( $page_content_plain ) ? wp_trim_words( $page_content_plain, 30, '...' ) : '';
+}
+
+// Zentral editierbare Service-Daten (nur Plain-Text).
+$schema_service_name        = 'WordPress Agentur';
+$schema_service_description = 'Individuelle WordPress Websites für Unternehmen – mit Fokus auf Performance, einfache Verwaltung und langfristige Erweiterbarkeit.';
+$schema_area_served = array(
+	array('@type' => 'Place', 'name' => 'Wendland'),
+	array('@type' => 'AdministrativeArea', 'name' => 'Landkreis Lüchow-Dannenberg'),
+	array('@type' => 'AdministrativeArea', 'name' => 'Lüneburg'),
+	array('@type' => 'AdministrativeArea', 'name' => 'Uelzen'),
+	array('@type' => 'AdministrativeArea', 'name' => 'Niedersachsen'),
+	array('@type' => 'Country', 'name' => 'Deutschland'),
+);
+$schema_offer_price         = ''; // Optional, z. B. '890.00'.
+$schema_offer_currency      = 'EUR'; // Nur relevant, wenn Preis gesetzt ist.
+$schema_offer_availability  = 'https://schema.org/InStock'; // Optional bei Offer.
+
+// FAQ nur aktivieren, wenn derselbe Inhalt sichtbar im HTML gerendert wird.
+$has_visible_faq_section = true;
+$faqs = array(
+
+	array(
+		'q' => 'Warum wird WordPress für Websites verwendet?',
+		'a' => 'WordPress ist eines der weltweit meistgenutzten Content-Management-Systeme. Es bietet eine flexible Grundlage für Websites und ermöglicht eine einfache Verwaltung von Inhalten wie Texten, Bildern oder neuen Seiten.',
+	),
+
+	array(
+		'q' => 'Kann ich meine WordPress Website später selbst bearbeiten?',
+		'a' => 'Ja, Inhalte wie Texte, Bilder oder neue Seiten können jederzeit selbst angepasst werden. WordPress ermöglicht eine einfache Verwaltung der Website ohne Programmierkenntnisse.',
+	),
+
+	array(
+		'q' => 'Kann eine WordPress Website später erweitert werden?',
+		'a' => 'Ja, WordPress Websites lassen sich jederzeit erweitern. Neue Seiten, Funktionen oder zusätzliche Inhalte können problemlos ergänzt werden, wenn sich Anforderungen oder das Unternehmen weiterentwickeln.',
+	),
+
+	array(
+		'q' => 'Ist WordPress für Unternehmen geeignet?',
+		'a' => 'Ja, WordPress eignet sich sowohl für kleinere Unternehmen als auch für umfangreiche Websites. Durch die flexible Struktur kann das System an unterschiedliche Anforderungen angepasst werden.',
+	),
+
+	array(
+		'q' => 'Wird meine WordPress Website individuell gestaltet?',
+		'a' => 'Ja, wir entwickeln alle Websites individuell. Design, Struktur und Funktionen werden genau auf die Anforderungen deines Unternehmens abgestimmt. So entsteht eine Website, die perfekt zu deinem Unternehmen und deinen Zielen passt.',
+	),
+
+);
+
+$service_schema = array(
+	'@type'       => 'Service',
+	'name'        => '' !== trim( $schema_service_name ) ? $schema_service_name : $page_title,
+	'description' => '' !== trim( $schema_service_description ) ? $schema_service_description : $excerpt_plain,
+	'url'         => $page_url,
+	'provider'    => array(
+		'@type' => 'Organization',
+		'name'  => get_bloginfo( 'name' ),
+		'url'   => home_url( '/' ),
+	),
+	'areaServed'  => $schema_area_served,
+);
+
+if ( ! empty( $page_image ) ) {
+	$service_schema['image'] = array( $page_image );
+}
+
+if ( '' !== trim( (string) $schema_offer_price ) ) {
+	$service_schema['offers'] = array(
+		'@type'         => 'Offer',
+		'price'         => (string) $schema_offer_price,
+		'priceCurrency' => (string) $schema_offer_currency,
+		'availability'  => (string) $schema_offer_availability,
+		'url'           => $page_url,
+	);
+}
+
+$schemas_out = array( $service_schema );
+
+if ( $has_visible_faq_section && ! empty( $faqs ) ) {
+	$faq_entities = array();
+
+	foreach ( $faqs as $faq ) {
+		$question = isset( $faq['q'] ) ? wp_strip_all_tags( (string) $faq['q'] ) : '';
+		$answer   = isset( $faq['a'] ) ? wp_strip_all_tags( (string) $faq['a'] ) : '';
+
+		if ( '' === trim( $question ) || '' === trim( $answer ) ) {
+			continue;
+		}
+
+		$faq_entities[] = array(
+			'@type'          => 'Question',
+			'name'           => $question,
+			'acceptedAnswer' => array(
+				'@type' => 'Answer',
+				'text'  => $answer,
+			),
+		);
+	}
+
+	if ( ! empty( $faq_entities ) ) {
+		$schemas_out[] = array(
+			'@type'      => 'FAQPage',
+			'mainEntity' => $faq_entities,
+		);
+	}
+}
+?>
+<script type="application/ld+json">
+<?php
+$output = array(
+	'@context' => 'https://schema.org',
+	'@graph'   => $json_ld_graph,
+);
+
+echo wp_json_encode( $output, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+?>
+</script>
+<?php
 ?>
 
 <main>

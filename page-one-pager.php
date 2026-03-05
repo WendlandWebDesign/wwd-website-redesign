@@ -22,10 +22,13 @@ if ( is_page_template( 'page-one-pager.php' ) ) {
 	$service_name_edit        = 'One Pager';
 	$service_description_edit = '';
 	$schema_area_served = array(
-							array('@type' => 'Place', 'name' => 'Wendland'),
-							array('@type' => 'AdministrativeArea', 'name' => 'Landkreis Lüchow-Dannenberg'),
-							array('@type' => 'AdministrativeArea', 'name' => 'Niedersachsen'),
-							);
+		array('@type' => 'Place', 'name' => 'Wendland'),
+		array('@type' => 'AdministrativeArea', 'name' => 'Landkreis Lüchow-Dannenberg'),
+		array('@type' => 'AdministrativeArea', 'name' => 'Lüneburg'),
+		array('@type' => 'AdministrativeArea', 'name' => 'Uelzen'),
+		array('@type' => 'AdministrativeArea', 'name' => 'Niedersachsen'),
+		array('@type' => 'Country', 'name' => 'Deutschland'),
+	);
 	$offer_name_edit        = '';
 	$offer_description_edit = 'Professioneller One Pager zur Aufwertung Ihrer Online-Praesenz - ab 890 EUR.';
 	$offer_price            = '890.00'; // "Ab"-Preis.
